@@ -1,40 +1,37 @@
-import { redirect } from "next/navigation";
+import Link from "next/link";
 import Container from "@mui/material/Container";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
 import { getSession } from "@/lib/auth";
-import TelegramLoginButton from "@/components/TelegramLoginButton";
 
 export default async function HomePage() {
-  const session = await getSession();
-  if (session) redirect("/profile");
-
-  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "";
+  const user = await getSession();
+  const fullName = user
+    ? [user.firstName, user.lastName].filter(Boolean).join(" ")
+    : "";
 
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>
-      <Card variant="outlined">
-        <CardContent>
-          <Stack spacing={3} alignItems="center">
-            <Typography variant="h4" component="h1">
-              Roostr
+      <Stack spacing={2} alignItems="center" textAlign="center">
+        <Typography variant="h4" component="h1">
+          Roostr
+        </Typography>
+        {user ? (
+          <>
+            <Typography color="text.secondary">
+              Вошёл как {fullName || `@${user.username ?? user.id}`}.
             </Typography>
-            <Typography variant="body1" color="text.secondary" align="center">
-              Sign in with your Telegram account to continue.
-            </Typography>
-            {botUsername ? (
-              <TelegramLoginButton botUsername={botUsername} />
-            ) : (
-              <Typography variant="body2" color="error" align="center">
-                Set NEXT_PUBLIC_TELEGRAM_BOT_USERNAME in your .env to show the
-                login button.
-              </Typography>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
+            <Button component={Link} href="/profile" variant="contained">
+              Профиль
+            </Button>
+          </>
+        ) : (
+          <Typography color="text.secondary">
+            Войди через кнопку Telegram справа сверху.
+          </Typography>
+        )}
+      </Stack>
     </Container>
   );
 }
