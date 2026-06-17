@@ -130,7 +130,7 @@ No passwords. Identity = Telegram user.
 1. **Craft** daily (cooldown) → server rolls a **composition** (Model/Backdrop/Symbol by weights),
    stores trait ids + seed. *No live model call.* Instant, predictable, animated.
 2. **Collect / Market / Expeditions** — as original.
-3. **Evolution — PAID:** fuse 8 same-tier creatures → 1 higher-tier (rolls a higher-tier
+3. **Evolution — PAID:** fuse 6 same-tier creatures → 1 higher-tier (rolls a higher-tier
    composition). Costs **coins** (sink).
 4. **Mint** — spend coins → real TON NFT (§8).
 
@@ -147,7 +147,7 @@ No passwords. Identity = Telegram user.
 |--|--------|------|
 | Coins | expeditions, **Stars purchase**, market sales | **evolution (paid)**, **minting**, market buys, pay-to-skip |
 | Stars | real money | → coins |
-| Creatures | crafting | evolution (8→1), minting |
+| Creatures | crafting | evolution (6→1), minting |
 
 ### Real money = **Telegram Stars** (required for digital goods)
 Backend `createInvoiceLink` (currency `XTR`) for coin packs → handle `pre_checkout_query` →
@@ -285,3 +285,87 @@ mints/{id}       # audit: telegramId, creatureId, status, coinsCharged, gasTon, 
 (Telegram-gift style)** — predictable, premium, combinatorially scarce. AI builds the library;
 players compose, collect, and mint to TON. Everything else (auth, economy, expeditions, minting)
 hangs off that.*
+
+---
+
+## Appendix A — Optional / future directions (NON-BINDING)
+
+> Everything below is **exploratory and not finalized**. It captures product ideas for where Roostr
+> could go. Nothing here overrides §0–§13. Items become real only when promoted into a numbered
+> section. Treat as a backlog of options, not commitments.
+
+### A.0 Theme & framing
+
+- **Theme:** collect funny **pixel-art chickens & roosters** ("Roostr"). Tone: playful collectible,
+  not finance.
+- **Reference fantasy:** Pokémon × Telegram Gifts × collectible cards. Goal = collect rare
+  specimens, optionally trade.
+- **Open tension to resolve:** this framing says *"not an NFT game — NFT optional, most players
+  never touch chain."* The core spec (§0, §8) is NFT/TON-centric. **Decision pending:** is on-chain
+  mint the headline (§8) or an opt-in export for exceptional creatures only (A.6)? Pick one before
+  building economy depth.
+
+### A.1 Alternative core loop — eggs (vs. §6 craft)
+
+Egg-driven loop as a candidate replacement/extension of §6's daily craft:
+
+```
+Complete tasks → earn eggs → incubate (cooldown) → hatch a composed creature
+  → collect / evolve / trade → show off rares → (optional) export to Gift/NFT
+```
+
+Eggs = the primary dopamine beat. Maps onto the existing server-authoritative composition roll
+(§3, §6): hatching = the roll; egg **tier** biases the trait weights.
+
+**Egg tiers:** Hay · Barn · Golden · Radioactive · Ancient · Royal · Cosmic.
+**Seasonal (limited):** Halloween · Christmas · Easter.
+
+### A.2 Expanded trait layers (extends §1)
+
+§1's Model/Backdrop/Symbol could expand to a richer pixel-art layer stack:
+
+`Species · Body color · Eyes · Hat · Accessory · Background · Aura · Mutation · Frame`
+
+Example: `Rooster + black feathers + laser eyes + cowboy hat + cigar + sunset background +
+rainbow aura`. Each layer keeps its own rarity weight (§3); composition stays deterministic (§1).
+
+**Species:** Chicken · Rooster · Silkie · Polish · Phoenix · Robot · Zombie.
+
+### A.3 Mutation layer (very rare)
+
+A stackable rarity multiplier on top of any creature:
+
+`Golden · Albino · Neon · Skeleton · Corrupted · Holographic · Glitched · Void`
+
+Drop chance ≈ **1/500–1/1000**. Stacks with any species/combo.
+
+### A.4 Shiny system (Pokémon-style)
+
+A common base can roll into a chase piece via stacked rare layers
+(e.g. `Golden + Cowboy Hat + Laser Eyes`). High-value collector bait. Folds into §3 combinatorial
+scarcity.
+
+### A.5 Evolution variants (refines §6.3)
+
+`6 same-tier creatures + coins` → evolve to next tier (rolls a higher-tier composition).
+Fusion count **fixed at 6** (reconciled with §6.3, §7).
+
+Open option: an alternative `3 identical creatures + coins` "fast path" for exact-duplicate fusion —
+not decided.
+
+### A.6 Seasonal content & scarcity
+
+Seasons (S1, S2, Halloween, Christmas…). **Retired traits never drop again** → scarcity + FOMO.
+Versioned trait library (§9 `trait_library.version`, `enabled`) already supports retirement.
+
+### A.7 Gift / NFT as opt-in export
+
+Creature lives **in-game** by default. **Exceptional** creatures can export:
+`creature → Telegram Gift → TON NFT`. NFT optional; most players never touch chain. (If adopted,
+this reframes §8 from "headline mint" to "opt-in export path.")
+
+### A.8 Future backlog (unsorted)
+
+Collection albums · achievements · sets · daily quests · expeditions · leaderboards · friends ·
+trading · auctions · guilds · breeding · limited events · raid bosses · community goals · pet shows ·
+monthly seasons · rare world drops · secret combinations · hidden mutations.
