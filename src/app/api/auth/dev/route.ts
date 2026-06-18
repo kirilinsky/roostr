@@ -26,7 +26,8 @@ export async function POST(req: Request) {
 
   const fake = FAKE_USERS[role] ?? FAKE_USERS.user;
   const token = await signSession(fake);
-  await upsertUser(fake);
+  // Dev login must not clobber a real Telegram profile sharing the same id.
+  await upsertUser(fake, { overwrite: false });
 
   const res = NextResponse.json({ ok: true, user: fake });
   res.cookies.set(SESSION_COOKIE, token, {

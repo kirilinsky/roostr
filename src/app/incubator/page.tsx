@@ -69,10 +69,10 @@ export default function IncubatorPage() {
     setResult(rolled);
   }, []);
 
-  const eggClickable = hydrated && ready && !result;
+  const eggClickable = hydrated && ready;
 
   return (
-    <Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 } }}>
+    <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
       <Stack spacing={4} alignItems="center" textAlign="center">
         <Stack spacing={1} alignItems="center">
           <Typography variant="h4" component="h1">
@@ -83,116 +83,117 @@ export default function IncubatorPage() {
           </Typography>
         </Stack>
 
-        {/* Center stage: a dark incubator chamber. The near-black egg.png
-            blends seamlessly into it; ambient glow brightens when ready. */}
-        <Box
-          sx={{
-            position: "relative",
-            width: "100%",
-            minHeight: 380,
-            borderRadius: 4,
-            overflow: "hidden",
-            bgcolor: "#04060f",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              inset: 0,
-              background:
-                "radial-gradient(circle at 50% 42%, rgba(0,153,204,0.30), transparent 62%)",
-              opacity: ready ? 1 : 0.45,
-              transition: "opacity 0.5s ease",
-            },
-          }}
-        >
-          {result ? (
-            <Stack spacing={2} alignItems="center" sx={{ zIndex: 1, p: 2 }}>
-              <Typography variant="subtitle1" color="primary">
-                {t("incubator.hatched")}
-              </Typography>
-              <RoostrCard roostr={result} />
-              <Button variant="text" onClick={() => setResult(null)}>
-                {t("incubator.continue")}
-              </Button>
-            </Stack>
-          ) : (
+        {result ? (
+          // Reveal: full-width so the (wide) card never gets clipped.
+          <Stack spacing={2} alignItems="center" sx={{ width: "100%" }}>
+            <Typography variant="subtitle1" color="primary">
+              {t("incubator.hatched")}
+            </Typography>
+            <RoostrCard roostr={result} />
+            <Button variant="text" onClick={() => setResult(null)}>
+              {t("incubator.continue")}
+            </Button>
+          </Stack>
+        ) : (
+          <>
+            {/* Dark incubator chamber. bg matches the egg.png backdrop (#010612)
+                so the near-black PNG blends seamlessly; glow brightens when ready. */}
             <Box
-              role={eggClickable ? "button" : undefined}
-              aria-label={eggClickable ? t("incubator.hatch") : undefined}
-              onClick={eggClickable ? hatch : undefined}
               sx={{
                 position: "relative",
-                zIndex: 1,
-                lineHeight: 0,
-                cursor: eggClickable ? "pointer" : "default",
-                animation: `${float} 4s ease-in-out infinite`,
+                width: "100%",
+                minHeight: 380,
+                borderRadius: 4,
+                overflow: "hidden",
+                bgcolor: "#010612",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  inset: 0,
+                  opacity: ready ? 1 : 0.45,
+                  transition: "opacity 0.5s ease",
+                },
               }}
             >
-              <Image
-                src="/egg.png"
-                alt=""
-                width={1024}
-                height={1024}
-                priority
-                style={{ width: 220, height: "auto", display: "block" }}
-              />
+              <Box
+                role={eggClickable ? "button" : undefined}
+                aria-label={eggClickable ? t("incubator.hatch") : undefined}
+                onClick={eggClickable ? hatch : undefined}
+                sx={{
+                  position: "relative",
+                  zIndex: 1,
+                  lineHeight: 0,
+                  cursor: eggClickable ? "pointer" : "default",
+                  animation: `${float} 4s ease-in-out infinite`,
+                }}
+              >
+                <Image
+                  src="/egg.png"
+                  alt=""
+                  width={1024}
+                  height={1024}
+                  priority
+                  style={{ width: 220, height: "auto", display: "block" }}
+                />
+              </Box>
             </Box>
-          )}
-        </Box>
 
-        {/* Status + actions. Hidden while a hatch result is on screen. */}
-        {!result && (
-          <Stack spacing={2} alignItems="center" sx={{ minHeight: 96 }}>
-            {!hydrated ? null : ready ? (
-              <>
-                <Typography color="text.secondary">
-                  {t("incubator.ready")}
-                </Typography>
-                <Button variant="contained" size="large" onClick={hatch}>
-                  {t("incubator.hatch")}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Typography
-                  color="text.secondary"
-                  sx={{ fontVariantNumeric: "tabular-nums" }}
-                >
-                  {t("incubator.nextIn", { time: formatRemaining(remaining) })}
-                </Typography>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="large"
-                  onClick={hatch}
-                >
-                  <Stack direction="row" spacing={0.75} alignItems="center">
-                    <span>⚡ {t("incubator.boost")}</span>
-                    <Box
-                      component="span"
-                      sx={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 0.25,
-                        opacity: 0.85,
-                      }}
-                    >
-                      · {BOOST_COST}
-                      <Image
-                        src="/corn-coin.png"
-                        alt="Corn Coin"
-                        width={18}
-                        height={17}
-                        style={{ height: 14, width: "auto" }}
-                      />
-                    </Box>
-                  </Stack>
-                </Button>
-              </>
-            )}
-          </Stack>
+            {/* Status + actions */}
+            <Stack spacing={2} alignItems="center" sx={{ minHeight: 96 }}>
+              {!hydrated ? null : ready ? (
+                <>
+                  <Typography color="text.secondary">
+                    {t("incubator.ready")}
+                  </Typography>
+                  <Button variant="contained" size="large" onClick={hatch}>
+                    {t("incubator.hatch")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Typography
+                    color="text.secondary"
+                    sx={{ fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {t("incubator.nextIn", {
+                      time: formatRemaining(remaining),
+                    })}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    size="large"
+                    onClick={hatch}
+                  >
+                    <Stack direction="row" spacing={0.75} alignItems="center">
+                      <span>⚡ {t("incubator.boost")}</span>
+                      <Box
+                        component="span"
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 0.25,
+                          opacity: 0.85,
+                        }}
+                      >
+                        · {BOOST_COST}
+                        <Image
+                          src="/corn-coin.png"
+                          alt="Corn Coin"
+                          width={18}
+                          height={17}
+                          style={{ height: 14, width: "auto" }}
+                        />
+                      </Box>
+                    </Stack>
+                  </Button>
+                </>
+              )}
+            </Stack>
+          </>
         )}
       </Stack>
     </Container>

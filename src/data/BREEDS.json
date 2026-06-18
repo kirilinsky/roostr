@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 3,
   "description": {
     "en": "Roostr breed catalog for future Roostrdex pages.",
     "ru": "Каталог пород Roostr для будущих страниц Roostrdex."
@@ -43,6 +43,10 @@
           {
             "stat": "Recovery",
             "mod": -0.08
+          },
+          {
+            "stat": "Stealth",
+            "mod": 0.1
           }
         ],
         "description": {
@@ -147,7 +151,7 @@
         "id": "showstopper-crest",
         "name": {
           "en": "Showstopper Crest",
-          "ru": "Эффектный хохол"
+          "ru": "Эффектный хохолок"
         },
         "effects": [
           {
@@ -161,12 +165,12 @@
         ],
         "description": {
           "en": "The flamboyant crest draws all eyes but slows it down.",
-          "ru": "Пышный хохол притягивает взгляды, но замедляет."
+          "ru": "Пышный хохолок притягивает взгляды, но замедляет."
         }
       },
       "description": {
         "en": "A show breed with a wild crest and a naturally ridiculous silhouette.",
-        "ru": "Шоу-порода с безумным хохолком и смешным узнаваемым силуэтом."
+        "ru": "Шоу-порода с безумным ком и смешным узнаваемым силуэтом."
       },
       "tags": [
         "crest",
@@ -327,6 +331,10 @@
           {
             "stat": "Recovery",
             "mod": -0.08
+          },
+          {
+            "stat": "Fertility",
+            "mod": -0.1
           }
         ],
         "description": {
@@ -383,6 +391,10 @@
           },
           {
             "stat": "Speed",
+            "mod": -0.1
+          },
+          {
+            "stat": "Stealth",
             "mod": -0.1
           }
         ],
@@ -499,6 +511,10 @@
           {
             "stat": "Endurance",
             "mod": -0.08
+          },
+          {
+            "stat": "Stealth",
+            "mod": 0.1
           }
         ],
         "description": {
@@ -555,6 +571,10 @@
           {
             "stat": "Guard",
             "mod": -0.08
+          },
+          {
+            "stat": "Fertility",
+            "mod": 0.1
           }
         ],
         "description": {
@@ -840,6 +860,10 @@
           {
             "stat": "Guard",
             "mod": -0.08
+          },
+          {
+            "stat": "Fertility",
+            "mod": 0.1
           }
         ],
         "description": {
@@ -896,6 +920,10 @@
           {
             "stat": "Speed",
             "mod": -0.1
+          },
+          {
+            "stat": "Fertility",
+            "mod": 0.12
           }
         ],
         "description": {
@@ -1114,7 +1142,7 @@
         "id": "punk-crest",
         "name": {
           "en": "Punk Crest",
-          "ru": "Панковский хохол"
+          "ru": "Панковский хохолок"
         },
         "effects": [
           {
@@ -1181,6 +1209,10 @@
           {
             "stat": "Recovery",
             "mod": -0.1
+          },
+          {
+            "stat": "Fertility",
+            "mod": -0.1
           }
         ],
         "description": {
@@ -1237,6 +1269,10 @@
           },
           {
             "stat": "Guard",
+            "mod": -0.1
+          },
+          {
+            "stat": "Stealth",
             "mod": -0.1
           }
         ],
@@ -1519,6 +1555,10 @@
           {
             "stat": "Speed",
             "mod": -0.1
+          },
+          {
+            "stat": "Stealth",
+            "mod": -0.12
           }
         ],
         "description": {
@@ -1633,6 +1673,10 @@
           {
             "stat": "Guard",
             "mod": -0.1
+          },
+          {
+            "stat": "Stealth",
+            "mod": 0.1
           }
         ],
         "description": {
@@ -1811,7 +1855,7 @@
       },
       "description": {
         "en": "A fully decorated show breed: crest, beard, muffs and feathered feet.",
-        "ru": "Полностью украшенная шоу-порода: хохол, борода, баки и оперённые ноги."
+        "ru": "Полностью украшенная шоу-порода: хохолок, борода, баки и оперённые ноги."
       },
       "tags": [
         "ornamental",
@@ -1915,7 +1959,7 @@
         ],
         "description": {
           "en": "Crest and beard hide its eyes — and its aim.",
-          "ru": "Хохол и борода скрывают глаза — и точность."
+          "ru": "Хохолок и борода скрывают глаза — и точность."
         }
       },
       "description": {
@@ -2023,6 +2067,10 @@
           {
             "stat": "Damage",
             "mod": -0.1
+          },
+          {
+            "stat": "Fertility",
+            "mod": 0.12
           }
         ],
         "description": {

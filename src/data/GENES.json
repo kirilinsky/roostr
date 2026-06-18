@@ -1,0 +1,526 @@
+{
+  "version": 7,
+  "description": {
+    "en": "Key genes. family + boosts define native upgrade branches; statMods is the small starting buff/debuff.",
+    "ru": "Ключевые гены. family + boosts задают родные ветки; statMods — маленький стартовый баф/дебаф."
+  },
+  "genes": [
+    {
+      "id": "iron-feathers",
+      "no": 1,
+      "name": {
+        "en": "Iron Feathers",
+        "ru": "Железные перья"
+      },
+      "family": "Armor",
+      "boosts": [
+        "Guard",
+        "Endurance"
+      ],
+      "weakness": "Speed, Crit",
+      "role": "Tank",
+      "statMods": {
+        "Health": 2,
+        "Guard": 1,
+        "Speed": -1,
+        "Stealth": -1
+      }
+    },
+    {
+      "id": "dense-plumage",
+      "no": 2,
+      "name": {
+        "en": "Dense Plumage",
+        "ru": "Плотное оперение"
+      },
+      "family": "Armor",
+      "boosts": [
+        "Guard",
+        "Recovery"
+      ],
+      "weakness": "Damage",
+      "role": "Tank",
+      "statMods": {
+        "Health": 1,
+        "Guard": 1,
+        "Damage": -1
+      }
+    },
+    {
+      "id": "stone-skin",
+      "no": 3,
+      "name": {
+        "en": "Stone Skin",
+        "ru": "Каменная кожа"
+      },
+      "family": "Armor",
+      "boosts": [
+        "Guard"
+      ],
+      "weakness": "Speed",
+      "role": "Tank",
+      "statMods": {
+        "Health": 1,
+        "Guard": 2,
+        "Speed": -2,
+        "Stealth": -1
+      }
+    },
+    {
+      "id": "razor-spurs",
+      "no": 4,
+      "name": {
+        "en": "Razor Spurs",
+        "ru": "Бритвенные шпоры"
+      },
+      "family": "Weapons",
+      "boosts": [
+        "Damage",
+        "Crit"
+      ],
+      "weakness": "Guard",
+      "role": "Striker",
+      "statMods": {
+        "Damage": 1,
+        "Crit": 1,
+        "Guard": -1,
+        "Yield": -1
+      }
+    },
+    {
+      "id": "heavy-beak",
+      "no": 5,
+      "name": {
+        "en": "Heavy Beak",
+        "ru": "Тяжёлый клюв"
+      },
+      "family": "Weapons",
+      "boosts": [
+        "Damage"
+      ],
+      "weakness": "Speed",
+      "role": "Striker",
+      "statMods": {
+        "Damage": 2,
+        "Speed": -1,
+        "Stealth": -1,
+        "Luck": -1
+      }
+    },
+    {
+      "id": "hooked-beak",
+      "no": 6,
+      "name": {
+        "en": "Hooked Beak",
+        "ru": "Крючковатый клюв"
+      },
+      "family": "Weapons",
+      "boosts": [
+        "Damage",
+        "Accuracy"
+      ],
+      "weakness": "Recovery",
+      "role": "Striker",
+      "statMods": {
+        "Damage": 1,
+        "Accuracy": 1,
+        "Recovery": -1
+      }
+    },
+    {
+      "id": "quick-step",
+      "no": 7,
+      "name": {
+        "en": "Quick Step",
+        "ru": "Быстрый шаг"
+      },
+      "family": "Mobility",
+      "boosts": [
+        "Speed"
+      ],
+      "weakness": "Endurance",
+      "role": "Duelist",
+      "statMods": {
+        "Speed": 1,
+        "Endurance": -1
+      }
+    },
+    {
+      "id": "light-bones",
+      "no": 8,
+      "name": {
+        "en": "Light Bones",
+        "ru": "Лёгкие кости"
+      },
+      "family": "Mobility",
+      "boosts": [
+        "Speed"
+      ],
+      "weakness": "Guard",
+      "role": "Duelist",
+      "statMods": {
+        "Speed": 2,
+        "Guard": -1,
+        "Health": -1
+      }
+    },
+    {
+      "id": "spring-legs",
+      "no": 9,
+      "name": {
+        "en": "Spring Legs",
+        "ru": "Пружинистые ноги"
+      },
+      "family": "Mobility",
+      "boosts": [
+        "Speed"
+      ],
+      "weakness": "Accuracy",
+      "role": "Duelist",
+      "statMods": {
+        "Speed": 2,
+        "Accuracy": -1,
+        "Guard": -1
+      },
+      "passive": "Springy hops dodge attacks but throw off its own aim."
+    },
+    {
+      "id": "broad-chest",
+      "no": 10,
+      "name": {
+        "en": "Broad Chest",
+        "ru": "Широкая грудь"
+      },
+      "family": "Stamina",
+      "boosts": [
+        "Endurance"
+      ],
+      "weakness": "Speed",
+      "role": "Grinder",
+      "statMods": {
+        "Health": 3,
+        "Endurance": 1,
+        "Speed": -1,
+        "Stealth": -1
+      }
+    },
+    {
+      "id": "old-blood",
+      "no": 11,
+      "name": {
+        "en": "Old Blood",
+        "ru": "Старая кровь"
+      },
+      "family": "Stamina",
+      "boosts": [
+        "Endurance",
+        "Recovery"
+      ],
+      "weakness": "Damage",
+      "role": "Grinder",
+      "statMods": {
+        "Health": 2,
+        "Recovery": 1,
+        "Damage": -1,
+        "Fertility": -1
+      }
+    },
+    {
+      "id": "stressproof",
+      "no": 12,
+      "name": {
+        "en": "Stressproof",
+        "ru": "Стрессоустойчивость"
+      },
+      "family": "Stamina",
+      "boosts": [
+        "Endurance",
+        "Guard",
+        "Recovery"
+      ],
+      "weakness": "Burst Damage",
+      "role": "Grinder",
+      "statMods": {
+        "Health": 2,
+        "Guard": 1,
+        "Recovery": 1,
+        "Damage": -1
+      },
+      "passive": "Resists pressure and recovers faster after heavy hits."
+    },
+    {
+      "id": "wild-rage",
+      "no": 13,
+      "name": {
+        "en": "Wild Rage",
+        "ru": "Дикая ярость"
+      },
+      "family": "Mind",
+      "boosts": [
+        "Crit",
+        "Damage"
+      ],
+      "weakness": "Guard",
+      "role": "Striker",
+      "statMods": {
+        "Crit": 2,
+        "Guard": -1,
+        "Fertility": -1
+      }
+    },
+    {
+      "id": "patient-eye",
+      "no": 14,
+      "name": {
+        "en": "Patient Eye",
+        "ru": "Терпеливый глаз"
+      },
+      "family": "Mind",
+      "boosts": [
+        "Crit",
+        "Accuracy"
+      ],
+      "weakness": "Speed",
+      "role": "Duelist",
+      "statMods": {
+        "Accuracy": 1,
+        "Crit": 1,
+        "Speed": -1
+      }
+    },
+    {
+      "id": "cold-head",
+      "no": 15,
+      "name": {
+        "en": "Cold Head",
+        "ru": "Холодная голова"
+      },
+      "family": "Mind",
+      "boosts": [
+        "Accuracy"
+      ],
+      "weakness": "Damage",
+      "role": "Duelist",
+      "statMods": {
+        "Accuracy": 2,
+        "Crit": 1,
+        "Damage": -1
+      },
+      "passive": "Stays calm — steadier hits, less wild burst."
+    },
+    {
+      "id": "corn-sense",
+      "no": 16,
+      "name": {
+        "en": "Corn Sense",
+        "ru": "Кукурузное чутьё"
+      },
+      "family": "Work",
+      "boosts": [
+        "Yield"
+      ],
+      "weakness": "Damage",
+      "role": "Farmer",
+      "statMods": {
+        "Yield": 2,
+        "Damage": -1,
+        "Fertility": 1
+      }
+    },
+    {
+      "id": "tireless-worker",
+      "no": 17,
+      "name": {
+        "en": "Tireless Worker",
+        "ru": "Неутомимый работник"
+      },
+      "family": "Work",
+      "boosts": [
+        "Yield",
+        "Recovery"
+      ],
+      "weakness": "Crit",
+      "role": "Farmer",
+      "statMods": {
+        "Yield": 1,
+        "Recovery": 1,
+        "Crit": -1,
+        "Fertility": 1
+      }
+    },
+    {
+      "id": "lucky-claw",
+      "no": 18,
+      "name": {
+        "en": "Lucky Claw",
+        "ru": "Счастливый коготь"
+      },
+      "family": "Work",
+      "boosts": [
+        "Luck"
+      ],
+      "weakness": "Guard",
+      "role": "Farmer",
+      "statMods": {
+        "Luck": 2,
+        "Guard": -1
+      }
+    },
+    {
+      "id": "thunder-crow",
+      "no": 19,
+      "name": {
+        "en": "Thunder Crow",
+        "ru": "Громовой крик"
+      },
+      "family": "Voice",
+      "boosts": [
+        "Crow"
+      ],
+      "weakness": "Recovery",
+      "role": "Showman",
+      "statMods": {
+        "Crow": 2,
+        "Recovery": -1,
+        "Stealth": -2
+      }
+    },
+    {
+      "id": "silver-throat",
+      "no": 20,
+      "name": {
+        "en": "Silver Throat",
+        "ru": "Серебряное горло"
+      },
+      "family": "Voice",
+      "boosts": [
+        "Crow"
+      ],
+      "weakness": "Guard",
+      "role": "Showman",
+      "statMods": {
+        "Crow": 1,
+        "Luck": 1,
+        "Guard": -1
+      }
+    },
+    {
+      "id": "mocking-call",
+      "no": 21,
+      "name": {
+        "en": "Mocking Call",
+        "ru": "Издевательский зов"
+      },
+      "family": "Voice",
+      "boosts": [
+        "Crow"
+      ],
+      "weakness": "Recovery",
+      "role": "Showman",
+      "statMods": {
+        "Crow": 1,
+        "Luck": 1,
+        "Recovery": -1
+      },
+      "passive": "Taunts rattle stronger foes into mistakes."
+    },
+    {
+      "id": "shadow-step",
+      "name": {
+        "en": "Shadow Step",
+        "ru": "Теневой шаг"
+      },
+      "family": "Stealth",
+      "boosts": [
+        "Stealth"
+      ],
+      "weakness": "Guard",
+      "role": "Thief",
+      "statMods": {
+        "Stealth": 2,
+        "Guard": -1
+      },
+      "no": 22
+    },
+    {
+      "id": "silent-plumage",
+      "name": {
+        "en": "Silent Plumage",
+        "ru": "Тихое оперение"
+      },
+      "family": "Stealth",
+      "boosts": [
+        "Stealth",
+        "Recovery"
+      ],
+      "weakness": "Crow",
+      "role": "Thief",
+      "statMods": {
+        "Stealth": 1,
+        "Recovery": 1,
+        "Crow": -1
+      },
+      "no": 23
+    },
+    {
+      "id": "sticky-claw",
+      "name": {
+        "en": "Sticky Claw",
+        "ru": "Липкий коготь"
+      },
+      "family": "Stealth",
+      "boosts": [
+        "Stealth",
+        "Luck"
+      ],
+      "weakness": "Damage",
+      "role": "Thief",
+      "statMods": {
+        "Stealth": 1,
+        "Luck": 1,
+        "Damage": -1
+      },
+      "no": 24
+    },
+    {
+      "id": "nest-finder",
+      "name": {
+        "en": "Nest Finder",
+        "ru": "Искатель гнёзд"
+      },
+      "family": "Work",
+      "boosts": [
+        "Fertility",
+        "Yield"
+      ],
+      "weakness": "Speed",
+      "role": "Farmer",
+      "statMods": {
+        "Fertility": 2,
+        "Yield": 1,
+        "Speed": -1
+      },
+      "no": 25
+    },
+    {
+      "id": "brood-warmth",
+      "name": {
+        "en": "Brood Warmth",
+        "ru": "Тепло гнезда"
+      },
+      "family": "Work",
+      "boosts": [
+        "Fertility",
+        "Recovery"
+      ],
+      "weakness": "Damage",
+      "role": "Farmer",
+      "statMods": {
+        "Fertility": 1,
+        "Recovery": 1,
+        "Damage": -1
+      },
+      "no": 26
+    }
+  ]
+}

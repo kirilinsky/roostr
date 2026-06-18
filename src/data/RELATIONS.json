@@ -1,0 +1,426 @@
+{
+  "version": 7,
+  "description": {
+    "en": "How it all connects: gene families -> skills they boost/weaken + role; archetypes (gene combos) -> strengths/weaknesses; weight classes -> HP/stat modifiers.",
+    "ru": "Как всё связано: семейства генов -> усиливаемые/слабеющие скиллы + роль; архетипы (комбо генов) -> сильные/слабые стороны; весовые классы -> модификаторы HP/статов."
+  },
+  "families": [
+    {
+      "id": "Armor",
+      "name": {
+        "en": "Armor / Feathers",
+        "ru": "Броня / Перья"
+      },
+      "color": "#607d8b",
+      "boosts": [
+        "Guard",
+        "Endurance"
+      ],
+      "weakens": [
+        "Speed",
+        "Crit"
+      ],
+      "role": "Tank"
+    },
+    {
+      "id": "Weapons",
+      "name": {
+        "en": "Weapons / Spurs",
+        "ru": "Оружие / Шпоры"
+      },
+      "color": "#c62828",
+      "boosts": [
+        "Damage",
+        "Crit"
+      ],
+      "weakens": [
+        "Guard",
+        "Recovery"
+      ],
+      "role": "Striker"
+    },
+    {
+      "id": "Mobility",
+      "name": {
+        "en": "Mobility / Legs",
+        "ru": "Подвижность / Ноги"
+      },
+      "color": "#1565c0",
+      "boosts": [
+        "Speed",
+        "Accuracy"
+      ],
+      "weakens": [
+        "Endurance",
+        "Guard"
+      ],
+      "role": "Duelist"
+    },
+    {
+      "id": "Stamina",
+      "name": {
+        "en": "Stamina / Body",
+        "ru": "Выносливость / Тело"
+      },
+      "color": "#6d4c41",
+      "boosts": [
+        "Endurance",
+        "Guard",
+        "Recovery"
+      ],
+      "weakens": [
+        "Speed",
+        "Crit"
+      ],
+      "role": "Grinder"
+    },
+    {
+      "id": "Mind",
+      "name": {
+        "en": "Mind / Temper",
+        "ru": "Ум / Характер"
+      },
+      "color": "#6a1b9a",
+      "boosts": [
+        "Crit",
+        "Accuracy"
+      ],
+      "weakens": [
+        "Speed"
+      ],
+      "role": "Duelist"
+    },
+    {
+      "id": "Work",
+      "name": {
+        "en": "Work / Forage",
+        "ru": "Труд / Фураж"
+      },
+      "color": "#2e7d32",
+      "boosts": [
+        "Yield",
+        "Recovery",
+        "Luck",
+        "Fertility"
+      ],
+      "weakens": [
+        "Damage",
+        "Crit"
+      ],
+      "role": "Farmer"
+    },
+    {
+      "id": "Voice",
+      "name": {
+        "en": "Voice / Presence",
+        "ru": "Голос / Присутствие"
+      },
+      "color": "#ef6c00",
+      "boosts": [
+        "Crow"
+      ],
+      "weakens": [
+        "Recovery",
+        "Guard"
+      ],
+      "role": "Showman"
+    },
+    {
+      "id": "Stealth",
+      "name": {
+        "en": "Stealth / Shadow",
+        "ru": "Скрытность / Тень"
+      },
+      "color": "#455a64",
+      "boosts": [
+        "Stealth",
+        "Luck"
+      ],
+      "weakens": [
+        "Guard",
+        "Damage"
+      ],
+      "role": "Thief"
+    }
+  ],
+  "archetypes": [
+    {
+      "id": "Tank",
+      "name": {
+        "en": "Tank",
+        "ru": "Танк"
+      },
+      "families": [
+        "Armor",
+        "Stamina"
+      ],
+      "strengths": [
+        "Guard",
+        "Endurance"
+      ],
+      "weaknesses": [
+        "Speed",
+        "Crit"
+      ]
+    },
+    {
+      "id": "Striker",
+      "name": {
+        "en": "Striker",
+        "ru": "Нападающий"
+      },
+      "families": [
+        "Weapons",
+        "Mind"
+      ],
+      "strengths": [
+        "Damage",
+        "Crit"
+      ],
+      "weaknesses": [
+        "Guard",
+        "Recovery"
+      ]
+    },
+    {
+      "id": "Duelist",
+      "name": {
+        "en": "Duelist",
+        "ru": "Дуэлянт"
+      },
+      "families": [
+        "Mobility",
+        "Mind"
+      ],
+      "strengths": [
+        "Speed",
+        "Crit",
+        "Accuracy"
+      ],
+      "weaknesses": [
+        "Endurance"
+      ]
+    },
+    {
+      "id": "Grinder",
+      "name": {
+        "en": "Grinder",
+        "ru": "Гриндер"
+      },
+      "families": [
+        "Stamina",
+        "Armor"
+      ],
+      "strengths": [
+        "Endurance",
+        "Recovery"
+      ],
+      "weaknesses": [
+        "Speed",
+        "Crit"
+      ]
+    },
+    {
+      "id": "Farmer",
+      "name": {
+        "en": "Farmer",
+        "ru": "Фармер"
+      },
+      "families": [
+        "Work"
+      ],
+      "strengths": [
+        "Yield",
+        "Luck",
+        "Recovery",
+        "Fertility"
+      ],
+      "weaknesses": [
+        "Damage",
+        "Crit"
+      ]
+    },
+    {
+      "id": "Showman",
+      "name": {
+        "en": "Showman",
+        "ru": "Шоумен"
+      },
+      "families": [
+        "Voice",
+        "Mind"
+      ],
+      "strengths": [
+        "Crow",
+        "Accuracy"
+      ],
+      "weaknesses": [
+        "Damage"
+      ]
+    },
+    {
+      "id": "Thief",
+      "name": {
+        "en": "Thief",
+        "ru": "Воришка"
+      },
+      "families": [
+        "Stealth"
+      ],
+      "strengths": [
+        "Stealth",
+        "Luck",
+        "Speed"
+      ],
+      "weaknesses": [
+        "Guard",
+        "Damage"
+      ]
+    },
+    {
+      "id": "Hybrid",
+      "name": {
+        "en": "Hybrid",
+        "ru": "Гибрид"
+      },
+      "families": [],
+      "strengths": [],
+      "weaknesses": [],
+      "note": "Work gene + a combat/util gene; flexible but lower ceiling."
+    }
+  ],
+  "weightClasses": [
+    {
+      "id": "tiny",
+      "name": {
+        "en": "Tiny",
+        "ru": "Крошечный"
+      },
+      "healthMod": -3,
+      "weight": 12,
+      "bonus": "Speed++, Recovery",
+      "penalty": "Guard--, Endurance-",
+      "type": "mini-duelist",
+      "statMods": {
+        "Speed": 2,
+        "Recovery": 1,
+        "Stealth": 2,
+        "Guard": -2,
+        "Endurance": -1
+      },
+      "kg": 0.4
+    },
+    {
+      "id": "light",
+      "name": {
+        "en": "Light",
+        "ru": "Лёгкий"
+      },
+      "healthMod": -1,
+      "weight": 26,
+      "bonus": "Speed, Recovery",
+      "penalty": "Guard, Endurance",
+      "type": "fast/fragile",
+      "statMods": {
+        "Speed": 1,
+        "Recovery": 1,
+        "Stealth": 1,
+        "Guard": -1,
+        "Endurance": -1
+      },
+      "kg": 1.5
+    },
+    {
+      "id": "middle",
+      "name": {
+        "en": "Middle",
+        "ru": "Средний"
+      },
+      "healthMod": 0,
+      "weight": 34,
+      "bonus": "balanced",
+      "penalty": "no peak",
+      "type": "hybrid",
+      "statMods": {},
+      "kg": 3
+    },
+    {
+      "id": "heavy",
+      "name": {
+        "en": "Heavy",
+        "ru": "Тяжёлый"
+      },
+      "healthMod": 2,
+      "weight": 20,
+      "bonus": "Guard, Endurance",
+      "penalty": "Speed, Recovery",
+      "type": "tank/grinder",
+      "statMods": {
+        "Guard": 2,
+        "Endurance": 1,
+        "Stealth": -2,
+        "Speed": -1,
+        "Recovery": -1
+      },
+      "kg": 4.5
+    },
+    {
+      "id": "huge",
+      "name": {
+        "en": "Huge",
+        "ru": "Огромный"
+      },
+      "healthMod": 4,
+      "weight": 8,
+      "bonus": "Guard++, Endurance++",
+      "penalty": "Speed--, Accuracy-",
+      "type": "slow monster",
+      "statMods": {
+        "Guard": 3,
+        "Endurance": 2,
+        "Stealth": -3,
+        "Speed": -2,
+        "Recovery": -1,
+        "Accuracy": -1
+      },
+      "kg": 6
+    }
+  ],
+  "tiers": [
+    {
+      "id": "D",
+      "min": 0,
+      "color": "#9e9e9e"
+    },
+    {
+      "id": "C",
+      "min": 80,
+      "color": "#8d6e63"
+    },
+    {
+      "id": "B",
+      "min": 150,
+      "color": "#4a90d9"
+    },
+    {
+      "id": "A",
+      "min": 250,
+      "color": "#43a047"
+    },
+    {
+      "id": "S",
+      "min": 400,
+      "color": "#ab47bc"
+    },
+    {
+      "id": "R",
+      "min": 600,
+      "color": "#ef6c00"
+    },
+    {
+      "id": "X",
+      "min": 999,
+      "color": "#ffca28"
+    }
+  ]
+}

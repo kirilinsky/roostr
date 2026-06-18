@@ -18,8 +18,8 @@ import {
   BREED_GROUPS,
   breedProfile,
   localize,
-  traitEffectLabel,
 } from "@/lib/breeds";
+import { formatTraitEffects } from "@/lib/roostr";
 import { getDiscovered } from "@/lib/dex";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
@@ -182,7 +182,7 @@ export default function RoostrdexPage() {
                   health={breed.baseHealth}
                   healthMax={healthMax}
                   traitName={localize(breed.trait.name, locale)}
-                  traitEffects={traitEffectLabel(breed.trait.effects)}
+                  traitEffects={formatTraitEffects(breed.trait.effects, locale)}
                   lockedLabel={t("roostrdex.locked")}
                   unknownLabel={t("roostrdex.unknown")}
                 />

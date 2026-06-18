@@ -1,0 +1,153 @@
+{
+  "version": 3,
+  "description": {
+    "en": "Upgradeable skills (stats). kind drives ATK/DEF/utility grouping.",
+    "ru": "Прокачиваемые навыки (статы). kind задаёт группу ATK/DEF/утилити."
+  },
+  "skills": [
+    {
+      "id": "Damage",
+      "name": {
+        "en": "Damage",
+        "ru": "Урон"
+      },
+      "kind": "offense",
+      "description": {
+        "en": "Base attack damage.",
+        "ru": "Базовый урон в бою."
+      }
+    },
+    {
+      "id": "Crit",
+      "name": {
+        "en": "Crit",
+        "ru": "Крит"
+      },
+      "kind": "offense",
+      "description": {
+        "en": "Critical hit chance and power.",
+        "ru": "Шанс и сила критического удара."
+      }
+    },
+    {
+      "id": "Accuracy",
+      "name": {
+        "en": "Accuracy",
+        "ru": "Точность"
+      },
+      "kind": "offense",
+      "description": {
+        "en": "Chance to hit fast/evasive foes.",
+        "ru": "Шанс попасть по быстрому/уклоняющемуся."
+      }
+    },
+    {
+      "id": "Speed",
+      "name": {
+        "en": "Speed",
+        "ru": "Скорость"
+      },
+      "kind": "offense",
+      "description": {
+        "en": "Initiative, first move, evasion.",
+        "ru": "Инициатива, первый ход, уклонение."
+      }
+    },
+    {
+      "id": "Guard",
+      "name": {
+        "en": "Guard",
+        "ru": "Защита"
+      },
+      "kind": "defense",
+      "description": {
+        "en": "Reduces incoming damage.",
+        "ru": "Снижает входящий урон."
+      }
+    },
+    {
+      "id": "Endurance",
+      "name": {
+        "en": "Endurance",
+        "ru": "Выносливость"
+      },
+      "kind": "defense",
+      "description": {
+        "en": "Stamina and max HP; activity limit.",
+        "ru": "Запас сил и max HP; лимит активностей."
+      }
+    },
+    {
+      "id": "Recovery",
+      "name": {
+        "en": "Recovery",
+        "ru": "Восстановление"
+      },
+      "kind": "defense",
+      "description": {
+        "en": "Rest speed after battle/farm.",
+        "ru": "Скорость отдыха после боя/фарма."
+      }
+    },
+    {
+      "id": "Crow",
+      "name": {
+        "en": "Crow",
+        "ru": "Крик"
+      },
+      "kind": "utility",
+      "description": {
+        "en": "Charisma: intimidate, break tempo, show rating.",
+        "ru": "Харизма: запугать, сбить темп, шоу-рейтинг."
+      }
+    },
+    {
+      "id": "Yield",
+      "name": {
+        "en": "Yield",
+        "ru": "Доход"
+      },
+      "kind": "utility",
+      "description": {
+        "en": "Income from farm/expeditions.",
+        "ru": "Доход от фарма/экспедиций."
+      }
+    },
+    {
+      "id": "Luck",
+      "name": {
+        "en": "Luck",
+        "ru": "Удача"
+      },
+      "kind": "utility",
+      "description": {
+        "en": "Chance of bonus finds, upsets, rare events.",
+        "ru": "Шанс бонусной находки, апсета, редкого события."
+      }
+    },
+    {
+      "id": "Stealth",
+      "name": {
+        "en": "Stealth",
+        "ru": "Скрытность"
+      },
+      "kind": "utility",
+      "description": {
+        "en": "Avoid detection — key for the thieving mode.",
+        "ru": "Незаметность — ключ для режима воровства."
+      }
+    },
+    {
+      "id": "Fertility",
+      "name": {
+        "en": "Fertility",
+        "ru": "Плодовитость"
+      },
+      "kind": "utility",
+      "description": {
+        "en": "Egg output / breeding yield.",
+        "ru": "Яйценоскость / выход потомства."
+      }
+    }
+  ]
+}

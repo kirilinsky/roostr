@@ -24,6 +24,12 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 - API: `POST /api/auth/telegram` · `POST /api/auth/logout`.
 - Design tokens: `src/theme.ts` (single MUI theme).
 - i18n dicts: `src/i18n/dictionaries.ts` (en+ru).
+- Game data (`src/data/`): `BREEDS.json`, `SKILLS.json` (12 stats incl Stealth + Fertility),
+  `GENES.json` (26; 3/family, Work has 5 incl 2 Fertility), `RELATIONS.json` (families↔skills↔roles,
+  archetypes incl Thief, weight classes w/ statMods), `COSMETICS.json` (colors
+  w/ fixed hex + per-color drop `weight` — exotics rare; + patterns). Genes + colors use bilingual
+  `name {en,ru}` (name.en = canonical id, matches breed `geneAffinities` keys + `COLOR_HEX`).
+  `roostr.ts`/`breeds.ts` read these — see V11.
 - Hatch lib: `rollRoostr() → RolledRoostr` in `src/lib/roostr.ts`.
 - Shared UI: `AppShell` · `StubPage` · `RoostrCard`.
 - DB: `src/db/schema.ts` (users, roostrs, breed_discoveries, battles, expeditions, farm_sessions,
@@ -41,8 +47,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   theme change FIRST, then usage. No drift between code + system.
 - V2 — Every roostr hatches COMMON. Never born rare/legendary. Unique = combination only
   (breed + weight + colors + pattern + 2-4 genes). Power from прокачка, not egg. [.notes/GENE-MODIFIERS.md]
-- V3 — Roostr has 2-4 key genes, weighted hard to 2: 3 is very rare (~1/1000), 4 is a jackpot
-  (~1/100000). `GENE_COUNT_WEIGHTS` in `lib/roostr.ts` sums to 100000 = direct odds.
+- V3 — Roostr has 1-4 key genes, weighted hard to 2 (~99.7%): 3 uncommon (~0.3%), 1 and 4 both
+  super-rare (~1/50000 each). `GENE_COUNT_WEIGHTS` in `lib/roostr.ts` sums to 100000 = direct odds.
 - V4 — Color/pattern = cosmetic only. No battle bonus (avoid "right color for meta").
 - V5 — Daily hatch: 1 free per 24h cooldown. Boost = pay currency to skip wait.
 - V6 — Code comments English-only.
@@ -51,7 +57,9 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   roostrdex "reveal") hidden otherwise. Client admin flag = `AdminProvider`, sourced from server session.
 - V8 — Dev fake-auth (`/api/auth/dev`, `DevLoginButtons`, JWT dev-secret fallback) is DEV-ONLY:
   ALL disabled when `NODE_ENV=production` (endpoint 404s, buttons render null, prod still needs real
-  `JWT_SECRET`). Used to test admin vs non-admin locally without real Telegram.
+  `JWT_SECRET`). Used to test admin vs non-admin locally without real Telegram. Dev login upserts
+  with `overwrite:false` (insert-if-absent) so the fake admin can't clobber the real Telegram
+  profile sharing id 339784494; real Telegram login upserts with `overwrite:true`.
 - V9 — Each breed has exactly ONE fixed innate trait (buff/debuff), grounded in look/habitat/
   character, NOT upgradeable. Lives in `BREEDS.json` `trait` (`effects` = signed stat mods for the
   future battle sim). Distinct from genes (genes = upgrade branches; trait = permanent identity).
@@ -59,6 +67,16 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   incubator, collection, roostrdex, market, arena, farm, friends, bank, settings, profile. Public:
   `/`, `/about`, `/support`, `/[telegramid]`. `/debug` gated separately by admin (V7). Sidebar
   visibility (layout.tsx) mirrors this gate.
+- V11 — `src/data/*.json` is the single source of truth for game data (breeds, skills, genes,
+  relations, cosmetics). Code reads/maps these; do NOT hardcode rosters or color hexes in `.ts`.
+  Cosmetic colors are fixed (name = id, hex pinned) but the palette is broad on purpose.
+- V12 — A roostr IS its "DNA passport" = `RolledRoostr` (breed, weight, colors, pattern, genes,
+  stats, maxHealth, role, trait, seed). Stats derive: `BASE_STAT + Σ(geneLevel × statMods)`;
+  leveling a gene scales its buffs AND debuffs (balance). Upgrade cost `round(10×1.6^(L-1))`, cap
+  `GENE_MAX_LEVEL=10`. Logic in `roostr.ts` (`computeStats`/`computeMaxHealth`/`geneUpgradeCost`),
+  not hardcoded per-screen. Overall level = TIER (D<C<B<A<S<R<X, thresholds in `RELATIONS.json`
+  `tiers`) from `computeRating` = Σ stats + maxHealth — monotonic (debuffed stats floor at 1, so
+  upgrades only add). No birth rarity (V2). Each gene has a sequential `no` = its DNA passport code.
 
 ## §T — Tasks
 
@@ -82,6 +100,13 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T16 | . | roostrdex + collection read from DB | C |
 | T17 | x | friends page + share-profile link (clipboard) + public profile /[telegramid] | C |
 | T18 | x | friendships: add/remove on profile, since date, friends list on /friends | C |
+| T20 | x | extract game data to JSON: SKILLS, GENES, RELATIONS, COSMETICS (source of truth) | V11 |
+| T21 | x | genes to 3/family (21); fill stat gaps (Luck/Accuracy native), buff+debuff mix | C |
+| T22 | x | gene leveling model (stats from levels, cost curve) + debug upgrade lab (GeneLab) | V12 |
+| T24 | x | tier ladder (D..X) from rating + sequential gene `no`; card shows tier not rarity | V12 |
+| T25 | x | Stealth stat: 3 genes + Stealth family + Thief archetype; weight statMods (Huge -Stealth) | V12 |
+| T26 | . | thieving mode (uses Stealth) | C |
+| T23 | . | persist gene levels + real coin spend on upgrade (off mock/localStorage) | C,V12 |
 | T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
 
 ## §B — Bugs

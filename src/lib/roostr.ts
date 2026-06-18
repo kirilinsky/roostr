@@ -6,9 +6,16 @@
 // birth — they define cheaper/stronger upgrade branches (its role). Power comes
 // later from прокачка, not from the egg.
 
+import type { Locale } from "@/i18n/config";
 import { BREEDS_CATALOG, type BreedTrait } from "@/lib/breeds";
+import skillsData from "@/data/SKILLS.json";
+import genesData from "@/data/GENES.json";
+import relationsData from "@/data/RELATIONS.json";
+import cosmeticsData from "@/data/COSMETICS.json";
 
 // --- Skills (upgrade axes) ---
+// The string-union stays the canonical vocabulary (compile-time safety); the
+// metadata table lives in SKILLS.json. Keep ids in sync.
 export type Skill =
   | "Damage"
   | "Crit"
@@ -19,7 +26,18 @@ export type Skill =
   | "Crow"
   | "Recovery"
   | "Yield"
-  | "Luck";
+  | "Luck"
+  | "Stealth"
+  | "Fertility";
+
+export interface SkillMeta {
+  id: Skill;
+  name: { en: string; ru: string };
+  kind: "offense" | "defense" | "utility";
+  description: { en: string; ru: string };
+}
+
+export const SKILLS = skillsData.skills as SkillMeta[];
 
 export type StatModKey = Skill | "Health";
 export type StatMods = Partial<Record<StatModKey, number>>;
@@ -32,21 +50,54 @@ export type GeneFamily =
   | "Stamina"
   | "Mind"
   | "Work"
-  | "Voice";
+  | "Voice"
+  | "Stealth";
 
-export const FAMILY_COLOR: Record<GeneFamily, string> = {
-  Armor: "#607d8b",
-  Weapons: "#c62828",
-  Mobility: "#1565c0",
-  Stamina: "#6d4c41",
-  Mind: "#6a1b9a",
-  Work: "#2e7d32",
-  Voice: "#ef6c00",
-};
+export interface FamilyMeta {
+  id: GeneFamily;
+  name: { en: string; ru: string };
+  color: string;
+  boosts: Skill[];
+  weakens: Skill[];
+  role: string;
+}
+
+export interface ArchetypeMeta {
+  id: string;
+  name: { en: string; ru: string };
+  families: GeneFamily[];
+  strengths: Skill[];
+  weaknesses: Skill[];
+  note?: string;
+}
+
+// The interrelation table (families <-> skills <-> roles, archetypes).
+export const FAMILIES = relationsData.families as FamilyMeta[];
+export const ARCHETYPES = relationsData.archetypes as ArchetypeMeta[];
+
+// Overall-level tiers (D < C < B < A < S < R < X). Tier = band of total rating.
+export interface TierMeta {
+  id: string;
+  min: number; // inclusive rating threshold
+  color: string;
+}
+export const TIERS = relationsData.tiers as TierMeta[];
+
+// Highest tier whose threshold the rating reaches (TIERS sorted ascending).
+export function tierFor(rating: number): TierMeta {
+  let best = TIERS[0];
+  for (const tr of TIERS) if (rating >= tr.min) best = tr;
+  return best;
+}
+
+export const FAMILY_COLOR = Object.fromEntries(
+  FAMILIES.map((f) => [f.id, f.color]),
+) as Record<GeneFamily, string>;
 
 export interface Gene {
   id: string;
-  name: string;
+  no: number; // sequential gene number — used as the DNA passport code
+  name: { en: string; ru: string };
   family: GeneFamily;
   boosts: Skill[]; // native (cheaper, higher ceiling) upgrade branch
   weakness: string; // human-readable trade-off
@@ -55,38 +106,15 @@ export interface Gene {
   passive?: string; // human-readable special behavior for future battle sim
 }
 
-// MVP gene set (§7): stress-proof adds a third Stamina option.
-export const GENES: Gene[] = [
-  // Armor / Feathers
-  { id: "iron-feathers", name: "Iron Feathers", family: "Armor", boosts: ["Guard", "Endurance"], weakness: "Speed, Crit", role: "Tank", statMods: { Health: 2, Guard: 1, Speed: -1 } },
-  { id: "dense-plumage", name: "Dense Plumage", family: "Armor", boosts: ["Guard", "Recovery"], weakness: "Damage", role: "Tank", statMods: { Health: 1, Guard: 1, Damage: -1 } },
-  // Weapons / Spurs
-  { id: "razor-spurs", name: "Razor Spurs", family: "Weapons", boosts: ["Damage", "Crit"], weakness: "Guard", role: "Striker", statMods: { Damage: 1, Crit: 1, Guard: -1 } },
-  { id: "heavy-beak", name: "Heavy Beak", family: "Weapons", boosts: ["Damage"], weakness: "Speed", role: "Striker", statMods: { Damage: 2, Speed: -1 } },
-  // Mobility / Legs
-  { id: "quick-step", name: "Quick Step", family: "Mobility", boosts: ["Speed"], weakness: "Endurance", role: "Duelist", statMods: { Speed: 1, Endurance: -1 } },
-  { id: "light-bones", name: "Light Bones", family: "Mobility", boosts: ["Speed"], weakness: "Guard", role: "Duelist", statMods: { Speed: 2, Guard: -1, Health: -1 } },
-  // Stamina / Body
-  { id: "broad-chest", name: "Broad Chest", family: "Stamina", boosts: ["Endurance"], weakness: "Speed", role: "Grinder", statMods: { Health: 3, Endurance: 1, Speed: -1 } },
-  { id: "old-blood", name: "Old Blood", family: "Stamina", boosts: ["Endurance", "Recovery"], weakness: "Damage", role: "Grinder", statMods: { Health: 2, Recovery: 1, Damage: -1 } },
-  { id: "stressproof", name: "Stressproof", family: "Stamina", boosts: ["Endurance", "Guard", "Recovery"], weakness: "Burst Damage", role: "Grinder", statMods: { Health: 2, Guard: 1, Recovery: 1, Damage: -1 }, passive: "Resists pressure and recovers faster after heavy hits." },
-  // Mind / Temper
-  { id: "wild-rage", name: "Wild Rage", family: "Mind", boosts: ["Crit", "Damage"], weakness: "Guard", role: "Striker", statMods: { Crit: 2, Guard: -1 } },
-  { id: "patient-eye", name: "Patient Eye", family: "Mind", boosts: ["Crit", "Accuracy"], weakness: "Speed", role: "Duelist", statMods: { Accuracy: 1, Crit: 1, Speed: -1 } },
-  // Work / Forage
-  { id: "corn-sense", name: "Corn Sense", family: "Work", boosts: ["Yield"], weakness: "Damage", role: "Farmer", statMods: { Yield: 2, Damage: -1 } },
-  { id: "tireless-worker", name: "Tireless Worker", family: "Work", boosts: ["Yield", "Recovery"], weakness: "Crit", role: "Farmer", statMods: { Yield: 1, Recovery: 1, Crit: -1 } },
-  // Voice / Presence
-  { id: "thunder-crow", name: "Thunder Crow", family: "Voice", boosts: ["Crow"], weakness: "Recovery", role: "Showman", statMods: { Crow: 2, Recovery: -1 } },
-  { id: "silver-throat", name: "Silver Throat", family: "Voice", boosts: ["Crow"], weakness: "Guard", role: "Showman", statMods: { Crow: 1, Luck: 1, Guard: -1 } },
-];
+// MVP gene set — data in GENES.json.
+export const GENES = genesData.genes as Gene[];
 
 // --- Breed (identity modifier, real chicken breeds) ---
 export interface Breed {
   id: string;
-  name: string;
+  name: { en: string; ru: string };
+  group: string; // breed group (English category id)
   affinity: string[]; // light lean, not a guarantee
-  vibe: string;
   baseHealth: number;
   trait: BreedTrait; // fixed innate buff/debuff (not upgradeable)
   geneAffinities?: {
@@ -98,9 +126,9 @@ export interface Breed {
 
 export const BREEDS: Breed[] = BREEDS_CATALOG.map((b) => ({
   id: b.id,
-  name: b.name.en,
+  name: b.name,
+  group: b.group,
   affinity: b.tendencies,
-  vibe: b.group,
   baseHealth: b.baseHealth,
   trait: b.trait,
   geneAffinities: b.geneAffinities,
@@ -110,92 +138,144 @@ export const BREEDS: Breed[] = BREEDS_CATALOG.map((b) => ({
 // --- Weight class (body modifier) ---
 export interface WeightClass {
   id: string;
-  name: string;
+  name: { en: string; ru: string };
   bonus: string;
   penalty: string;
   type: string;
+  kg: number; // numeric body weight (display)
   healthMod: number;
+  statMods?: StatMods; // body shaping (e.g. Huge minuses Stealth)
   weight: number; // roll weight; extremes are rarer
 }
 
-export const WEIGHT_CLASSES: WeightClass[] = [
-  { id: "tiny", name: "Tiny", bonus: "Speed++, Recovery", penalty: "Guard--, Endurance-", type: "mini-duelist", healthMod: -3, weight: 12 },
-  { id: "light", name: "Light", bonus: "Speed, Recovery", penalty: "Guard, Endurance", type: "fast/fragile", healthMod: -1, weight: 26 },
-  { id: "middle", name: "Middle", bonus: "balanced", penalty: "no peak", type: "hybrid", healthMod: 0, weight: 34 },
-  { id: "heavy", name: "Heavy", bonus: "Guard, Endurance", penalty: "Speed, Recovery", type: "tank/grinder", healthMod: 2, weight: 20 },
-  { id: "huge", name: "Huge", bonus: "Guard++, Endurance++", penalty: "Speed--, Accuracy-", type: "slow monster", healthMod: 4, weight: 8 },
-];
+// Weight classes (body modifiers) — data in RELATIONS.json.
+export const WEIGHT_CLASSES = relationsData.weightClasses as WeightClass[];
 
-// --- Cosmetic colors + pattern (no battle effect; collection/show value only) ---
-export const COLORS = {
-  body: ["Black", "White", "Red", "Brown", "Buff", "Cream", "Blue Gray", "Slate"],
-  wing: ["Black", "White", "Copper", "Gold", "Silver", "Speckled", "Barred"],
-  tail: ["Black", "Emerald", "Blue Black", "White", "Gold", "Iridescent"],
-  hackle: ["Gold", "Silver", "Copper", "Cream", "Red", "Black"],
-  comb: ["Red", "Dark Red", "Purple", "Black", "Pink"],
-  leg: ["Yellow", "Slate", "Black", "White", "Greenish"],
-  eye: ["Amber", "Black", "Red", "Pale", "Emerald"],
-} as const;
+// --- Cosmetic colors + pattern (no battle effect) — data in COSMETICS.json ---
+export type CosmeticLayer =
+  | "body"
+  | "wing"
+  | "tail"
+  | "hackle"
+  | "comb"
+  | "leg"
+  | "eye";
 
-export const PATTERNS = [
-  "Solid",
-  "Speckled",
-  "Barred",
-  "Laced",
-  "Mottled",
-  "Splash",
-  "Iridescent",
-  "Albino",
-  "Melanistic",
-] as const;
+interface ColorSwatch {
+  name: { en: string; ru: string };
+  hex: string;
+  weight: number; // drop frequency; exotics are low
+}
 
-// Hex lookup so the card can paint a backdrop from the rolled body color.
-export const BODY_COLOR_HEX: Record<string, string> = {
-  Black: "#2b2b2b",
-  White: "#e9e9ec",
-  Red: "#b23a2e",
-  Brown: "#6b4423",
-  Buff: "#e3c992",
-  Cream: "#f1e6c8",
-  "Blue Gray": "#6e7f8d",
-  Slate: "#4a5568",
-};
+const COSMETIC_LAYERS = cosmeticsData.layers as Record<
+  CosmeticLayer,
+  ColorSwatch[]
+>;
 
-const STAT_LABEL: Record<StatModKey, string> = {
-  Health: "HP",
-  Damage: "Damage",
-  Crit: "Crit",
-  Endurance: "Endurance",
-  Guard: "Guard",
-  Speed: "Speed",
-  Accuracy: "Accuracy",
-  Crow: "Crow",
-  Recovery: "Recovery",
-  Yield: "Yield",
-  Luck: "Luck",
-};
+// layer -> available color ids (the canonical key = name.en; what the roll picks).
+export const COLORS = Object.fromEntries(
+  (Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]).map((layer) => [
+    layer,
+    COSMETIC_LAYERS[layer].map((c) => c.name.en),
+  ]),
+) as Record<CosmeticLayer, string[]>;
 
-export function formatStatMods(mods?: StatMods): string {
+const PATTERN_SWATCHES = cosmeticsData.patterns as { en: string; ru: string }[];
+export const PATTERNS = PATTERN_SWATCHES.map((p) => p.en); // ids (en) — what the roll picks
+const PATTERN_RU = Object.fromEntries(PATTERN_SWATCHES.map((p) => [p.en, p.ru]));
+
+export function patternLabel(id: string, locale: Locale): string {
+  return locale === "ru" ? (PATTERN_RU[id] ?? id) : id;
+}
+
+export function colorLabel(
+  layer: CosmeticLayer,
+  id: string,
+  locale: Locale,
+): string {
+  return locale === "ru" ? (COLOR_LABEL_RU[layer]?.[id] ?? id) : id;
+}
+
+// layer -> { colorId: hex } (fixed swatches). Renderer/cards paint from this.
+export const COLOR_HEX = Object.fromEntries(
+  (Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]).map((layer) => [
+    layer,
+    Object.fromEntries(COSMETIC_LAYERS[layer].map((c) => [c.name.en, c.hex])),
+  ]),
+) as Record<CosmeticLayer, Record<string, string>>;
+
+// layer -> { colorId: ruLabel } for localized display.
+export const COLOR_LABEL_RU = Object.fromEntries(
+  (Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]).map((layer) => [
+    layer,
+    Object.fromEntries(COSMETIC_LAYERS[layer].map((c) => [c.name.en, c.name.ru])),
+  ]),
+) as Record<CosmeticLayer, Record<string, string>>;
+
+// Back-compat: the card paints its backdrop from the rolled body color.
+export const BODY_COLOR_HEX = COLOR_HEX.body;
+
+const SKILL_NAME = Object.fromEntries(SKILLS.map((s) => [s.id, s.name])) as Record<
+  string,
+  { en: string; ru: string }
+>;
+const ROLE_NAME = Object.fromEntries(ARCHETYPES.map((a) => [a.id, a.name])) as Record<
+  string,
+  { en: string; ru: string }
+>;
+
+// Localized label for a skill or the special "Health" stat.
+export function skillLabel(stat: string, locale: Locale): string {
+  if (stat === "Health") return locale === "ru" ? "ХП" : "HP";
+  return SKILL_NAME[stat]?.[locale] ?? stat;
+}
+
+// Localized label for an archetype/role id.
+export function roleLabel(role: string, locale: Locale): string {
+  return ROLE_NAME[role]?.[locale] ?? role;
+}
+
+// "+2 Guard · -1 Speed" — gene starting mods (integers), localized.
+export function formatStatMods(mods: StatMods | undefined, locale: Locale): string {
   if (!mods) return "";
-
   return Object.entries(mods)
-    .filter((entry): entry is [StatModKey, number] => typeof entry[1] === "number" && entry[1] !== 0)
-    .map(([stat, value]) => `${value > 0 ? "+" : ""}${value} ${STAT_LABEL[stat]}`)
+    .filter(
+      (entry): entry is [StatModKey, number] =>
+        typeof entry[1] === "number" && entry[1] !== 0,
+    )
+    .map(([stat, value]) => `${value > 0 ? "+" : ""}${value} ${skillLabel(stat, locale)}`)
     .join(" · ");
 }
 
-export type ColorSet = { -readonly [K in keyof typeof COLORS]: string };
+// "+10% Crit · -8% Recovery" — breed trait effects (percent), localized.
+export function formatTraitEffects(
+  effects: { stat: string; mod: number }[],
+  locale: Locale,
+): string {
+  return effects
+    .map((e) => {
+      const pct = Math.round(e.mod * 100);
+      return `${pct > 0 ? "+" : ""}${pct}% ${skillLabel(e.stat, locale)}`;
+    })
+    .join(" · ");
+}
+
+export type ColorSet = Record<CosmeticLayer, string>;
 
 export interface RolledRoostr {
   breed: Breed;
   weightClass: WeightClass;
   genes: Gene[]; // 2-4 distinct key genes
   maxHealth: number; // starting max HP from breed + weight + genes
+  stats: Record<Skill, number>; // starting skill values (base + gene mods)
   colors: ColorSet;
   pattern: string;
   role: string; // recommended archetype (derived from genes)
   seed: number; // unique-combination id (cosmetic, for display)
 }
+
+export const SKILL_IDS = SKILLS.map((s) => s.id) as Skill[];
+export const STAT_BAR_MAX = 8; // visual cap for stat bars (most start near base)
 
 function pickWeighted<T extends { weight: number }>(entries: readonly T[]): T {
   const total = entries.reduce((s, e) => s + e.weight, 0);
@@ -211,18 +291,19 @@ function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Gene count: 2 almost always. Three is very rare (~1/1000), four is a jackpot
-// (~1/100000). Weights sum to 100000 so they read as direct odds.
-// (Decision: GAME-DESIGN §11.)
+// Gene count: 2 almost always. 3 is uncommon (~0.3%). 1 and 4 are both super-rare
+// (~1/50000 each) — a lone gene or a rich four-combo. Weights sum to 100000 so
+// they read as direct odds. (Decision: GAME-DESIGN §11.)
 const GENE_COUNT_WEIGHTS = [
-  { count: 2, weight: 99899 },
-  { count: 3, weight: 100 },
-  { count: 4, weight: 1 },
+  { count: 1, weight: 19 },
+  { count: 2, weight: 99696 },
+  { count: 3, weight: 399 },
+  { count: 4, weight: 3 },
 ];
 
 function geneRollWeight(gene: Gene, breed: Breed): number {
   const familyBias = breed.geneAffinities?.families?.[gene.family] ?? 1;
-  const geneBias = breed.geneAffinities?.genes?.[gene.name] ?? 1;
+  const geneBias = breed.geneAffinities?.genes?.[gene.name.en] ?? 1;
   return familyBias * geneBias;
 }
 
@@ -248,15 +329,9 @@ function pickGenes(breed: Breed): Gene[] {
   return out;
 }
 
-const FAMILY_ROLE: Record<GeneFamily, string> = {
-  Armor: "Tank",
-  Weapons: "Striker",
-  Mobility: "Duelist",
-  Stamina: "Grinder",
-  Mind: "Duelist",
-  Work: "Farmer",
-  Voice: "Showman",
-};
+const FAMILY_ROLE = Object.fromEntries(
+  FAMILIES.map((f) => [f.id, f.role]),
+) as Record<GeneFamily, string>;
 
 // Recommended role (§4/§6 — the UI should surface this). A combat/util gene mixed
 // with a Work gene reads as a Hybrid; otherwise the most-represented family wins.
@@ -279,9 +354,70 @@ function deriveRole(genes: Gene[]): string {
   return FAMILY_ROLE[best];
 }
 
-function deriveMaxHealth(breed: Breed, weightClass: WeightClass, genes: Gene[]): number {
-  const geneHealth = genes.reduce((sum, gene) => sum + (gene.statMods?.Health ?? 0), 0);
+// --- Gene leveling & stat derivation ---
+// A roostr starts with each key gene at level 1. The player spends coins to
+// raise a gene's level; at level L a gene applies its statMods × L — so BOTH the
+// gene's buffs and its debuffs grow, which is the stat balance.
+
+const BASE_STAT = 4;
+export const GENE_MAX_LEVEL = 10;
+const UPGRADE_BASE = 10;
+const UPGRADE_GROWTH = 1.6;
+
+// geneId -> current level (missing = level 1).
+export type GeneLevels = Record<string, number>;
+
+// Coins to upgrade a gene FROM `level` to level+1 (cost rises each level).
+export function geneUpgradeCost(level: number): number {
+  return Math.round(UPGRADE_BASE * UPGRADE_GROWTH ** (level - 1));
+}
+
+// Skill block = base + weight body-mods + Σ over genes of (level × statMods).
+// Health is tracked separately (computeMaxHealth), not one of the skills.
+export function computeStats(
+  genes: Gene[],
+  levels: GeneLevels = {},
+  weightClass?: WeightClass,
+): Record<Skill, number> {
+  const stats = Object.fromEntries(
+    SKILL_IDS.map((s) => [s, BASE_STAT]),
+  ) as Record<Skill, number>;
+  // Body shaping from weight class (fixed, not leveled) — e.g. Huge → -Stealth.
+  for (const [stat, value] of Object.entries(weightClass?.statMods ?? {})) {
+    if (stat !== "Health" && stat in stats) stats[stat as Skill] += value;
+  }
+  for (const gene of genes) {
+    const lvl = levels[gene.id] ?? 1;
+    for (const [stat, value] of Object.entries(gene.statMods ?? {})) {
+      if (stat !== "Health" && stat in stats) {
+        stats[stat as Skill] += value * lvl;
+      }
+    }
+  }
+  for (const s of SKILL_IDS) stats[s] = Math.max(1, stats[s]);
+  return stats;
+}
+
+export function computeMaxHealth(
+  breed: Breed,
+  weightClass: WeightClass,
+  genes: Gene[],
+  levels: GeneLevels = {},
+): number {
+  const geneHealth = genes.reduce(
+    (sum, gene) => sum + (gene.statMods?.Health ?? 0) * (levels[gene.id] ?? 1),
+    0,
+  );
   return Math.max(1, breed.baseHealth + weightClass.healthMod + geneHealth);
+}
+
+// Overall power/level = sum of all 10 stats + maxHealth. Monotonic with upgrades:
+// debuffed stats floor at 1, so leveling keeps adding net points → tier climbs.
+export function computeRating(
+  stats: Record<Skill, number>,
+  maxHealth: number,
+): number {
+  return Object.values(stats).reduce((sum, v) => sum + v, 0) + maxHealth;
 }
 
 export function rollRoostr(): RolledRoostr {
@@ -289,14 +425,15 @@ export function rollRoostr(): RolledRoostr {
   const weightClass = pickWeighted(WEIGHT_CLASSES);
   const genes = pickGenes(breed);
   const colors = {} as ColorSet;
-  for (const key of Object.keys(COLORS) as (keyof typeof COLORS)[]) {
-    colors[key] = pick(COLORS[key]);
+  for (const layer of Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]) {
+    colors[layer] = pickWeighted(COSMETIC_LAYERS[layer]).name.en;
   }
   return {
     breed,
     weightClass,
     genes,
-    maxHealth: deriveMaxHealth(breed, weightClass, genes),
+    maxHealth: computeMaxHealth(breed, weightClass, genes),
+    stats: computeStats(genes, {}, weightClass),
     colors,
     pattern: pick(PATTERNS),
     role: deriveRole(genes),

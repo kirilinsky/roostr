@@ -102,7 +102,14 @@ export async function getUserById(id: number) {
 // Best-effort: create/refresh the users row on login. Never blocks auth — if the
 // DB is unconfigured or unreachable, we log and move on (the session still
 // issues). `db` is imported lazily so a missing DATABASE_URL can't break login.
-export async function upsertUser(u: SessionUser): Promise<void> {
+//
+// `overwrite`: real Telegram login refreshes profile fields (true). Dev fake-auth
+// passes false so logging in as the fake admin (same id 339784494) does NOT
+// clobber the real Telegram name/photo already stored — it only inserts if absent.
+export async function upsertUser(
+  u: SessionUser,
+  { overwrite = true }: { overwrite?: boolean } = {},
+): Promise<void> {
   if (!process.env.DATABASE_URL) return;
   try {
     const { db } = await import("@/db");
@@ -113,13 +120,15 @@ export async function upsertUser(u: SessionUser): Promise<void> {
       lastName: u.lastName ?? null,
       photoUrl: u.photoUrl ?? null,
     };
-    await db
-      .insert(users)
-      .values({ id: u.id, ...fields })
-      .onConflictDoUpdate({
+    const insert = db.insert(users).values({ id: u.id, ...fields });
+    if (overwrite) {
+      await insert.onConflictDoUpdate({
         target: users.id,
         set: { ...fields, updatedAt: new Date() },
       });
+    } else {
+      await insert.onConflictDoNothing();
+    }
   } catch (e) {
     console.error("upsertUser failed:", e);
   }

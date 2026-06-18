@@ -32,16 +32,6 @@ export interface BreedEntry {
   tags: string[];
 }
 
-// "+10% Crit · -8% Recovery" — compact readout of a trait's modifiers.
-export function traitEffectLabel(effects: BreedTrait["effects"]): string {
-  return effects
-    .map((e) => {
-      const pct = Math.round(e.mod * 100);
-      return `${pct > 0 ? "+" : ""}${pct}% ${e.stat}`;
-    })
-    .join(" · ");
-}
-
 export const BREEDS_CATALOG = data.breeds as BreedEntry[];
 
 // Groups in first-seen order — drive the Roostrdex filter.
