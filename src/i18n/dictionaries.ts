@@ -69,6 +69,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "friends.add": "Add friend",
     "friends.remove": "Remove friend",
     "friends.since": "Friends since {date}",
+    "friends.listTitle": "Your friends ({count})",
+    "friends.empty": "No friends yet. Share your profile link to add some.",
     "publicProfile.notFound": "Player not found.",
   },
   ru: {
@@ -139,6 +141,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "friends.add": "Добавить в друзья",
     "friends.remove": "Удалить из друзей",
     "friends.since": "В друзьях с {date}",
+    "friends.listTitle": "Твои друзья ({count})",
+    "friends.empty": "Друзей пока нет. Поделись ссылкой на профиль.",
     "publicProfile.notFound": "Игрок не найден.",
   },
 };

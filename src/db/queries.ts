@@ -55,6 +55,35 @@ export async function removeFriend(a: number, b: number): Promise<void> {
   }
 }
 
+// All friends of a user (the "other" side of each pair) + since date.
+export async function getFriends(userId: number) {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { friendships, users } = await import("@/db/schema");
+    const { or, eq, sql } = await import("drizzle-orm");
+    return await db
+      .select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        since: friendships.createdAt,
+      })
+      .from(friendships)
+      .innerJoin(
+        users,
+        sql`${users.id} = case when ${friendships.userAId} = ${userId} then ${friendships.userBId} else ${friendships.userAId} end`,
+      )
+      .where(or(eq(friendships.userAId, userId), eq(friendships.userBId, userId)))
+      .orderBy(friendships.createdAt);
+  } catch (e) {
+    console.error("getFriends failed:", e);
+    return [];
+  }
+}
+
 // Public profile lookup by Telegram id. Returns null if absent / DB unavailable.
 export async function getUserById(id: number) {
   if (!process.env.DATABASE_URL || !Number.isFinite(id)) return null;

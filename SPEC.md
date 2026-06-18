@@ -81,7 +81,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T15 | . | server hatch: cooldown + persist roostr + dex discovery (off localStorage) | C,V5 |
 | T16 | . | roostrdex + collection read from DB | C |
 | T17 | x | friends page + share-profile link (clipboard) + public profile /[telegramid] | C |
-| T18 | x | friendships table + add/remove friend on public profile + since date | C |
+| T18 | x | friendships: add/remove on profile, since date, friends list on /friends | C |
 | T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
 
 ## §B — Bugs
