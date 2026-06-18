@@ -26,6 +26,7 @@ import {
   SKILL_IDS,
   STAT_BAR_MAX,
   TIERS,
+  WEIGHT_CLASSES,
   computeStats,
   geneUpgradeCost,
   roleLabel,
@@ -63,9 +64,9 @@ export default function RoostrDetail({
   const name = roostr.nickname || breedName;
   const seedId = `#${roostr.seed.toString(16).padStart(6, "0").toUpperCase()}-RSTR`;
   const tier = roostr.tier;
-  const weightLabel = `${roostr.weightClass.name[locale]} · ${roostr.weightClass.kg} ${
-    locale === "ru" ? "кг" : "kg"
-  }`;
+  const kgUnit = locale === "ru" ? "кг" : "kg";
+  // Weight is a grade on a scale (tiny → huge); it can shift, so show position.
+  const weightIdx = WEIGHT_CLASSES.findIndex((w) => w.id === roostr.weightClass.id);
   // Current HP isn't tracked yet (no battle damage) → full. Shows as cur/max,
   // e.g. "1/43" once battles deplete it.
   const curHp = roostr.maxHealth;
@@ -150,8 +151,6 @@ export default function RoostrDetail({
             size="small"
             variant="outlined"
           />
-          {/* weight class */}
-          <Chip label={`⚖️ ${weightLabel}`} size="small" variant="outlined" />
         </Stack>
       </Box>
 
@@ -248,6 +247,39 @@ export default function RoostrDetail({
               value={(curHp / roostr.maxHealth) * 100}
               sx={{ height: 8, borderRadius: 1 }}
             />
+
+            {/* Weight grade — a shifting scale (tiny → huge); current is filled. */}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mt: 1, mb: 0.5 }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                ⚖️ {roostr.weightClass.name[locale]}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontVariantNumeric: "tabular-nums" }}
+              >
+                {roostr.weightClass.kg} {kgUnit}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.5}>
+              {WEIGHT_CLASSES.map((w, i) => (
+                <Box
+                  key={w.id}
+                  title={`${w.name[locale]} · ${w.kg} ${kgUnit}`}
+                  sx={{
+                    flex: 1,
+                    height: 8,
+                    borderRadius: 1,
+                    bgcolor: i <= weightIdx ? "tertiary.main" : "action.hover",
+                  }}
+                />
+              ))}
+            </Stack>
           </Card>
         </Stack>
 
