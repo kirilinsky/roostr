@@ -30,6 +30,9 @@ export interface BreedEntry {
   trait: BreedTrait;
   description: { en: string; ru: string };
   tags: string[];
+  // Real-world country of origin. `iso` (ISO 3166-1 alpha-2) is the machine key
+  // for future country championships; en/ru are the display names.
+  region: { en: string; ru: string; iso: string };
 }
 
 export const BREEDS_CATALOG = data.breeds as BreedEntry[];

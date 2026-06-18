@@ -44,6 +44,7 @@ const COLOR_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
   { key: "hackle", labelKey: "card.hackle" },
   { key: "wing", labelKey: "card.wing" },
   { key: "comb", labelKey: "card.comb" },
+  { key: "beak", labelKey: "card.beak" },
   { key: "leg", labelKey: "card.leg" },
   { key: "eye", labelKey: "card.eye" },
 ];

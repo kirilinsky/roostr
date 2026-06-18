@@ -7,11 +7,14 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
+import BreedInfoModal from "@/components/BreedInfoModal";
+import { countryFlag } from "@/lib/flag";
 import {
   GENE_MAX_LEVEL,
   SKILLS,
@@ -21,9 +24,7 @@ import {
   formatStatMods,
   geneUpgradeCost,
   skillLabel,
-  type Gene,
   type HydratedRoostr,
-  type StatMods,
 } from "@/lib/roostr";
 import { upgradeGeneAction } from "@/app/collection/[id]/actions";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -36,15 +37,6 @@ const KIND_COLOR: Record<string, "primary" | "secondary" | "success"> = {
 const SKILL_KIND = Object.fromEntries(
   SKILLS.map((s) => [s.id, s.kind]),
 ) as Record<string, string>;
-
-// Gene's current contribution = its statMods scaled by its level.
-function scaledMods(gene: Gene, level: number): StatMods {
-  const out: StatMods = {};
-  for (const [k, v] of Object.entries(gene.statMods ?? {})) {
-    out[k as keyof StatMods] = (v as number) * level;
-  }
-  return out;
-}
 
 export default function RoostrDetail({
   roostr,
@@ -61,6 +53,7 @@ export default function RoostrDetail({
   const locale = useLocale();
   const [pending, startTransition] = useTransition();
   const [busyGene, setBusyGene] = useState<string | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
@@ -139,14 +132,25 @@ export default function RoostrDetail({
 
           {/* level / rating progress */}
           <Card sx={{ p: 1.5 }}>
-            <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                {t("collection.level")} {tier.id} · {breedName}
-              </Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
+                  {t("collection.level")} {tier.id} · {breedName}
+                </Typography>
+                {/* breed info trigger — opens real + game facts about the breed */}
+                <IconButton
+                  size="small"
+                  aria-label={t("breedInfo.info")}
+                  onClick={() => setInfoOpen(true)}
+                  sx={{ flexShrink: 0, color: "primary.main" }}
+                >
+                  ⓘ
+                </IconButton>
+              </Stack>
               <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ fontVariantNumeric: "tabular-nums" }}
+                sx={{ fontVariantNumeric: "tabular-nums", flexShrink: 0 }}
               >
                 {roostr.rating}
                 {nextTier ? ` / ${nextTier.min}` : ""}
@@ -166,18 +170,43 @@ export default function RoostrDetail({
             <Typography variant="h3" sx={{ fontWeight: 800, textTransform: "uppercase" }} noWrap>
               {name}
             </Typography>
-            <Chip
-              label={seedId}
-              size="small"
-              variant="outlined"
-              sx={{ fontFamily: "monospace", mt: 0.5 }}
-            />
+            <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
+              <Chip
+                label={seedId}
+                size="small"
+                variant="outlined"
+                sx={{ fontFamily: "monospace" }}
+              />
+              {/* breed country of origin (future country championships) */}
+              <Chip
+                label={`${countryFlag(roostr.breed.region.iso)} ${roostr.breed.region[locale]}`}
+                size="small"
+                variant="outlined"
+              />
+            </Stack>
           </Box>
 
           <Card sx={{ p: 2, flexGrow: 1 }}>
             <Typography variant="h6" sx={{ mb: 1.5 }}>
               {t("detail.combatStats")}
             </Typography>
+            {/* HP — so a gene's +HP is visible/corroborated as level grows */}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="baseline"
+              sx={{ mb: 1 }}
+            >
+              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                ♥ HP
+              </Typography>
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
+              >
+                {roostr.maxHealth}
+              </Typography>
+            </Stack>
             <Box
               sx={{
                 display: "grid",
@@ -255,8 +284,10 @@ export default function RoostrDetail({
                 <Chip label={`${t("detail.lvl")} ${level}`} size="small" variant="outlined" />
               </Stack>
 
+              {/* gene's base effect (fixed identity) — magnitude grows with
+                  level, reflected in the all-stats panel, not by mutating this. */}
               <Typography variant="body2" sx={{ fontWeight: 700, minHeight: 24 }}>
-                {formatStatMods(scaledMods(gene, level), locale) || "—"}
+                {formatStatMods(gene.statMods, locale) || "—"}
               </Typography>
 
               {isOwner ? (
@@ -283,6 +314,12 @@ export default function RoostrDetail({
           );
         })}
       </Box>
+
+      <BreedInfoModal
+        breedId={roostr.breed.id}
+        open={infoOpen}
+        onClose={() => setInfoOpen(false)}
+      />
     </Stack>
   );
 }

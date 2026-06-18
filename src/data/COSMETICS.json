@@ -642,6 +642,64 @@
         "hex": "#ff2d55",
         "weight": 3
       }
+    ],
+    "beak": [
+      {
+        "name": {
+          "en": "Yellow",
+          "ru": "Жёлтый"
+        },
+        "hex": "#e3b94e",
+        "weight": 100
+      },
+      {
+        "name": {
+          "en": "Horn",
+          "ru": "Роговой"
+        },
+        "hex": "#c9a86a",
+        "weight": 90
+      },
+      {
+        "name": {
+          "en": "Black",
+          "ru": "Чёрный"
+        },
+        "hex": "#2b2b2b",
+        "weight": 70
+      },
+      {
+        "name": {
+          "en": "Ivory",
+          "ru": "Слоновая кость"
+        },
+        "hex": "#ece4cf",
+        "weight": 60
+      },
+      {
+        "name": {
+          "en": "Slate",
+          "ru": "Сланцевый"
+        },
+        "hex": "#6b7079",
+        "weight": 50
+      },
+      {
+        "name": {
+          "en": "Pink",
+          "ru": "Розовый"
+        },
+        "hex": "#d9a7a0",
+        "weight": 40
+      },
+      {
+        "name": {
+          "en": "Willow",
+          "ru": "Ивовый"
+        },
+        "hex": "#8a8a4a",
+        "weight": 30
+      }
     ]
   },
   "patterns": [

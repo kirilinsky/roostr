@@ -150,11 +150,19 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     fillLine(g, headCx + 1, headCy + headR, headCx + 1, headCy + headR + 2, 0, WATTLE);
   }
 
-  // BEAK — triangle pointing right
-  for (let k = 0; k < 3; k++) {
-    const span = 1 - Math.floor(k / 2);
+  // BEAK — shape varies by breed (like the tail). Fighter/game breeds get a
+  // longer, heavier, downward-hooked beak; others a plain short point.
+  const hooked =
+    tags.has("fighter") ||
+    tags.has("game") ||
+    tags.has("strong") ||
+    tags.has("hard-feather");
+  const beakLen = hooked ? 4 : 3;
+  for (let k = 0; k < beakLen; k++) {
+    const span = k === 0 ? 1 : 0; // tall base, then a 1px point
     for (let dy = -span; dy <= span; dy++) setCell(g, headCx + headR + k, headCy + dy, BEAK);
   }
+  if (hooked) setCell(g, headCx + headR + beakLen - 1, headCy + 1, BEAK); // hook curves down
 
   // EYE — front of head
   setCell(g, headCx + 1, headCy - 1, EYE_W);
@@ -217,6 +225,8 @@ export default function RoostrAvatarPixel({
       comb: COLOR_HEX.comb[colors.comb] ?? "#c1352b",
       leg: COLOR_HEX.leg[colors.leg] ?? "#e3b94e",
       eye: COLOR_HEX.eye[colors.eye] ?? "#c8861f",
+      // beak is a cosmetic layer now; fall back for pre-beak rows.
+      beak: COLOR_HEX.beak?.[colors.beak] ?? BEAK_HEX,
     }),
     [colors],
   );
@@ -235,7 +245,7 @@ export default function RoostrAvatarPixel({
       case WATTLE:
         return hex.comb;
       case BEAK:
-        return BEAK_HEX;
+        return hex.beak;
       case EYE_W:
         return EYE_WHITE;
       case EYE_I:

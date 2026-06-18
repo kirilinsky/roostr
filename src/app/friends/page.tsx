@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
@@ -57,8 +58,25 @@ export default async function FriendsPage() {
                     [f.firstName, f.lastName].filter(Boolean).join(" ") ||
                     (f.username ? `@${f.username}` : String(f.id));
                   return (
-                    <ListItem key={f.id} disablePadding>
-                      <ListItemButton component={Link} href={`/${f.id}`}>
+                    <ListItem
+                      key={f.id}
+                      disablePadding
+                      secondaryAction={
+                        <Button
+                          component={Link}
+                          href={`/${f.id}`}
+                          size="small"
+                          variant="outlined"
+                        >
+                          {t("friends.catalog")}
+                        </Button>
+                      }
+                    >
+                      <ListItemButton
+                        component={Link}
+                        href={`/${f.id}`}
+                        sx={{ pr: 12 }}
+                      >
                         <ListItemAvatar>
                           <Avatar src={f.photoUrl ?? undefined} alt={name}>
                             {name.charAt(0)}

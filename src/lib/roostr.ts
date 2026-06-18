@@ -122,6 +122,7 @@ export interface Breed {
     genes?: Partial<Record<string, number>>;
   };
   tags: string[]; // visual/identity tags — drive avatar silhouette & add-on layers
+  region: { en: string; ru: string; iso: string }; // country of origin (iso = championships key)
   weight: number; // roll weight (some breeds are simply more common)
 }
 
@@ -134,6 +135,7 @@ export const BREEDS: Breed[] = BREEDS_CATALOG.map((b) => ({
   trait: b.trait,
   geneAffinities: b.geneAffinities,
   tags: b.tags,
+  region: b.region,
   weight: b.dropWeight,
 }));
 
@@ -161,7 +163,8 @@ export type CosmeticLayer =
   | "hackle"
   | "comb"
   | "leg"
-  | "eye";
+  | "eye"
+  | "beak";
 
 interface ColorSwatch {
   name: { en: string; ru: string };

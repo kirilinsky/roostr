@@ -5,9 +5,11 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import FriendButton from "@/components/FriendButton";
+import CollectionCard from "@/components/CollectionCard";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
-import { getUserById, getFriendship } from "@/db/queries";
+import { getUserById, getFriendship, getRoostrs } from "@/db/queries";
+import { hydrateRoostr } from "@/lib/roostr";
 
 // Public profile reachable via the shared link: /<telegramId>. Single-segment
 // dynamic route — static routes (/friends, /market, …) win, so it only catches
@@ -47,6 +49,9 @@ export default async function PublicProfilePage({
   const since = friendship
     ? new Date(friendship.createdAt).toLocaleDateString(locale)
     : null;
+
+  // Public, read-only catalog of this user's roosters.
+  const roostrs = (await getRoostrs(user.id)).map(hydrateRoostr);
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -102,6 +107,26 @@ export default async function PublicProfilePage({
           </Stack>
         )}
       </Stack>
+
+      {/* Read-only catalog of this user's roosters — open each, no upgrades. */}
+      {roostrs.length > 0 && (
+        <Stack spacing={2} sx={{ mt: 5 }}>
+          <Typography variant="overline" color="text.secondary">
+            {t("publicProfile.catalog")} ({roostrs.length})
+          </Typography>
+          <Box
+            sx={{
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)" },
+            }}
+          >
+            {roostrs.map((r) => (
+              <CollectionCard key={r.id ?? r.seed} roostr={r} />
+            ))}
+          </Box>
+        </Stack>
+      )}
     </Container>
   );
 }

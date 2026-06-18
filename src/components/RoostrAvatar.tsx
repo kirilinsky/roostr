@@ -107,6 +107,7 @@ export default function RoostrAvatar({
       comb: COLOR_HEX.comb[colors.comb] ?? "#c1352b",
       leg: COLOR_HEX.leg[colors.leg] ?? "#e3b94e",
       eye: COLOR_HEX.eye[colors.eye] ?? "#c8861f",
+      beak: COLOR_HEX.beak?.[colors.beak] ?? BEAK_HEX, // cosmetic layer + pre-beak fallback
     }),
     [colors],
   );
@@ -118,6 +119,12 @@ export default function RoostrAvatar({
   const featheredFeet = tags.has("feathered-feet");
   const longTail = tags.has("longtail");
   const tall = tags.has("tall");
+  // Fighter/game breeds get a longer, hooked beak (breed-driven shape, like tail).
+  const hookedBeak =
+    tags.has("fighter") ||
+    tags.has("game") ||
+    tags.has("strong") ||
+    tags.has("hard-feather");
 
   const shape = WEIGHT_SHAPE[weightClass.id] ?? WEIGHT_SHAPE.middle;
   const bodyCx = 100;
@@ -317,9 +324,21 @@ export default function RoostrAvatar({
           />
         )}
 
-        {/* BEAK — points right */}
-        <path d={`M 176 69 L 201 73 L 176 79 Z`} fill={BEAK_HEX} {...line(BEAK_HEX, 1.3)} />
-        <path d={`M 176 74 L 198 74`} stroke={shade(BEAK_HEX, -0.4)} strokeWidth={1.3} />
+        {/* BEAK — points right; hooked + longer for fighter breeds */}
+        <path
+          d={
+            hookedBeak
+              ? "M 176 68 L 203 71 q 5 3 -1 8 q -4 2 -9 -1 L 176 80 Z"
+              : "M 176 69 L 201 73 L 176 79 Z"
+          }
+          fill={hex.beak}
+          {...line(hex.beak, 1.3)}
+        />
+        <path
+          d={hookedBeak ? "M 176 74 L 200 74" : "M 176 74 L 198 74"}
+          stroke={shade(hex.beak, -0.4)}
+          strokeWidth={1.3}
+        />
 
         {/* EYE */}
         <circle cx={163} cy={64} r={5.5} fill="#fbf6ea" {...line(hex.body, 1.4)} />

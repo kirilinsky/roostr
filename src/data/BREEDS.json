@@ -63,7 +63,12 @@
         "mystic",
         "premium"
       ],
-      "baseHealth": 30
+      "baseHealth": 30,
+      "region": {
+        "en": "Indonesia",
+        "ru": "Индонезия",
+        "iso": "ID"
+      }
     },
     {
       "id": "silkie",
@@ -120,7 +125,12 @@
         "show",
         "soft"
       ],
-      "baseHealth": 28
+      "baseHealth": 28,
+      "region": {
+        "en": "China",
+        "ru": "Китай",
+        "iso": "CN"
+      }
     },
     {
       "id": "polish",
@@ -177,7 +187,12 @@
         "show",
         "funny"
       ],
-      "baseHealth": 28
+      "baseHealth": 28,
+      "region": {
+        "en": "Netherlands",
+        "ru": "Нидерланды",
+        "iso": "NL"
+      }
     },
     {
       "id": "phoenix",
@@ -234,7 +249,12 @@
         "elegant",
         "legend"
       ],
-      "baseHealth": 29
+      "baseHealth": 29,
+      "region": {
+        "en": "Germany",
+        "ru": "Германия",
+        "iso": "DE"
+      }
     },
     {
       "id": "onagadori",
@@ -290,7 +310,12 @@
         "japanese",
         "status"
       ],
-      "baseHealth": 28
+      "baseHealth": 28,
+      "region": {
+        "en": "Japan",
+        "ru": "Япония",
+        "iso": "JP"
+      }
     },
     {
       "id": "shamo",
@@ -351,7 +376,12 @@
         "tall",
         "strong"
       ],
-      "baseHealth": 33
+      "baseHealth": 33,
+      "region": {
+        "en": "Japan",
+        "ru": "Япония",
+        "iso": "JP"
+      }
     },
     {
       "id": "brahma",
@@ -412,7 +442,12 @@
         "tank",
         "heavy"
       ],
-      "baseHealth": 36
+      "baseHealth": 36,
+      "region": {
+        "en": "United States",
+        "ru": "США",
+        "iso": "US"
+      }
     },
     {
       "id": "cochin",
@@ -470,7 +505,12 @@
         "heavy",
         "calm"
       ],
-      "baseHealth": 34
+      "baseHealth": 34,
+      "region": {
+        "en": "China",
+        "ru": "Китай",
+        "iso": "CN"
+      }
     },
     {
       "id": "serama",
@@ -531,7 +571,12 @@
         "proud",
         "fast"
       ],
-      "baseHealth": 24
+      "baseHealth": 24,
+      "region": {
+        "en": "Malaysia",
+        "ru": "Малайзия",
+        "iso": "MY"
+      }
     },
     {
       "id": "leghorn",
@@ -591,7 +636,12 @@
         "fast",
         "productive"
       ],
-      "baseHealth": 27
+      "baseHealth": 27,
+      "region": {
+        "en": "Italy",
+        "ru": "Италия",
+        "iso": "IT"
+      }
     },
     {
       "id": "rhode-island-red",
@@ -648,7 +698,12 @@
         "farm",
         "classic"
       ],
-      "baseHealth": 31
+      "baseHealth": 31,
+      "region": {
+        "en": "United States",
+        "ru": "США",
+        "iso": "US"
+      }
     },
     {
       "id": "plymouth-rock",
@@ -705,7 +760,12 @@
         "farm",
         "balanced"
       ],
-      "baseHealth": 32
+      "baseHealth": 32,
+      "region": {
+        "en": "United States",
+        "ru": "США",
+        "iso": "US"
+      }
     },
     {
       "id": "orpington",
@@ -762,7 +822,12 @@
         "calm",
         "durable"
       ],
-      "baseHealth": 34
+      "baseHealth": 34,
+      "region": {
+        "en": "England",
+        "ru": "Англия",
+        "iso": "GB"
+      }
     },
     {
       "id": "wyandotte",
@@ -819,7 +884,12 @@
         "show",
         "laced"
       ],
-      "baseHealth": 31
+      "baseHealth": 31,
+      "region": {
+        "en": "United States",
+        "ru": "США",
+        "iso": "US"
+      }
     },
     {
       "id": "sussex",
@@ -880,7 +950,12 @@
         "reliable",
         "stamina"
       ],
-      "baseHealth": 31
+      "baseHealth": 31,
+      "region": {
+        "en": "England",
+        "ru": "Англия",
+        "iso": "GB"
+      }
     },
     {
       "id": "marans",
@@ -940,7 +1015,12 @@
         "eggs",
         "farm"
       ],
-      "baseHealth": 30
+      "baseHealth": 30,
+      "region": {
+        "en": "France",
+        "ru": "Франция",
+        "iso": "FR"
+      }
     },
     {
       "id": "araucana",
@@ -997,7 +1077,12 @@
         "eggs",
         "collectible"
       ],
-      "baseHealth": 28
+      "baseHealth": 28,
+      "region": {
+        "en": "Chile",
+        "ru": "Чили",
+        "iso": "CL"
+      }
     },
     {
       "id": "sebright",
@@ -1053,7 +1138,12 @@
         "laced",
         "duelist"
       ],
-      "baseHealth": 25
+      "baseHealth": 25,
+      "region": {
+        "en": "England",
+        "ru": "Англия",
+        "iso": "GB"
+      }
     },
     {
       "id": "faverolles",
@@ -1111,7 +1201,12 @@
         "soft",
         "farm"
       ],
-      "baseHealth": 30
+      "baseHealth": 30,
+      "region": {
+        "en": "France",
+        "ru": "Франция",
+        "iso": "FR"
+      }
     },
     {
       "id": "appenzeller-spitzhauben",
@@ -1168,7 +1263,12 @@
         "punk",
         "swift"
       ],
-      "baseHealth": 27
+      "baseHealth": 27,
+      "region": {
+        "en": "Switzerland",
+        "ru": "Швейцария",
+        "iso": "CH"
+      }
     },
     {
       "id": "asil",
@@ -1229,7 +1329,12 @@
         "fighter",
         "hard-feather"
       ],
-      "baseHealth": 33
+      "baseHealth": 33,
+      "region": {
+        "en": "India",
+        "ru": "Индия",
+        "iso": "IN"
+      }
     },
     {
       "id": "malay",
@@ -1290,7 +1395,12 @@
         "game",
         "reach"
       ],
-      "baseHealth": 35
+      "baseHealth": 35,
+      "region": {
+        "en": "Malaysia",
+        "ru": "Малайзия",
+        "iso": "MY"
+      }
     },
     {
       "id": "old-english-game",
@@ -1347,7 +1457,12 @@
         "game",
         "scrappy"
       ],
-      "baseHealth": 30
+      "baseHealth": 30,
+      "region": {
+        "en": "England",
+        "ru": "Англия",
+        "iso": "GB"
+      }
     },
     {
       "id": "ayam-ketawa",
@@ -1403,7 +1518,12 @@
         "indonesian",
         "voice"
       ],
-      "baseHealth": 27
+      "baseHealth": 27,
+      "region": {
+        "en": "Indonesia",
+        "ru": "Индонезия",
+        "iso": "ID"
+      }
     },
     {
       "id": "denizli",
@@ -1459,7 +1579,12 @@
         "turkish",
         "voice"
       ],
-      "baseHealth": 29
+      "baseHealth": 29,
+      "region": {
+        "en": "Türkiye",
+        "ru": "Турция",
+        "iso": "TR"
+      }
     },
     {
       "id": "bergische-kraher",
@@ -1515,7 +1640,12 @@
         "german",
         "rare"
       ],
-      "baseHealth": 30
+      "baseHealth": 30,
+      "region": {
+        "en": "Germany",
+        "ru": "Германия",
+        "iso": "DE"
+      }
     },
     {
       "id": "jersey-giant",
@@ -1575,7 +1705,12 @@
         "giant",
         "tank"
       ],
-      "baseHealth": 38
+      "baseHealth": 38,
+      "region": {
+        "en": "United States",
+        "ru": "США",
+        "iso": "US"
+      }
     },
     {
       "id": "dorking",
@@ -1632,7 +1767,12 @@
         "ancient",
         "meat"
       ],
-      "baseHealth": 33
+      "baseHealth": 33,
+      "region": {
+        "en": "England",
+        "ru": "Англия",
+        "iso": "GB"
+      }
     },
     {
       "id": "sumatra",
@@ -1693,7 +1833,12 @@
         "longtail",
         "multi-spur"
       ],
-      "baseHealth": 28
+      "baseHealth": 28,
+      "region": {
+        "en": "Indonesia",
+        "ru": "Индонезия",
+        "iso": "ID"
+      }
     },
     {
       "id": "yokohama",
@@ -1750,7 +1895,12 @@
         "ornamental",
         "white"
       ],
-      "baseHealth": 27
+      "baseHealth": 27,
+      "region": {
+        "en": "Japan",
+        "ru": "Япония",
+        "iso": "JP"
+      }
     },
     {
       "id": "naked-neck",
@@ -1806,7 +1956,12 @@
         "turken",
         "hardy"
       ],
-      "baseHealth": 31
+      "baseHealth": 31,
+      "region": {
+        "en": "Romania",
+        "ru": "Румыния",
+        "iso": "RO"
+      }
     },
     {
       "id": "sultan",
@@ -1862,7 +2017,12 @@
         "crest",
         "feathered-feet"
       ],
-      "baseHealth": 26
+      "baseHealth": 26,
+      "region": {
+        "en": "Türkiye",
+        "ru": "Турция",
+        "iso": "TR"
+      }
     },
     {
       "id": "frizzle",
@@ -1915,7 +2075,12 @@
         "fluffy",
         "quirky"
       ],
-      "baseHealth": 28
+      "baseHealth": 28,
+      "region": {
+        "en": "India",
+        "ru": "Индия",
+        "iso": "IN"
+      }
     },
     {
       "id": "houdan",
@@ -1971,7 +2136,12 @@
         "beard",
         "five-toed"
       ],
-      "baseHealth": 30
+      "baseHealth": 30,
+      "region": {
+        "en": "France",
+        "ru": "Франция",
+        "iso": "FR"
+      }
     },
     {
       "id": "hamburg",
@@ -2027,7 +2197,12 @@
         "sprightly",
         "layer"
       ],
-      "baseHealth": 27
+      "baseHealth": 27,
+      "region": {
+        "en": "Germany",
+        "ru": "Германия",
+        "iso": "DE"
+      }
     },
     {
       "id": "australorp",
@@ -2087,7 +2262,12 @@
         "australian",
         "reliable"
       ],
-      "baseHealth": 32
+      "baseHealth": 32,
+      "region": {
+        "en": "Australia",
+        "ru": "Австралия",
+        "iso": "AU"
+      }
     },
     {
       "id": "welsummer",
@@ -2143,7 +2323,12 @@
         "red",
         "iconic"
       ],
-      "baseHealth": 30
+      "baseHealth": 30,
+      "region": {
+        "en": "Netherlands",
+        "ru": "Нидерланды",
+        "iso": "NL"
+      }
     },
     {
       "id": "barnevelder",
@@ -2199,7 +2384,12 @@
         "dark-eggs",
         "dutch"
       ],
-      "baseHealth": 31
+      "baseHealth": 31,
+      "region": {
+        "en": "Netherlands",
+        "ru": "Нидерланды",
+        "iso": "NL"
+      }
     }
   ]
 }

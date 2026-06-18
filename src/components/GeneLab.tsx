@@ -62,14 +62,6 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
     setLevels((l) => ({ ...l, [geneId]: lvl + 1 }));
   }
 
-  function scaledMods(geneId: string) {
-    const lvl = levels[geneId] ?? 1;
-    const base = roostr.genes.find((g) => g.id === geneId)?.statMods ?? {};
-    return Object.fromEntries(
-      Object.entries(base).map(([k, v]) => [k, v * lvl]),
-    );
-  }
-
   return (
     <Box
       sx={{
@@ -177,7 +169,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
                   </Typography>
                 </Typography>
                 <Typography variant="caption" color="text.secondary" noWrap>
-                  {formatStatMods(scaledMods(g.id), locale)}
+                  {formatStatMods(g.statMods, locale)}
                 </Typography>
               </Box>
               <Button
