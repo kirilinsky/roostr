@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import StatModBadges from "@/components/StatModBadges";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
+import { MONO_FONT } from "@/lib/tokens";
 import {
   GENE_MAX_LEVEL,
   SKILLS,
@@ -158,7 +159,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
                     component="span"
                     variant="caption"
                     color="text.secondary"
-                    sx={{ fontFamily: "monospace", mr: 0.5 }}
+                    sx={{ fontFamily: MONO_FONT, mr: 0.5 }}
                   >
                     #{String(g.no).padStart(2, "0")}
                   </Typography>

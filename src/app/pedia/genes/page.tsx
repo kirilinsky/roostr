@@ -16,6 +16,7 @@ import {
   skillLabel,
 } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
+import { MONO_FONT } from "@/lib/tokens";
 
 const FAMILY_NAME = Object.fromEntries(FAMILIES.map((f) => [f.id, f.name]));
 
@@ -75,7 +76,7 @@ export default async function PediaGenesPage() {
                     <Typography variant="subtitle2" sx={{ fontWeight: 800 }} noWrap>
                       <Box
                         component="span"
-                        sx={{ fontFamily: "monospace", color: "text.secondary", mr: 0.5 }}
+                        sx={{ fontFamily: MONO_FONT, color: "text.secondary", mr: 0.5 }}
                       >
                         #{String(g.no).padStart(2, "0")}
                       </Box>

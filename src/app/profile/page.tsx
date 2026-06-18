@@ -10,6 +10,7 @@ import { getSession } from "@/lib/auth";
 import { getTranslations } from "@/i18n/server";
 import { getUserById, getUserStats } from "@/db/queries";
 import LogoutButton from "@/components/LogoutButton";
+import { MONO_FONT } from "@/lib/tokens";
 
 export default async function ProfilePage() {
   const user = await getSession();
@@ -90,7 +91,7 @@ function Row({ label, value }: { label: string; value: string }) {
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
+      <Typography variant="body2" sx={{ fontFamily: MONO_FONT }}>
         {value}
       </Typography>
     </Stack>

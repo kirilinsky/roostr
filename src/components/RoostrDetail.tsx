@@ -19,6 +19,7 @@ import ArchetypeInfoModal from "@/components/ArchetypeInfoModal";
 import { countryFlag } from "@/lib/flag";
 import { groupName } from "@/lib/breeds";
 import { tierBackground } from "@/lib/tierBg";
+import { MONO_FONT } from "@/lib/tokens";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import {
   GENE_MAX_LEVEL,
@@ -150,7 +151,7 @@ export default function RoostrDetail({
             label={seedId}
             size="small"
             variant="outlined"
-            sx={{ fontFamily: "monospace" }}
+            sx={{ fontFamily: MONO_FONT }}
           />
           {/* breed country of origin (future country championships) */}
           <Chip

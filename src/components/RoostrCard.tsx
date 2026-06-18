@@ -11,6 +11,7 @@ import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
 import StatModBadges from "@/components/StatModBadges";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import { tierBackground } from "@/lib/tierBg";
+import { MONO_FONT } from "@/lib/tokens";
 import {
   BODY_COLOR_HEX,
   COLOR_HEX,
@@ -108,7 +109,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             <Chip
               label={seedId}
               size="small"
-              sx={{ bgcolor: "background.paper", fontFamily: "monospace" }}
+              sx={{ bgcolor: "background.paper", fontFamily: MONO_FONT }}
             />
             <Chip
               label={`${tier.id} · ${rating}`}
@@ -131,7 +132,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             maxWidth: 180,
             aspectRatio: "1 / 1",
             border: 3,
-            borderColor: "rgba(0,0,0,0.5)",
+            borderColor: "neutral.main",
             borderRadius: 1,
             display: "flex",
             alignItems: "center",
@@ -164,7 +165,8 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                     borderRadius: "50%",
                     flexShrink: 0,
                     bgcolor: COLOR_HEX[key]?.[colors[key]] ?? "#888",
-                    border: "1px solid rgba(0,0,0,0.35)",
+                    border: "1px solid",
+                    borderColor: "divider",
                   }}
                 />
               }
@@ -274,7 +276,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                   <Box
                     component="span"
                     sx={{
-                      fontFamily: "monospace",
+                      fontFamily: MONO_FONT,
                       fontWeight: 400,
                       fontSize: "0.75em",
                       color: "text.secondary",

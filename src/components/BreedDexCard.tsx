@@ -3,6 +3,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import BreedArt from "@/components/BreedArt";
+import { MONO_FONT } from "@/lib/tokens";
 
 // Each breed group maps to a design-system palette token (no ad-hoc colors).
 type PaletteRef = {
@@ -103,7 +104,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
         >
           <Typography
             variant="caption"
-            sx={{ fontFamily: "monospace", color: "text.disabled" }}
+            sx={{ fontFamily: MONO_FONT, color: "text.disabled" }}
           >
             #???
           </Typography>
@@ -166,7 +167,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
           };
         }}
       >
-        <Typography variant="caption" sx={{ fontFamily: "monospace", fontWeight: 700 }}>
+        <Typography variant="caption" sx={{ fontFamily: MONO_FONT, fontWeight: 700 }}>
           {dexId}
         </Typography>
         <Typography
