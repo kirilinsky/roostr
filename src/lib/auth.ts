@@ -12,7 +12,11 @@ export interface SessionUser {
 }
 
 function secretKey(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
+  // Dev fallback so local Telegram-less sign-in works without env setup.
+  // Production still requires a real JWT_SECRET.
+  const secret =
+    process.env.JWT_SECRET ??
+    (process.env.NODE_ENV !== "production" ? "dev-insecure-secret" : undefined);
   if (!secret) throw new Error("JWT_SECRET is not set");
   return new TextEncoder().encode(secret);
 }

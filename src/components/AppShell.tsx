@@ -18,6 +18,7 @@ import Divider from "@mui/material/Divider";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import TelegramLoginButton from "@/components/TelegramLoginButton";
+import DevLoginButtons from "@/components/DevLoginButtons";
 import Footer from "@/components/Footer";
 
 const DRAWER_WIDTH = 260;
@@ -189,6 +190,10 @@ export default function AppShell({
           </Box>
         )}
       </Box>
+
+      {/* Dev-only fake auth (localhost). No-op in production. */}
+      <DevLoginButtons />
+
       <Divider />
 
       {navList(mainNav)}

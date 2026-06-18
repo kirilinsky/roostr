@@ -1,0 +1,2157 @@
+{
+  "version": 1,
+  "description": {
+    "en": "Roostr breed catalog for future Roostrdex pages.",
+    "ru": "Каталог пород Roostr для будущих страниц Roostrdex."
+  },
+  "breeds": [
+    {
+      "id": "ayam-cemani",
+      "name": {
+        "en": "Ayam Cemani",
+        "ru": "Аям Цемани"
+      },
+      "group": "Oddities",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 25,
+      "geneAffinities": {
+        "families": {
+          "Mind": 1.35,
+          "Voice": 1.15
+        },
+        "genes": {
+          "Cold Head": 1.25,
+          "Patient Eye": 1.2
+        }
+      },
+      "tendencies": [
+        "Mind",
+        "Crit"
+      ],
+      "trait": {
+        "id": "black-omen",
+        "name": {
+          "en": "Black Omen",
+          "ru": "Чёрное знамение"
+        },
+        "effects": [
+          {
+            "stat": "Crit",
+            "mod": 0.1
+          },
+          {
+            "stat": "Recovery",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Its eerie all-black presence unsettles rivals.",
+          "ru": "Жуткий чёрный облик нервирует соперников."
+        }
+      },
+      "description": {
+        "en": "A jet-black Indonesian breed with a mystical, premium look.",
+        "ru": "Полностью чёрная индонезийская порода с мистическим премиальным видом."
+      },
+      "tags": [
+        "black",
+        "mystic",
+        "premium"
+      ],
+      "baseHealth": 30
+    },
+    {
+      "id": "silkie",
+      "name": {
+        "en": "Silkie",
+        "ru": "Шёлковая"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 55,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.2,
+          "Voice": 1.2,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Silver Throat": 1.25,
+          "Lucky Claw": 1.15
+        }
+      },
+      "tendencies": [
+        "Recovery",
+        "Luck"
+      ],
+      "trait": {
+        "id": "downy-coat",
+        "name": {
+          "en": "Downy Coat",
+          "ru": "Пуховая шуба"
+        },
+        "effects": [
+          {
+            "stat": "Recovery",
+            "mod": 0.1
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Soft fur-like plumage soothes but shields poorly.",
+          "ru": "Мягкое пуховое перо лечит, но плохо защищает."
+        }
+      },
+      "description": {
+        "en": "A fluffy decorative breed that looks soft, strange and collectible.",
+        "ru": "Пушистая декоративная порода: мягкая, странная и коллекционная."
+      },
+      "tags": [
+        "fluffy",
+        "show",
+        "soft"
+      ],
+      "baseHealth": 28
+    },
+    {
+      "id": "polish",
+      "name": {
+        "en": "Polish",
+        "ru": "Польская"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 60,
+      "geneAffinities": {
+        "families": {
+          "Mind": 1.25,
+          "Voice": 1.15,
+          "Mobility": 1.1
+        },
+        "genes": {
+          "Patient Eye": 1.25,
+          "Mocking Call": 1.15
+        }
+      },
+      "tendencies": [
+        "Accuracy",
+        "Crit"
+      ],
+      "trait": {
+        "id": "showstopper-crest",
+        "name": {
+          "en": "Showstopper Crest",
+          "ru": "Эффектный хохол"
+        },
+        "effects": [
+          {
+            "stat": "Crow",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "The flamboyant crest draws all eyes but slows it down.",
+          "ru": "Пышный хохол притягивает взгляды, но замедляет."
+        }
+      },
+      "description": {
+        "en": "A show breed with a wild crest and a naturally ridiculous silhouette.",
+        "ru": "Шоу-порода с безумным хохолком и смешным узнаваемым силуэтом."
+      },
+      "tags": [
+        "crest",
+        "show",
+        "funny"
+      ],
+      "baseHealth": 28
+    },
+    {
+      "id": "phoenix",
+      "name": {
+        "en": "Phoenix",
+        "ru": "Феникс"
+      },
+      "group": "Longtail Legends",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 20,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.3,
+          "Stamina": 1.15,
+          "Voice": 1.1
+        },
+        "genes": {
+          "Long Stride": 1.3,
+          "Dawn Caller": 1.15
+        }
+      },
+      "tendencies": [
+        "Recovery",
+        "Speed"
+      ],
+      "trait": {
+        "id": "reborn-spirit",
+        "name": {
+          "en": "Reborn Spirit",
+          "ru": "Дух возрождения"
+        },
+        "effects": [
+          {
+            "stat": "Recovery",
+            "mod": 0.12
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Bounces back fast, but burns its own defenses.",
+          "ru": "Быстро восстанавливается, но жертвует защитой."
+        }
+      },
+      "description": {
+        "en": "A long-tailed breed with elegant, legendary energy.",
+        "ru": "Длиннохвостая порода с элегантным легендарным вайбом."
+      },
+      "tags": [
+        "longtail",
+        "elegant",
+        "legend"
+      ],
+      "baseHealth": 29
+    },
+    {
+      "id": "onagadori",
+      "name": {
+        "en": "Onagadori",
+        "ru": "Онагадори"
+      },
+      "group": "Longtail Legends",
+      "origin": "real",
+      "rarity": "epic",
+      "dropWeight": 8,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.35,
+          "Voice": 1.25
+        },
+        "genes": {
+          "Long Stride": 1.35,
+          "Silver Throat": 1.25
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Crow"
+      ],
+      "trait": {
+        "id": "endless-tail",
+        "name": {
+          "en": "Endless Tail",
+          "ru": "Бесконечный хвост"
+        },
+        "effects": [
+          {
+            "stat": "Luck",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "Its trailing tail is pure status — and a real drag.",
+          "ru": "Длинный хвост — чистый статус и реальная обуза."
+        }
+      },
+      "description": {
+        "en": "A rare Japanese longtail breed made for status and profile flex.",
+        "ru": "Редкая японская длиннохвостая порода для статуса и витрины."
+      },
+      "tags": [
+        "longtail",
+        "japanese",
+        "status"
+      ],
+      "baseHealth": 28
+    },
+    {
+      "id": "shamo",
+      "name": {
+        "en": "Shamo",
+        "ru": "Шамо"
+      },
+      "group": "Fighters",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 30,
+      "geneAffinities": {
+        "families": {
+          "Weapons": 1.4,
+          "Stamina": 1.2
+        },
+        "genes": {
+          "Razor Spurs": 1.3,
+          "War Chant": 1.15,
+          "Stressproof": 1.1
+        }
+      },
+      "tendencies": [
+        "Damage",
+        "Endurance"
+      ],
+      "trait": {
+        "id": "iron-stance",
+        "name": {
+          "en": "Iron Stance",
+          "ru": "Железная стойка"
+        },
+        "effects": [
+          {
+            "stat": "Damage",
+            "mod": 0.1
+          },
+          {
+            "stat": "Recovery",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Relentless aggression that wears itself thin.",
+          "ru": "Беспощадный напор, что сам себя изматывает."
+        }
+      },
+      "description": {
+        "en": "A tall, upright breed with a hard fighter silhouette.",
+        "ru": "Высокая стойкая порода с жёстким бойцовским силуэтом."
+      },
+      "tags": [
+        "fighter",
+        "tall",
+        "strong"
+      ],
+      "baseHealth": 33
+    },
+    {
+      "id": "brahma",
+      "name": {
+        "en": "Brahma",
+        "ru": "Брама"
+      },
+      "group": "Heavy Giants",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 25,
+      "geneAffinities": {
+        "families": {
+          "Armor": 1.35,
+          "Stamina": 1.25
+        },
+        "genes": {
+          "Iron Feathers": 1.25,
+          "Broad Chest": 1.25,
+          "Stressproof": 1.25
+        }
+      },
+      "tendencies": [
+        "Guard",
+        "Endurance"
+      ],
+      "trait": {
+        "id": "mountain-mass",
+        "name": {
+          "en": "Mountain Mass",
+          "ru": "Горная масса"
+        },
+        "effects": [
+          {
+            "stat": "Guard",
+            "mod": 0.12
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "Sheer bulk that almost nothing moves.",
+          "ru": "Громадная масса, которую почти не сдвинуть."
+        }
+      },
+      "description": {
+        "en": "A huge heavy breed that naturally reads as a tank.",
+        "ru": "Огромная тяжёлая порода, которая сразу читается как танк."
+      },
+      "tags": [
+        "giant",
+        "tank",
+        "heavy"
+      ],
+      "baseHealth": 36
+    },
+    {
+      "id": "cochin",
+      "name": {
+        "en": "Cochin",
+        "ru": "Кохинхин"
+      },
+      "group": "Heavy Giants",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 45,
+      "geneAffinities": {
+        "families": {
+          "Armor": 1.2,
+          "Stamina": 1.15,
+          "Work": 1.1
+        },
+        "genes": {
+          "Dense Plumage": 1.25,
+          "Old Blood": 1.15,
+          "Stressproof": 1.2
+        }
+      },
+      "tendencies": [
+        "Guard",
+        "Recovery"
+      ],
+      "trait": {
+        "id": "cushion-plumage",
+        "name": {
+          "en": "Cushion Plumage",
+          "ru": "Перина"
+        },
+        "effects": [
+          {
+            "stat": "Recovery",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Thick padding cushions hits but slows steps.",
+          "ru": "Толстая перина гасит удары, но тормозит шаг."
+        }
+      },
+      "description": {
+        "en": "A large fluffy breed with a calm, durable presence.",
+        "ru": "Крупная пушистая порода со спокойным и крепким образом."
+      },
+      "tags": [
+        "fluffy",
+        "heavy",
+        "calm"
+      ],
+      "baseHealth": 34
+    },
+    {
+      "id": "serama",
+      "name": {
+        "en": "Serama",
+        "ru": "Серама"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 25,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.35,
+          "Voice": 1.15,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Quick Step": 1.25,
+          "Lucky Claw": 1.2
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Luck"
+      ],
+      "trait": {
+        "id": "pocket-bravado",
+        "name": {
+          "en": "Pocket Bravado",
+          "ru": "Карманная дерзость"
+        },
+        "effects": [
+          {
+            "stat": "Speed",
+            "mod": 0.1
+          },
+          {
+            "stat": "Endurance",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Tiny body, oversized courage, short stamina.",
+          "ru": "Крошечное тело, огромная дерзость, мало выносливости."
+        }
+      },
+      "description": {
+        "en": "A tiny proud breed with big attitude in a small body.",
+        "ru": "Миниатюрная гордая порода с большим характером в маленьком теле."
+      },
+      "tags": [
+        "tiny",
+        "proud",
+        "fast"
+      ],
+      "baseHealth": 24
+    },
+    {
+      "id": "leghorn",
+      "name": {
+        "en": "Leghorn",
+        "ru": "Леггорн"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "common",
+      "dropWeight": 100,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.35,
+          "Mobility": 1.15
+        },
+        "genes": {
+          "Corn Sense": 1.25,
+          "Quick Step": 1.1
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Yield"
+      ],
+      "trait": {
+        "id": "restless-forager",
+        "name": {
+          "en": "Restless Forager",
+          "ru": "Беспокойный добытчик"
+        },
+        "effects": [
+          {
+            "stat": "Yield",
+            "mod": 0.1
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Never stops foraging, never stands its ground.",
+          "ru": "Без устали добывает, но не держит оборону."
+        }
+      },
+      "description": {
+        "en": "A fast productive breed that fits farm and utility builds.",
+        "ru": "Быстрая продуктивная порода для фарма и полезных билдов."
+      },
+      "tags": [
+        "farm",
+        "fast",
+        "productive"
+      ],
+      "baseHealth": 27
+    },
+    {
+      "id": "rhode-island-red",
+      "name": {
+        "en": "Rhode Island Red",
+        "ru": "Род-Айленд Ред"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "common",
+      "dropWeight": 95,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.25,
+          "Weapons": 1.15,
+          "Stamina": 1.1
+        },
+        "genes": {
+          "Heavy Beak": 1.15,
+          "Corn Sense": 1.15
+        }
+      },
+      "tendencies": [
+        "Damage",
+        "Yield"
+      ],
+      "trait": {
+        "id": "all-weather-grit",
+        "name": {
+          "en": "All-Weather Grit",
+          "ru": "Всепогодная закалка"
+        },
+        "effects": [
+          {
+            "stat": "Endurance",
+            "mod": 0.1
+          },
+          {
+            "stat": "Crit",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Tough in any weather, but rarely lands the big hit.",
+          "ru": "Крепок в любую погоду, но редко бьёт критом."
+        }
+      },
+      "description": {
+        "en": "A classic red working breed with sturdy everyday energy.",
+        "ru": "Классическая красная рабочая порода с крепким повседневным вайбом."
+      },
+      "tags": [
+        "red",
+        "farm",
+        "classic"
+      ],
+      "baseHealth": 31
+    },
+    {
+      "id": "plymouth-rock",
+      "name": {
+        "en": "Plymouth Rock",
+        "ru": "Плимутрок"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "common",
+      "dropWeight": 90,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.25,
+          "Stamina": 1.2
+        },
+        "genes": {
+          "Tireless Worker": 1.2,
+          "Deep Grit": 1.15,
+          "Stressproof": 1.15
+        }
+      },
+      "tendencies": [
+        "Endurance",
+        "Yield"
+      ],
+      "trait": {
+        "id": "steady-barred",
+        "name": {
+          "en": "Steady Barred",
+          "ru": "Надёжная полоса"
+        },
+        "effects": [
+          {
+            "stat": "Endurance",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Dependable and durable, never in a hurry.",
+          "ru": "Надёжный и живучий, никогда не торопится."
+        }
+      },
+      "description": {
+        "en": "A dependable barred breed with a balanced worker profile.",
+        "ru": "Надёжная полосатая порода со сбалансированным рабочим профилем."
+      },
+      "tags": [
+        "barred",
+        "farm",
+        "balanced"
+      ],
+      "baseHealth": 32
+    },
+    {
+      "id": "orpington",
+      "name": {
+        "en": "Orpington",
+        "ru": "Орпингтон"
+      },
+      "group": "Heavy Giants",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 50,
+      "geneAffinities": {
+        "families": {
+          "Armor": 1.2,
+          "Stamina": 1.2
+        },
+        "genes": {
+          "Dense Plumage": 1.2,
+          "Old Blood": 1.2,
+          "Stressproof": 1.2
+        }
+      },
+      "tendencies": [
+        "Guard",
+        "Recovery"
+      ],
+      "trait": {
+        "id": "gentle-bulk",
+        "name": {
+          "en": "Gentle Bulk",
+          "ru": "Добродушная туша"
+        },
+        "effects": [
+          {
+            "stat": "Guard",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Calm mass that absorbs punishment.",
+          "ru": "Спокойная туша, что впитывает удары."
+        }
+      },
+      "description": {
+        "en": "A round calm breed that feels chunky, soft and durable.",
+        "ru": "Круглая спокойная порода: мягкая, массивная и живучая."
+      },
+      "tags": [
+        "round",
+        "calm",
+        "durable"
+      ],
+      "baseHealth": 34
+    },
+    {
+      "id": "wyandotte",
+      "name": {
+        "en": "Wyandotte",
+        "ru": "Виандот"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 55,
+      "geneAffinities": {
+        "families": {
+          "Armor": 1.15,
+          "Mind": 1.15,
+          "Voice": 1.1
+        },
+        "genes": {
+          "Mirror Plume": 1.2,
+          "Patient Eye": 1.15
+        }
+      },
+      "tendencies": [
+        "Guard",
+        "Accuracy"
+      ],
+      "trait": {
+        "id": "frosthardy",
+        "name": {
+          "en": "Frosthardy",
+          "ru": "Морозостойкость"
+        },
+        "effects": [
+          {
+            "stat": "Endurance",
+            "mod": 0.1
+          },
+          {
+            "stat": "Crit",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Rose comb and dense coat shrug off the cold.",
+          "ru": "Розовидный гребень и плотное перо держат холод."
+        }
+      },
+      "description": {
+        "en": "A patterned breed with strong visual identity and show value.",
+        "ru": "Узорчатая порода с сильной визуальной идентичностью и шоу-ценностью."
+      },
+      "tags": [
+        "patterned",
+        "show",
+        "laced"
+      ],
+      "baseHealth": 31
+    },
+    {
+      "id": "sussex",
+      "name": {
+        "en": "Sussex",
+        "ru": "Суссекс"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "common",
+      "dropWeight": 90,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.35,
+          "Stamina": 1.15
+        },
+        "genes": {
+          "Tireless Worker": 1.25,
+          "Nest Finder": 1.15,
+          "Stressproof": 1.15
+        }
+      },
+      "tendencies": [
+        "Yield",
+        "Endurance"
+      ],
+      "trait": {
+        "id": "keen-forager",
+        "name": {
+          "en": "Keen Forager",
+          "ru": "Зоркий добытчик"
+        },
+        "effects": [
+          {
+            "stat": "Yield",
+            "mod": 0.1
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Sharp-eyed feeder, light on defense.",
+          "ru": "Зоркий едок, слаб в защите."
+        }
+      },
+      "description": {
+        "en": "A reliable farm breed with steady output and strong stamina.",
+        "ru": "Надёжная фермерская порода со стабильным доходом и выносливостью."
+      },
+      "tags": [
+        "farm",
+        "reliable",
+        "stamina"
+      ],
+      "baseHealth": 31
+    },
+    {
+      "id": "marans",
+      "name": {
+        "en": "Marans",
+        "ru": "Маран"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 30,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.35,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Nest Finder": 1.25,
+          "Lucky Claw": 1.2
+        }
+      },
+      "tendencies": [
+        "Yield",
+        "Luck"
+      ],
+      "trait": {
+        "id": "dark-yolk",
+        "name": {
+          "en": "Dark Yolk",
+          "ru": "Тёмный желток"
+        },
+        "effects": [
+          {
+            "stat": "Yield",
+            "mod": 0.12
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "A heavy premium producer, not a sprinter.",
+          "ru": "Тяжёлый премиальный производитель, не спринтер."
+        }
+      },
+      "description": {
+        "en": "A premium farm breed associated with valuable dark eggs.",
+        "ru": "Премиальная фермерская порода, известная ценными тёмными яйцами."
+      },
+      "tags": [
+        "premium",
+        "eggs",
+        "farm"
+      ],
+      "baseHealth": 30
+    },
+    {
+      "id": "araucana",
+      "name": {
+        "en": "Araucana",
+        "ru": "Араукана"
+      },
+      "group": "Oddities",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 25,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.2,
+          "Mind": 1.15,
+          "Voice": 1.1
+        },
+        "genes": {
+          "Lucky Claw": 1.25,
+          "Market Nose": 1.15
+        }
+      },
+      "tendencies": [
+        "Luck",
+        "Yield"
+      ],
+      "trait": {
+        "id": "rumpless-oddity",
+        "name": {
+          "en": "Rumpless Oddity",
+          "ru": "Бесхвостая диковина"
+        },
+        "effects": [
+          {
+            "stat": "Luck",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "No tail to steer with — odd luck instead.",
+          "ru": "Нет хвоста для манёвра — зато странная удача."
+        }
+      },
+      "description": {
+        "en": "An unusual breed with collectible energy and rare egg flavor.",
+        "ru": "Необычная порода с коллекционным вайбом и редким яичным флейвором."
+      },
+      "tags": [
+        "oddity",
+        "eggs",
+        "collectible"
+      ],
+      "baseHealth": 28
+    },
+    {
+      "id": "sebright",
+      "name": {
+        "en": "Sebright",
+        "ru": "Сибрайт"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 25,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.25,
+          "Mind": 1.2
+        },
+        "genes": {
+          "Quick Step": 1.2,
+          "Patient Eye": 1.2
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Accuracy"
+      ],
+      "trait": {
+        "id": "laced-featherweight",
+        "name": {
+          "en": "Laced Featherweight",
+          "ru": "Кружевной легковес"
+        },
+        "effects": [
+          {
+            "stat": "Speed",
+            "mod": 0.1
+          },
+          {
+            "stat": "Endurance",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Light and flashy, fades in long bouts.",
+          "ru": "Лёгкий и яркий, вянет в долгом бою."
+        }
+      },
+      "description": {
+        "en": "A small laced show breed that reads as a nimble duelist.",
+        "ru": "Маленькая узорчатая шоу-порода, читается как ловкий дуэлянт."
+      },
+      "tags": [
+        "small",
+        "laced",
+        "duelist"
+      ],
+      "baseHealth": 25
+    },
+    {
+      "id": "faverolles",
+      "name": {
+        "en": "Faverolles",
+        "ru": "Фавероль"
+      },
+      "group": "Oddities",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 45,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.2,
+          "Stamina": 1.15,
+          "Voice": 1.1
+        },
+        "genes": {
+          "Tireless Worker": 1.2,
+          "Dawn Caller": 1.15,
+          "Stressproof": 1.1
+        }
+      },
+      "tendencies": [
+        "Recovery",
+        "Yield"
+      ],
+      "trait": {
+        "id": "docile-beard",
+        "name": {
+          "en": "Docile Beard",
+          "ru": "Кроткая борода"
+        },
+        "effects": [
+          {
+            "stat": "Recovery",
+            "mod": 0.1
+          },
+          {
+            "stat": "Damage",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Too gentle to hit hard, quick to mend.",
+          "ru": "Слишком кроткий для сильных ударов, быстро заживает."
+        }
+      },
+      "description": {
+        "en": "A bearded soft-looking breed with cozy farm personality.",
+        "ru": "Бородатая мягкая порода с уютным фермерским характером."
+      },
+      "tags": [
+        "bearded",
+        "soft",
+        "farm"
+      ],
+      "baseHealth": 30
+    },
+    {
+      "id": "appenzeller-spitzhauben",
+      "name": {
+        "en": "Appenzeller Spitzhauben",
+        "ru": "Аппенцеллер Шпицхаубен"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 20,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.3,
+          "Mind": 1.2,
+          "Voice": 1.1
+        },
+        "genes": {
+          "Quick Step": 1.25,
+          "Patient Eye": 1.2
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Accuracy"
+      ],
+      "trait": {
+        "id": "punk-crest",
+        "name": {
+          "en": "Punk Crest",
+          "ru": "Панковский хохол"
+        },
+        "effects": [
+          {
+            "stat": "Speed",
+            "mod": 0.1
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Wild, twitchy and quick — but careless.",
+          "ru": "Дикий, дёрганый и быстрый — но беспечный."
+        }
+      },
+      "description": {
+        "en": "A crested Swiss breed with punk energy and sharp movement.",
+        "ru": "Хохлатая швейцарская порода с панковским видом и резким движением."
+      },
+      "tags": [
+        "crest",
+        "punk",
+        "swift"
+      ],
+      "baseHealth": 27
+    },
+    {
+      "id": "asil",
+      "name": {
+        "en": "Asil",
+        "ru": "Азиль"
+      },
+      "group": "Fighters",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 22,
+      "geneAffinities": {
+        "families": {
+          "Weapons": 1.4,
+          "Mind": 1.2,
+          "Stamina": 1.1
+        },
+        "genes": {
+          "Razor Spurs": 1.3,
+          "Wild Rage": 1.2
+        }
+      },
+      "tendencies": [
+        "Damage",
+        "Crit"
+      ],
+      "trait": {
+        "id": "born-fighter",
+        "name": {
+          "en": "Born Fighter",
+          "ru": "Прирождённый боец"
+        },
+        "effects": [
+          {
+            "stat": "Damage",
+            "mod": 0.12
+          },
+          {
+            "stat": "Recovery",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "Lives to fight, slow to lick its wounds.",
+          "ru": "Живёт ради боя, медленно зализывает раны."
+        }
+      },
+      "description": {
+        "en": "An ancient Indian game breed bred for raw fighting spirit and hard muscle.",
+        "ru": "Древняя индийская бойцовая порода с жёстким телом и бойцовым духом."
+      },
+      "tags": [
+        "ancient",
+        "fighter",
+        "hard-feather"
+      ],
+      "baseHealth": 33
+    },
+    {
+      "id": "malay",
+      "name": {
+        "en": "Malay",
+        "ru": "Малайская"
+      },
+      "group": "Fighters",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 24,
+      "geneAffinities": {
+        "families": {
+          "Weapons": 1.3,
+          "Armor": 1.2,
+          "Stamina": 1.15
+        },
+        "genes": {
+          "Heavy Beak": 1.3,
+          "Iron Feathers": 1.15
+        }
+      },
+      "tendencies": [
+        "Damage",
+        "Guard"
+      ],
+      "trait": {
+        "id": "long-reach",
+        "name": {
+          "en": "Long Reach",
+          "ru": "Длинный замах"
+        },
+        "effects": [
+          {
+            "stat": "Damage",
+            "mod": 0.1
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "Strikes from far, but sparse feathers leave it open.",
+          "ru": "Бьёт издали, но редкое перо оставляет уязвимым."
+        }
+      },
+      "description": {
+        "en": "The towering hard-feather game fowl — long legs, long reach, fierce stare.",
+        "ru": "Громадная жесткопёрая бойцовая птица: длинные ноги, дальний замах, свирепый взгляд."
+      },
+      "tags": [
+        "tall",
+        "game",
+        "reach"
+      ],
+      "baseHealth": 35
+    },
+    {
+      "id": "old-english-game",
+      "name": {
+        "en": "Old English Game",
+        "ru": "Староанглийская бойцовая"
+      },
+      "group": "Fighters",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 45,
+      "geneAffinities": {
+        "families": {
+          "Weapons": 1.3,
+          "Mobility": 1.2,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Razor Spurs": 1.2,
+          "Quick Step": 1.15
+        }
+      },
+      "tendencies": [
+        "Damage",
+        "Speed"
+      ],
+      "trait": {
+        "id": "game-spirit",
+        "name": {
+          "en": "Game Spirit",
+          "ru": "Бойцовый кураж"
+        },
+        "effects": [
+          {
+            "stat": "Crit",
+            "mod": 0.1
+          },
+          {
+            "stat": "Endurance",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "All daring and bursts, short on stamina.",
+          "ru": "Сплошной кураж и рывки, мало выносливости."
+        }
+      },
+      "description": {
+        "en": "A classic scrappy game fowl — fast, brave and endlessly tenacious.",
+        "ru": "Классическая задиристая бойцовая птица: быстрая, смелая и упрямая."
+      },
+      "tags": [
+        "classic",
+        "game",
+        "scrappy"
+      ],
+      "baseHealth": 30
+    },
+    {
+      "id": "ayam-ketawa",
+      "name": {
+        "en": "Ayam Ketawa",
+        "ru": "Аям Кетава"
+      },
+      "group": "Criers",
+      "origin": "real",
+      "rarity": "epic",
+      "dropWeight": 10,
+      "geneAffinities": {
+        "families": {
+          "Voice": 1.45,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Thunder Crow": 1.3,
+          "Silver Throat": 1.25
+        }
+      },
+      "tendencies": [
+        "Crow",
+        "Luck"
+      ],
+      "trait": {
+        "id": "mocking-laugh",
+        "name": {
+          "en": "Mocking Laugh",
+          "ru": "Издевательский смех"
+        },
+        "effects": [
+          {
+            "stat": "Crow",
+            "mod": 0.12
+          },
+          {
+            "stat": "Recovery",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Its strange laugh rattles foes — and tires itself.",
+          "ru": "Странный смех сбивает врага — и утомляет самого."
+        }
+      },
+      "description": {
+        "en": "Indonesia's 'laughing rooster' — famous for its bizarre stuttering crow.",
+        "ru": "Индонезийский «смеющийся петух» — знаменит странным прерывистым криком."
+      },
+      "tags": [
+        "laughing",
+        "indonesian",
+        "voice"
+      ],
+      "baseHealth": 27
+    },
+    {
+      "id": "denizli",
+      "name": {
+        "en": "Denizli",
+        "ru": "Денизли"
+      },
+      "group": "Criers",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 22,
+      "geneAffinities": {
+        "families": {
+          "Voice": 1.4,
+          "Stamina": 1.1
+        },
+        "genes": {
+          "Silver Throat": 1.3,
+          "Thunder Crow": 1.2
+        }
+      },
+      "tendencies": [
+        "Crow",
+        "Recovery"
+      ],
+      "trait": {
+        "id": "long-song",
+        "name": {
+          "en": "Long Song",
+          "ru": "Долгая песнь"
+        },
+        "effects": [
+          {
+            "stat": "Crow",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "A long, deep crow that commands the yard.",
+          "ru": "Долгий низкий крик, что держит двор."
+        }
+      },
+      "description": {
+        "en": "A Turkish long-crower prized for its deep, drawn-out song.",
+        "ru": "Турецкая длиннокричащая порода, ценимая за глубокий протяжный крик."
+      },
+      "tags": [
+        "long-crower",
+        "turkish",
+        "voice"
+      ],
+      "baseHealth": 29
+    },
+    {
+      "id": "bergische-kraher",
+      "name": {
+        "en": "Bergische Kräher",
+        "ru": "Бергский крикун"
+      },
+      "group": "Criers",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 20,
+      "geneAffinities": {
+        "families": {
+          "Voice": 1.4,
+          "Stamina": 1.15
+        },
+        "genes": {
+          "Thunder Crow": 1.25,
+          "Silver Throat": 1.2
+        }
+      },
+      "tendencies": [
+        "Crow",
+        "Endurance"
+      ],
+      "trait": {
+        "id": "deep-caller",
+        "name": {
+          "en": "Deep Caller",
+          "ru": "Глубокий зов"
+        },
+        "effects": [
+          {
+            "stat": "Crow",
+            "mod": 0.1
+          },
+          {
+            "stat": "Crit",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Endless low calling, little finishing punch.",
+          "ru": "Бесконечный низкий зов, слабый добивающий удар."
+        }
+      },
+      "description": {
+        "en": "A rare German long-crower with a famously long, low call.",
+        "ru": "Редкая немецкая длиннокричащая порода со знаменитым долгим низким криком."
+      },
+      "tags": [
+        "long-crower",
+        "german",
+        "rare"
+      ],
+      "baseHealth": 30
+    },
+    {
+      "id": "jersey-giant",
+      "name": {
+        "en": "Jersey Giant",
+        "ru": "Джерсейский гигант"
+      },
+      "group": "Heavy Giants",
+      "origin": "real",
+      "rarity": "epic",
+      "dropWeight": 12,
+      "geneAffinities": {
+        "families": {
+          "Armor": 1.35,
+          "Stamina": 1.35
+        },
+        "genes": {
+          "Broad Chest": 1.3,
+          "Iron Feathers": 1.2
+        }
+      },
+      "tendencies": [
+        "Guard",
+        "Endurance"
+      ],
+      "trait": {
+        "id": "colossal-frame",
+        "name": {
+          "en": "Colossal Frame",
+          "ru": "Колоссальный костяк"
+        },
+        "effects": [
+          {
+            "stat": "Endurance",
+            "mod": 0.12
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "The biggest body of all — and the slowest.",
+          "ru": "Самое крупное тело из всех — и самое медленное."
+        }
+      },
+      "description": {
+        "en": "The largest chicken breed there is — a calm, slow, enormous tank.",
+        "ru": "Самая крупная порода кур — спокойный, медлительный, огромный танк."
+      },
+      "tags": [
+        "largest",
+        "giant",
+        "tank"
+      ],
+      "baseHealth": 38
+    },
+    {
+      "id": "dorking",
+      "name": {
+        "en": "Dorking",
+        "ru": "Доркинг"
+      },
+      "group": "Heavy Giants",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 45,
+      "geneAffinities": {
+        "families": {
+          "Armor": 1.2,
+          "Stamina": 1.2,
+          "Work": 1.15
+        },
+        "genes": {
+          "Dense Plumage": 1.15,
+          "Broad Chest": 1.15
+        }
+      },
+      "tendencies": [
+        "Guard",
+        "Yield"
+      ],
+      "trait": {
+        "id": "old-roots",
+        "name": {
+          "en": "Old Roots",
+          "ru": "Древние корни"
+        },
+        "effects": [
+          {
+            "stat": "Endurance",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Ancient sturdy stock, never rushed.",
+          "ru": "Древняя крепкая порода, всегда без спешки."
+        }
+      },
+      "description": {
+        "en": "An ancient five-toed breed, rectangular and sturdy with old Roman roots.",
+        "ru": "Древняя пятипалая порода: прямоугольная, крепкая, с римскими корнями."
+      },
+      "tags": [
+        "five-toed",
+        "ancient",
+        "meat"
+      ],
+      "baseHealth": 33
+    },
+    {
+      "id": "sumatra",
+      "name": {
+        "en": "Sumatra",
+        "ru": "Суматра"
+      },
+      "group": "Longtail Legends",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 22,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.3,
+          "Weapons": 1.15,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Light Bones": 1.2,
+          "Razor Spurs": 1.15
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Crit"
+      ],
+      "trait": {
+        "id": "jungle-flier",
+        "name": {
+          "en": "Jungle Flier",
+          "ru": "Лесной летун"
+        },
+        "effects": [
+          {
+            "stat": "Speed",
+            "mod": 0.12
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "Half-wild flier, agile but unarmored.",
+          "ru": "Полудикий летун: вёрткий, но без брони."
+        }
+      },
+      "description": {
+        "en": "A glossy black breed with a long flowing tail and multiple spurs.",
+        "ru": "Глянцево-чёрная порода с длинным струящимся хвостом и несколькими шпорами."
+      },
+      "tags": [
+        "black",
+        "longtail",
+        "multi-spur"
+      ],
+      "baseHealth": 28
+    },
+    {
+      "id": "yokohama",
+      "name": {
+        "en": "Yokohama",
+        "ru": "Йокогама"
+      },
+      "group": "Longtail Legends",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 24,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.3,
+          "Mind": 1.15,
+          "Voice": 1.1
+        },
+        "genes": {
+          "Quick Step": 1.2,
+          "Patient Eye": 1.15
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Accuracy"
+      ],
+      "trait": {
+        "id": "princely-plume",
+        "name": {
+          "en": "Princely Plume",
+          "ru": "Княжеский плюмаж"
+        },
+        "effects": [
+          {
+            "stat": "Luck",
+            "mod": 0.1
+          },
+          {
+            "stat": "Endurance",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Delicate showpiece, not built to last.",
+          "ru": "Хрупкий экспонат, не для долгих испытаний."
+        }
+      },
+      "description": {
+        "en": "A graceful ornamental long-tail with a refined, princely look.",
+        "ru": "Изящная декоративная длиннохвостая порода с утончённым княжеским видом."
+      },
+      "tags": [
+        "longtail",
+        "ornamental",
+        "white"
+      ],
+      "baseHealth": 27
+    },
+    {
+      "id": "naked-neck",
+      "name": {
+        "en": "Naked Neck",
+        "ru": "Голошейная"
+      },
+      "group": "Oddities",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 45,
+      "geneAffinities": {
+        "families": {
+          "Stamina": 1.25,
+          "Work": 1.15
+        },
+        "genes": {
+          "Stressproof": 1.25,
+          "Old Blood": 1.15
+        }
+      },
+      "tendencies": [
+        "Endurance",
+        "Recovery"
+      ],
+      "trait": {
+        "id": "bare-neck",
+        "name": {
+          "en": "Bare Neck",
+          "ru": "Голая шея"
+        },
+        "effects": [
+          {
+            "stat": "Endurance",
+            "mod": 0.1
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Heat-hardy and tough, but its bare neck is exposed.",
+          "ru": "Жаростойкий и крепкий, но голая шея уязвима."
+        }
+      },
+      "description": {
+        "en": "The bare-necked 'Turken' — odd-looking, hardy and heat-proof.",
+        "ru": "Голошейный «турмен» — странный на вид, выносливый и жаростойкий."
+      },
+      "tags": [
+        "naked-neck",
+        "turken",
+        "hardy"
+      ],
+      "baseHealth": 31
+    },
+    {
+      "id": "sultan",
+      "name": {
+        "en": "Sultan",
+        "ru": "Султанка"
+      },
+      "group": "Oddities",
+      "origin": "real",
+      "rarity": "rare",
+      "dropWeight": 24,
+      "geneAffinities": {
+        "families": {
+          "Mind": 1.2,
+          "Voice": 1.2,
+          "Work": 1.1
+        },
+        "genes": {
+          "Silver Throat": 1.15
+        }
+      },
+      "tendencies": [
+        "Luck",
+        "Accuracy"
+      ],
+      "trait": {
+        "id": "pure-ornament",
+        "name": {
+          "en": "Pure Ornament",
+          "ru": "Чистое украшение"
+        },
+        "effects": [
+          {
+            "stat": "Crow",
+            "mod": 0.1
+          },
+          {
+            "stat": "Damage",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "Bred only for beauty, hopeless at hitting.",
+          "ru": "Выведен только ради красоты, бить не умеет."
+        }
+      },
+      "description": {
+        "en": "A fully decorated show breed: crest, beard, muffs and feathered feet.",
+        "ru": "Полностью украшенная шоу-порода: хохол, борода, баки и оперённые ноги."
+      },
+      "tags": [
+        "ornamental",
+        "crest",
+        "feathered-feet"
+      ],
+      "baseHealth": 26
+    },
+    {
+      "id": "frizzle",
+      "name": {
+        "en": "Frizzle",
+        "ru": "Курчавая"
+      },
+      "group": "Oddities",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 50,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.15,
+          "Voice": 1.15,
+          "Mind": 1.1
+        }
+      },
+      "tendencies": [
+        "Luck",
+        "Recovery"
+      ],
+      "trait": {
+        "id": "curled-coat",
+        "name": {
+          "en": "Curled Coat",
+          "ru": "Кудрявая шуба"
+        },
+        "effects": [
+          {
+            "stat": "Luck",
+            "mod": 0.1
+          },
+          {
+            "stat": "Recovery",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Curled feathers charm but insulate poorly.",
+          "ru": "Кудрявое перо очаровывает, но плохо греет."
+        }
+      },
+      "description": {
+        "en": "Feathers curled outward — a quirky, fluffy oddity of the yard.",
+        "ru": "Перья завиты наружу — причудливая пушистая диковинка двора."
+      },
+      "tags": [
+        "curled",
+        "fluffy",
+        "quirky"
+      ],
+      "baseHealth": 28
+    },
+    {
+      "id": "houdan",
+      "name": {
+        "en": "Houdan",
+        "ru": "Гудан"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 50,
+      "geneAffinities": {
+        "families": {
+          "Mind": 1.2,
+          "Armor": 1.1,
+          "Voice": 1.1
+        },
+        "genes": {
+          "Patient Eye": 1.2
+        }
+      },
+      "tendencies": [
+        "Accuracy",
+        "Guard"
+      ],
+      "trait": {
+        "id": "veiled-sight",
+        "name": {
+          "en": "Veiled Sight",
+          "ru": "Скрытый взор"
+        },
+        "effects": [
+          {
+            "stat": "Recovery",
+            "mod": 0.1
+          },
+          {
+            "stat": "Accuracy",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Crest and beard hide its eyes — and its aim.",
+          "ru": "Хохол и борода скрывают глаза — и точность."
+        }
+      },
+      "description": {
+        "en": "A crested, bearded French show breed with five toes.",
+        "ru": "Хохлатая бородатая французская шоу-порода с пятью пальцами."
+      },
+      "tags": [
+        "crest",
+        "beard",
+        "five-toed"
+      ],
+      "baseHealth": 30
+    },
+    {
+      "id": "hamburg",
+      "name": {
+        "en": "Hamburg",
+        "ru": "Гамбургская"
+      },
+      "group": "Show Birds",
+      "origin": "real",
+      "rarity": "common",
+      "dropWeight": 80,
+      "geneAffinities": {
+        "families": {
+          "Mobility": 1.2,
+          "Work": 1.2,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Quick Step": 1.15
+        }
+      },
+      "tendencies": [
+        "Speed",
+        "Yield"
+      ],
+      "trait": {
+        "id": "sprightly",
+        "name": {
+          "en": "Sprightly",
+          "ru": "Юркость"
+        },
+        "effects": [
+          {
+            "stat": "Speed",
+            "mod": 0.1
+          },
+          {
+            "stat": "Endurance",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Quick, alert and flighty; tires early.",
+          "ru": "Быстрый, чуткий и пугливый; рано устаёт."
+        }
+      },
+      "description": {
+        "en": "A small, sprightly spangled breed and a tireless little layer.",
+        "ru": "Маленькая бойкая крапчатая порода и неутомимая несушка."
+      },
+      "tags": [
+        "spangled",
+        "sprightly",
+        "layer"
+      ],
+      "baseHealth": 27
+    },
+    {
+      "id": "australorp",
+      "name": {
+        "en": "Australorp",
+        "ru": "Австралорп"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "common",
+      "dropWeight": 95,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.4,
+          "Stamina": 1.2
+        },
+        "genes": {
+          "Tireless Worker": 1.3,
+          "Corn Sense": 1.15
+        }
+      },
+      "tendencies": [
+        "Yield",
+        "Endurance"
+      ],
+      "trait": {
+        "id": "tireless-layer",
+        "name": {
+          "en": "Tireless Layer",
+          "ru": "Неутомимая несушка"
+        },
+        "effects": [
+          {
+            "stat": "Yield",
+            "mod": 0.12
+          },
+          {
+            "stat": "Damage",
+            "mod": -0.1
+          }
+        ],
+        "description": {
+          "en": "All output, no offense.",
+          "ru": "Сплошной доход, никакой атаки."
+        }
+      },
+      "description": {
+        "en": "The record-setting layer — steady, calm and endlessly productive.",
+        "ru": "Рекордсменка-несушка: ровная, спокойная и бесконечно продуктивная."
+      },
+      "tags": [
+        "record-layer",
+        "australian",
+        "reliable"
+      ],
+      "baseHealth": 32
+    },
+    {
+      "id": "welsummer",
+      "name": {
+        "en": "Welsummer",
+        "ru": "Вельзумер"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "common",
+      "dropWeight": 85,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.3,
+          "Weapons": 1.1,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Corn Sense": 1.2
+        }
+      },
+      "tendencies": [
+        "Yield",
+        "Damage"
+      ],
+      "trait": {
+        "id": "bold-forager",
+        "name": {
+          "en": "Bold Forager",
+          "ru": "Смелый добытчик"
+        },
+        "effects": [
+          {
+            "stat": "Yield",
+            "mod": 0.1
+          },
+          {
+            "stat": "Guard",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Confident free-ranger, light on guard.",
+          "ru": "Уверенный вольный добытчик, слаб в защите."
+        }
+      },
+      "description": {
+        "en": "Deep red-brown layer of dark speckled eggs — the iconic cereal rooster.",
+        "ru": "Тёмно-красно-бурая несушка тёмных крапчатых яиц — культовый «петух с пачки»."
+      },
+      "tags": [
+        "dark-eggs",
+        "red",
+        "iconic"
+      ],
+      "baseHealth": 30
+    },
+    {
+      "id": "barnevelder",
+      "name": {
+        "en": "Barnevelder",
+        "ru": "Барневельдер"
+      },
+      "group": "Farm Workers",
+      "origin": "real",
+      "rarity": "uncommon",
+      "dropWeight": 55,
+      "geneAffinities": {
+        "families": {
+          "Work": 1.25,
+          "Armor": 1.1,
+          "Mind": 1.1
+        },
+        "genes": {
+          "Corn Sense": 1.15
+        }
+      },
+      "tendencies": [
+        "Yield",
+        "Guard"
+      ],
+      "trait": {
+        "id": "hardy-layer",
+        "name": {
+          "en": "Hardy Layer",
+          "ru": "Крепкая несушка"
+        },
+        "effects": [
+          {
+            "stat": "Yield",
+            "mod": 0.1
+          },
+          {
+            "stat": "Speed",
+            "mod": -0.08
+          }
+        ],
+        "description": {
+          "en": "Hardy steady producer, never quick.",
+          "ru": "Крепкий стабильный производитель, не из быстрых."
+        }
+      },
+      "description": {
+        "en": "A handsome double-laced Dutch breed laying rich dark eggs.",
+        "ru": "Красивая голландская порода с двойной каймой, несёт насыщенно-тёмные яйца."
+      },
+      "tags": [
+        "double-laced",
+        "dark-eggs",
+        "dutch"
+      ],
+      "baseHealth": 31
+    }
+  ]
+}

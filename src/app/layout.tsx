@@ -4,9 +4,11 @@ import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import theme from "@/theme";
 import AppShell, { type NavItem, type ShellUser } from "@/components/AppShell";
+import { AdminProvider } from "@/components/AdminProvider";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import { headlineFont, bodyFont } from "@/app/fonts";
 
 export const metadata: Metadata = {
@@ -33,16 +35,23 @@ export default async function RootLayout({
     : null;
 
   const mainNav: NavItem[] = [
+    { href: "/incubator", label: t("nav.incubator"), icon: "🥚" },
     { href: "/collection", label: t("nav.collection"), icon: "🐔" },
+    { href: "/roostrdex", label: t("nav.roostrdex"), icon: "📕" },
     { href: "/market", label: t("nav.market"), icon: "🛒" },
     { href: "/arena", label: t("nav.arena"), icon: "⚔️" },
     { href: "/friends", label: t("nav.friends"), icon: "👥" },
   ];
 
+  const admin = isAdmin(session?.id);
+
   const bottomNav: NavItem[] = [
     { href: "/bank", label: t("nav.bank"), icon: "🏦" },
     { href: "/about", label: t("nav.about"), icon: "ℹ️" },
-    { href: "/debug", label: t("nav.debug"), icon: "🐞" },
+    // Debug is admin-only.
+    ...(admin
+      ? [{ href: "/debug", label: t("nav.debug"), icon: "🐞" }]
+      : []),
     { href: "/support", label: t("nav.support"), icon: "🛟" },
     { href: "/settings", label: t("nav.settings"), icon: "⚙️" },
   ];
@@ -57,18 +66,20 @@ export default async function RootLayout({
           <ThemeProvider theme={theme}>
             <CssBaseline />
             <I18nProvider locale={locale}>
-              <AppShell
-                user={user}
-                coinBalance={user ? 0 : undefined}
-                energy={user ? { current: 10, max: 10 } : undefined}
-                feathersLabel={t("resource.feathers")}
-                botUsername={botUsername}
-                mainNav={mainNav}
-                bottomNav={bottomNav}
-                loginLabel={t("nav.login")}
-              >
-                {children}
-              </AppShell>
+              <AdminProvider isAdmin={admin}>
+                <AppShell
+                  user={user}
+                  coinBalance={user ? 0 : undefined}
+                  energy={user ? { current: 10, max: 10 } : undefined}
+                  feathersLabel={t("resource.feathers")}
+                  botUsername={botUsername}
+                  mainNav={mainNav}
+                  bottomNav={bottomNav}
+                  loginLabel={t("nav.login")}
+                >
+                  {children}
+                </AppShell>
+              </AdminProvider>
             </I18nProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>

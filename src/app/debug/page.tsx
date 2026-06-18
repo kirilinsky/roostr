@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import RoostrCard from "@/components/RoostrCard";
 import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
+import { markDiscovered } from "@/lib/dex";
 import { useT } from "@/i18n/I18nProvider";
 
 export default function DebugPage() {
@@ -16,7 +17,9 @@ export default function DebugPage() {
   const [count, setCount] = useState(0);
 
   function hatch() {
-    setCurrent(rollRoostr());
+    const rolled = rollRoostr();
+    setCurrent(rolled);
+    markDiscovered(rolled.breed.id);
     setCount((c) => c + 1);
   }
 
