@@ -48,6 +48,15 @@ export const dictionaries: Record<Locale, Dict> = {
     "stats.offense": "Attack",
     "stats.defense": "Defense",
     "stats.utility": "Utility",
+    "archetype.intro":
+      "An archetype is the recommended build for a rooster, derived from its key genes — not a fixed class. It hints which skills are cheaper and stronger to upgrade.",
+    "archetype.profile": "Profile",
+    "archetype.families": "Gene families",
+    "archetype.why": "Why this rooster",
+    "archetype.whyHybrid":
+      "It carries a Work gene plus a combat/utility gene — a flexible Hybrid with a lower peak.",
+    "archetype.whyDominant":
+      "Most of its key genes are the {family} family, so its recommended archetype is {role}.",
 
     "about.title": "About",
     "about.tba": "TBA",
@@ -167,6 +176,15 @@ export const dictionaries: Record<Locale, Dict> = {
     "stats.offense": "Атака",
     "stats.defense": "Защита",
     "stats.utility": "Утилити",
+    "archetype.intro":
+      "Архетип — рекомендованный билд петуха, выведенный из его ключевых генов. Это не жёсткий класс, а подсказка: какие навыки качать дешевле и сильнее.",
+    "archetype.profile": "Профиль",
+    "archetype.families": "Семейства генов",
+    "archetype.why": "Почему этот петух",
+    "archetype.whyHybrid":
+      "У него ген работы плюс боевой/утилитарный ген — гибкий Гибрид с более низким потолком.",
+    "archetype.whyDominant":
+      "Большинство ключевых генов — семейство {family}, поэтому рекомендованный архетип — {role}.",
 
     "about.title": "О проекте",
     "about.tba": "Скоро",

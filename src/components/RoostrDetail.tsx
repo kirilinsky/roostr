@@ -15,6 +15,7 @@ import GeneIcon from "@/components/GeneIcon";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
 import BreedInfoModal from "@/components/BreedInfoModal";
 import StatInfoModal from "@/components/StatInfoModal";
+import ArchetypeInfoModal from "@/components/ArchetypeInfoModal";
 import { countryFlag } from "@/lib/flag";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import {
@@ -53,6 +54,7 @@ export default function RoostrDetail({
   const [busyGene, setBusyGene] = useState<string | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [statInfoOpen, setStatInfoOpen] = useState(false);
+  const [archOpen, setArchOpen] = useState(false);
 
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
@@ -89,11 +91,47 @@ export default function RoostrDetail({
         ← {t("detail.back")}
       </Button>
 
-      {/* Top: avatar panel + combat stats */}
-      <Stack direction={{ xs: "column", md: "row" }} spacing={3} alignItems="stretch">
+      {/* Title + badges — full width, top-left (above the avatar/stats row) */}
+      <Box>
+        <Typography
+          variant="h3"
+          sx={{ fontWeight: 800, textTransform: "uppercase" }}
+          noWrap
+        >
+          {name}
+        </Typography>
+        <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
+          {/* recommended archetype/role — click to learn what it means */}
+          <Chip
+            label={`${roleLabel(roostr.role, locale).toUpperCase()} ⓘ`}
+            size="small"
+            color="primary"
+            clickable
+            onClick={() => setArchOpen(true)}
+            sx={{ fontWeight: 800, letterSpacing: 0.5 }}
+          />
+          <Chip
+            label={seedId}
+            size="small"
+            variant="outlined"
+            sx={{ fontFamily: "monospace" }}
+          />
+          {/* breed country of origin (future country championships) */}
+          <Chip
+            label={`${countryFlag(roostr.breed.region.iso)} ${roostr.breed.region[locale]}`}
+            size="small"
+            variant="outlined"
+          />
+          {/* weight class */}
+          <Chip label={`⚖️ ${weightLabel}`} size="small" variant="outlined" />
+        </Stack>
+      </Box>
+
+      {/* avatar panel + stats */}
+      <Stack direction={{ xs: "column", md: "row" }} spacing={3} alignItems="flex-start">
         {/* avatar + identity */}
         <Stack spacing={1.5} sx={{ width: { xs: "100%", md: 360 }, flexShrink: 0 }}>
-          <Box sx={{ position: "relative", mt: { md: 7 } }}>
+          <Box sx={{ position: "relative" }}>
             <Box
               sx={{
                 aspectRatio: "1 / 1",
@@ -166,38 +204,8 @@ export default function RoostrDetail({
           </Card>
         </Stack>
 
-        {/* name + id + combat stats */}
+        {/* combat stats + trait */}
         <Stack spacing={1.5} sx={{ flexGrow: 1, minWidth: 0 }}>
-          {/* name + badges indented right; stats below stay flush */}
-          <Box sx={{ pl: { md: 4 } }}>
-            <Typography variant="h3" sx={{ fontWeight: 800, textTransform: "uppercase" }} noWrap>
-              {name}
-            </Typography>
-            <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
-              {/* recommended archetype/role */}
-              <Chip
-                label={roleLabel(roostr.role, locale).toUpperCase()}
-                size="small"
-                color="primary"
-                sx={{ fontWeight: 800, letterSpacing: 0.5 }}
-              />
-              <Chip
-                label={seedId}
-                size="small"
-                variant="outlined"
-                sx={{ fontFamily: "monospace" }}
-              />
-              {/* breed country of origin (future country championships) */}
-              <Chip
-                label={`${countryFlag(roostr.breed.region.iso)} ${roostr.breed.region[locale]}`}
-                size="small"
-                variant="outlined"
-              />
-              {/* weight class */}
-              <Chip label={`⚖️ ${weightLabel}`} size="small" variant="outlined" />
-            </Stack>
-          </Box>
-
           <Card sx={{ p: 2, flexGrow: 1 }}>
             <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1.5 }}>
               <Typography variant="h6">{t("detail.combatStats")}</Typography>
@@ -369,6 +377,12 @@ export default function RoostrDetail({
         onClose={() => setInfoOpen(false)}
       />
       <StatInfoModal open={statInfoOpen} onClose={() => setStatInfoOpen(false)} />
+      <ArchetypeInfoModal
+        roleId={roostr.role}
+        genes={roostr.genes}
+        open={archOpen}
+        onClose={() => setArchOpen(false)}
+      />
     </Stack>
   );
 }
