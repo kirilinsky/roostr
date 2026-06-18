@@ -67,6 +67,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "incubator.boost": "Hatch now",
     "incubator.hatched": "It hatched!",
     "incubator.continue": "Continue",
+    "incubator.needLogin": "Log in to hatch a rooster.",
 
     "roostrdex.title": "Roostrdex",
     "roostrdex.subtitle":
@@ -156,6 +157,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "incubator.boost": "Вылупить сразу",
     "incubator.hatched": "Вылупился!",
     "incubator.continue": "Продолжить",
+    "incubator.needLogin": "Войдите, чтобы вылупить петуха.",
 
     "roostrdex.title": "Рустрдекс",
     "roostrdex.subtitle": "Все породы, которые ты открыл — и те, что ещё ждут.",

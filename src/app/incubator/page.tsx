@@ -9,8 +9,9 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import RoostrCard from "@/components/RoostrCard";
-import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
+import { type RolledRoostr } from "@/lib/roostr";
 import { markDiscovered } from "@/lib/dex";
+import { hatchAction } from "@/app/incubator/actions";
 import { useT } from "@/i18n/I18nProvider";
 
 // One free hatch per day; boost lets the player skip the wait for currency.
@@ -40,6 +41,8 @@ export default function IncubatorPage() {
   const [now, setNow] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
   const [result, setResult] = useState<RolledRoostr | null>(null);
+  const [pending, setPending] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // Restore the cooldown after mount to avoid SSR/client markup mismatch.
   useEffect(() => {
@@ -60,14 +63,41 @@ export default function IncubatorPage() {
     : 0;
   const ready = remaining <= 0;
 
-  const hatch = useCallback(() => {
-    const ts = Date.now();
-    setLastHatchAt(ts);
-    window.localStorage.setItem(STORAGE_KEY, String(ts));
-    const rolled = rollRoostr();
-    markDiscovered(rolled.breed.id);
-    setResult(rolled);
+  // Reflect the server's authoritative cooldown into the local countdown.
+  // cooldownUntil is the unlock time; the timer is anchored one full cooldown
+  // before it. null clears the cooldown (admins have no limit).
+  const applyCooldown = useCallback((cooldownUntil: number | null) => {
+    if (cooldownUntil === null) {
+      setLastHatchAt(null);
+      window.localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    const anchor = cooldownUntil - HATCH_COOLDOWN_MS;
+    setLastHatchAt(anchor);
+    window.localStorage.setItem(STORAGE_KEY, String(anchor));
   }, []);
+
+  const hatch = useCallback(async () => {
+    if (pending) return;
+    setPending(true);
+    setNotice(null);
+    try {
+      // Server is authoritative: it enforces the daily limit and decides the
+      // cooldown. The client clock is only UX. Keep the local dex mark until
+      // the Roostrdex reads discoveries from the DB.
+      const res = await hatchAction();
+      if (!res.ok) {
+        if (res.reason === "cooldown") applyCooldown(res.cooldownUntil);
+        else setNotice(t("incubator.needLogin"));
+        return;
+      }
+      applyCooldown(res.cooldownUntil);
+      markDiscovered(res.roostr.breed.id);
+      setResult(res.roostr);
+    } finally {
+      setPending(false);
+    }
+  }, [pending, applyCooldown, t]);
 
   const eggClickable = hydrated && ready;
 
@@ -121,12 +151,12 @@ export default function IncubatorPage() {
               <Box
                 role={eggClickable ? "button" : undefined}
                 aria-label={eggClickable ? t("incubator.hatch") : undefined}
-                onClick={eggClickable ? hatch : undefined}
+                onClick={eggClickable && !pending ? hatch : undefined}
                 sx={{
                   position: "relative",
                   zIndex: 1,
                   lineHeight: 0,
-                  cursor: eggClickable ? "pointer" : "default",
+                  cursor: eggClickable && !pending ? "pointer" : "default",
                   animation: `${float} 4s ease-in-out infinite`,
                 }}
               >
@@ -148,7 +178,12 @@ export default function IncubatorPage() {
                   <Typography color="text.secondary">
                     {t("incubator.ready")}
                   </Typography>
-                  <Button variant="contained" size="large" onClick={hatch}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={hatch}
+                    disabled={pending}
+                  >
                     {t("incubator.hatch")}
                   </Button>
                 </>
@@ -166,7 +201,7 @@ export default function IncubatorPage() {
                     variant="outlined"
                     color="secondary"
                     size="large"
-                    onClick={hatch}
+                    disabled
                   >
                     <Stack direction="row" spacing={0.75} alignItems="center">
                       <span>⚡ {t("incubator.boost")}</span>
@@ -191,6 +226,11 @@ export default function IncubatorPage() {
                     </Stack>
                   </Button>
                 </>
+              )}
+              {notice && (
+                <Typography variant="body2" color="error">
+                  {notice}
+                </Typography>
               )}
             </Stack>
           </>

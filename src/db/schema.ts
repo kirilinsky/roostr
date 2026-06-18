@@ -37,6 +37,12 @@ export const roostrs = pgTable("roostrs", {
   breedId: text("breed_id").notNull(),
   weightClassId: text("weight_class_id").notNull(),
   geneIds: jsonb("gene_ids").$type<string[]>().notNull(),
+  // Gene upgrade levels (geneId -> level). Missing/empty = every gene at level 1.
+  // This is the mutable progression on top of the immutable rolled DNA above.
+  geneLevels: jsonb("gene_levels")
+    .$type<Record<string, number>>()
+    .notNull()
+    .default({}),
   colors: jsonb("colors").$type<Record<string, string>>().notNull(),
   pattern: text("pattern").notNull(),
   role: text("role").notNull(),
@@ -44,7 +50,39 @@ export const roostrs = pgTable("roostrs", {
   seed: integer("seed").notNull(),
   nickname: text("nickname"),
   origin: text("origin").notNull().default("hatch"), // hatch | evolution | event | ...
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  // Lifecycle state. Recycling/selling sets a non-active status instead of
+  // hard-deleting the row, so the rooster's history (and provenance below)
+  // survives. breed_discoveries already assumes the dex unlock outlives the bird.
+  status: text("status").notNull().default("active"), // active | recycled | listed | sold
+  // Forward catch-all for small, evolving per-rooster fields (achievements,
+  // flags, aura cache, …). Add keys here WITHOUT a migration; promote to a typed
+  // column once a field's shape is stable. Keep big/queried data in real columns.
+  meta: jsonb("meta").$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(), // = hatch/mint time
+});
+
+// Owner provenance — append-only ledger, one row per ownership change. The
+// current owner stays denormalized on roostrs.ownerId (fast "whose is it");
+// this table is the full chain of custody (for trades, gifts, market, NFT
+// passport). Genesis row is written on hatch (fromUserId = null). We start
+// collecting from the first hatch so there's never a backfill.
+export const roostrTransfers = pgTable("roostr_transfers", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  roostrId: uuid("roostr_id")
+    .notNull()
+    .references(() => roostrs.id, { onDelete: "cascade" }),
+  // null = genesis (the bird was minted/hatched, no prior owner).
+  fromUserId: bigint("from_user_id", { mode: "number" }).references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
+  // Nullable only so a user deletion can null it out (set null) while keeping
+  // the history row; in practice every non-genesis transfer has a recipient.
+  toUserId: bigint("to_user_id", { mode: "number" }).references(() => users.id, {
+    onDelete: "set null",
+  }),
+  kind: text("kind").notNull(), // hatch | market | gift | trade | reward | ...
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Persisted Roostrdex unlocks — survives recycling/selling the roostr.

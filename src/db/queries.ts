@@ -1,8 +1,223 @@
 import type { SessionUser } from "@/lib/auth";
+import type { RolledRoostr } from "@/lib/roostr";
 
 // Canonical pair order so a friendship is stored once regardless of direction.
 function pair(a: number, b: number): [number, number] {
   return a < b ? [a, b] : [b, a];
+}
+
+// --- Roostrs (the rolled DNA + mutable gene levels) ---
+
+// Persist a freshly rolled roostr. Returns the new row id, or null if the DB is
+// unavailable / the insert failed (caller falls back to a local-only reveal).
+export async function createRoostr(
+  ownerId: number,
+  r: RolledRoostr,
+  origin = "hatch",
+): Promise<string | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, roostrTransfers } = await import("@/db/schema");
+    const [row] = await db
+      .insert(roostrs)
+      .values({
+        ownerId,
+        breedId: r.breed.id,
+        weightClassId: r.weightClass.id,
+        geneIds: r.genes.map((g) => g.id),
+        geneLevels: {}, // every gene starts at level 1 (implicit)
+        colors: r.colors,
+        pattern: r.pattern,
+        role: r.role,
+        maxHealth: r.maxHealth,
+        seed: r.seed,
+        origin,
+        // status defaults to "active", meta to {} (see schema)
+      })
+      .returning({ id: roostrs.id });
+    const id = row?.id ?? null;
+    // Genesis provenance row: minted to its first owner (fromUserId = null).
+    // Written here so EVERY rooster has a complete chain of custody from row 1.
+    if (id) {
+      await db
+        .insert(roostrTransfers)
+        .values({ roostrId: id, fromUserId: null, toUserId: ownerId, kind: origin });
+    }
+    return id;
+  } catch (e) {
+    console.error("createRoostr failed:", e);
+    return null;
+  }
+}
+
+// Append an ownership-change row (market sale, gift, trade, reward, …). Call
+// this alongside updating roostrs.ownerId when a bird changes hands. Genesis
+// (hatch) is recorded inside createRoostr, so don't double-write it here.
+export async function recordTransfer(
+  roostrId: string,
+  fromUserId: number | null,
+  toUserId: number,
+  kind: string,
+): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { roostrTransfers } = await import("@/db/schema");
+    await db
+      .insert(roostrTransfers)
+      .values({ roostrId, fromUserId, toUserId, kind });
+  } catch (e) {
+    console.error("recordTransfer failed:", e);
+  }
+}
+
+// Full ownership history for a rooster, oldest first (genesis → current owner).
+export async function getRoostrHistory(roostrId: string) {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { roostrTransfers } = await import("@/db/schema");
+    const { asc, eq } = await import("drizzle-orm");
+    return await db
+      .select()
+      .from(roostrTransfers)
+      .where(eq(roostrTransfers.roostrId, roostrId))
+      .orderBy(asc(roostrTransfers.at));
+  } catch (e) {
+    console.error("getRoostrHistory failed:", e);
+    return [];
+  }
+}
+
+// Atomically claim a hatch slot for a user (server-side daily cooldown).
+//
+// One conditional UPDATE sets last_hatch_at = now() only when the user is
+// eligible (admin bypass, or the cooldown has elapsed). Doing it in a single
+// statement makes it race-safe: two concurrent hatch clicks can't both win.
+//
+//  - "claimed": slot taken, caller may roll + persist.
+//  - "cooldown": still on cooldown; `retryAt` is when the next hatch unlocks.
+//  - "no-user": no users row (must be logged in / upserted first).
+//  - "no-db":  DATABASE_URL unset — cooldown can't be enforced (dev only).
+export type HatchClaim =
+  | { status: "claimed" }
+  | { status: "cooldown"; retryAt: number }
+  | { status: "no-user" }
+  | { status: "no-db" };
+
+export async function claimHatch(
+  userId: number,
+  cooldownMs: number,
+  bypass: boolean,
+): Promise<HatchClaim> {
+  if (!process.env.DATABASE_URL) return { status: "no-db" };
+  try {
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { and, eq, isNull, lte, or } = await import("drizzle-orm");
+
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - cooldownMs);
+    const eligible = bypass
+      ? eq(users.id, userId)
+      : and(
+          eq(users.id, userId),
+          or(isNull(users.lastHatchAt), lte(users.lastHatchAt, cutoff)),
+        );
+
+    const claimed = await db
+      .update(users)
+      .set({ lastHatchAt: now, updatedAt: now })
+      .where(eligible)
+      .returning({ id: users.id });
+    if (claimed.length > 0) return { status: "claimed" };
+
+    // Not claimed → either the user row is missing or they're on cooldown.
+    const [row] = await db
+      .select({ last: users.lastHatchAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!row) return { status: "no-user" };
+    const retryAt = (row.last?.getTime() ?? 0) + cooldownMs;
+    return { status: "cooldown", retryAt };
+  } catch (e) {
+    console.error("claimHatch failed:", e);
+    // Fail closed: treat an error as "can't claim right now".
+    return { status: "cooldown", retryAt: Date.now() + cooldownMs };
+  }
+}
+
+// All of a user's roostrs, newest first.
+export async function getRoostrs(ownerId: number) {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { desc, eq } = await import("drizzle-orm");
+    return await db
+      .select()
+      .from(roostrs)
+      .where(eq(roostrs.ownerId, ownerId))
+      .orderBy(desc(roostrs.createdAt));
+  } catch (e) {
+    console.error("getRoostrs failed:", e);
+    return [];
+  }
+}
+
+// A single roostr by id (null if absent / DB unavailable).
+export async function getRoostr(id: string) {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db.select().from(roostrs).where(eq(roostrs.id, id)).limit(1);
+    return rows[0] ?? null;
+  } catch (e) {
+    console.error("getRoostr failed:", e);
+    return null;
+  }
+}
+
+// Overwrite a roostr's gene levels (owner-guarded). Returns true on success.
+export async function setGeneLevels(
+  id: string,
+  ownerId: number,
+  levels: Record<string, number>,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const res = await db
+      .update(roostrs)
+      .set({ geneLevels: levels })
+      .where(and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId)))
+      .returning({ id: roostrs.id });
+    return res.length > 0;
+  } catch (e) {
+    console.error("setGeneLevels failed:", e);
+    return false;
+  }
+}
+
+// Record a Roostrdex unlock (survives recycling the roostr). Idempotent.
+export async function recordDiscovery(userId: number, breedId: string): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { breedDiscoveries } = await import("@/db/schema");
+    await db
+      .insert(breedDiscoveries)
+      .values({ userId, breedId })
+      .onConflictDoNothing();
+  } catch (e) {
+    console.error("recordDiscovery failed:", e);
+  }
 }
 
 // Returns the friendship row (with createdAt = since) or null.

@@ -40,21 +40,25 @@ export default function TelegramLoginButton({
       }
     };
 
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.async = true;
-    script.setAttribute("data-telegram-login", botUsername);
-    script.setAttribute("data-size", "large");
-    script.setAttribute("data-userpic", "true");
-    script.setAttribute("data-radius", "8");
-    script.setAttribute("data-request-access", "write");
-    script.setAttribute("data-onauth", "onTelegramAuth(user)");
-
+    // Idempotent inject: add the widget only once. Re-running the effect
+    // (StrictMode double-mount, or router identity change after hydration) must
+    // NOT wipe the container — the earlier async script/iframe would be detached
+    // and never render. That race is why the button only appeared after a reload.
     const el = containerRef.current;
-    el?.appendChild(script);
+    if (el && !el.querySelector("script, iframe")) {
+      const script = document.createElement("script");
+      script.src = "https://telegram.org/js/telegram-widget.js?22";
+      script.async = true;
+      script.setAttribute("data-telegram-login", botUsername);
+      script.setAttribute("data-size", "large");
+      script.setAttribute("data-userpic", "true");
+      script.setAttribute("data-radius", "8");
+      script.setAttribute("data-request-access", "write");
+      script.setAttribute("data-onauth", "onTelegramAuth(user)");
+      el.appendChild(script);
+    }
 
     return () => {
-      if (el) el.innerHTML = "";
       delete window.onTelegramAuth;
     };
   }, [botUsername, router]);
