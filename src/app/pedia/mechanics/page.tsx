@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
 import Chip from "@mui/material/Chip";
@@ -8,35 +9,91 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { getTranslations } from "@/i18n/server";
 
-// Roostrpedia — wiki-style index of articles (mechanics, breeds, genes).
-// Scaffold: only the Genes article is live; the rest are placeholders.
+// Mechanics is a sub-category of Roostrpedia: each game system gets its own
+// article. First one live: skill/gene upgrade.
 const ARTICLES = [
-  { href: "/pedia/genes", icon: "🧬", titleKey: "pedia.genes.title", descKey: "pedia.genes.desc", live: true },
-  { href: "/pedia/breeds", icon: "🐔", titleKey: "pedia.breeds.title", descKey: "pedia.breeds.desc", live: true },
-  { href: "/pedia/groups", icon: "📂", titleKey: "pedia.groups.title", descKey: "pedia.groups.desc", live: true },
-  { href: "/pedia/skills", icon: "📊", titleKey: "pedia.skills.title", descKey: "pedia.skills.desc", live: true },
-  { href: "/pedia/archetypes", icon: "🧭", titleKey: "pedia.archetypes.title", descKey: "pedia.archetypes.desc", live: true },
-  { href: "/pedia/mechanics", icon: "⚙️", titleKey: "pedia.mechanics.title", descKey: "pedia.mechanics.desc", live: true },
+  {
+    href: "/pedia/mechanics/hatching",
+    icon: "🥚",
+    titleKey: "pedia.mech.hatch.title",
+    descKey: "pedia.mech.hatch.desc",
+    live: true,
+  },
+  {
+    href: "/pedia/mechanics/feathers",
+    icon: "🪶",
+    titleKey: "pedia.mech.feathers.title",
+    descKey: "pedia.mech.feathers.desc",
+    live: true,
+  },
+  {
+    href: "/pedia/mechanics/upgrades",
+    icon: "⬆️",
+    titleKey: "pedia.mech.upgrade.title",
+    descKey: "pedia.mech.upgrade.desc",
+    live: true,
+  },
+  // Placeholders — systems not built yet.
+  {
+    href: "/pedia/mechanics",
+    icon: "⚔️",
+    titleKey: "pedia.mech.battle.title",
+    descKey: "pedia.mech.battle.desc",
+    live: false,
+  },
+  {
+    href: "/pedia/mechanics",
+    icon: "🌾",
+    titleKey: "pedia.mech.farm.title",
+    descKey: "pedia.mech.farm.desc",
+    live: false,
+  },
+  {
+    href: "/pedia/mechanics",
+    icon: "🧪",
+    titleKey: "pedia.mech.lab.title",
+    descKey: "pedia.mech.lab.desc",
+    live: false,
+  },
+  {
+    href: "/pedia/mechanics",
+    icon: "🛒",
+    titleKey: "pedia.mech.market.title",
+    descKey: "pedia.mech.market.desc",
+    live: false,
+  },
 ] as const;
 
-export default async function PediaPage() {
+export default async function PediaMechanicsPage() {
   const { t } = await getTranslations();
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
       <Stack spacing={3}>
+        <Button
+          component={Link}
+          href="/pedia"
+          color="neutral"
+          sx={{ alignSelf: "flex-start" }}
+        >
+          ← {t("pedia.title")}
+        </Button>
+
         <Box>
           <Typography variant="h4" component="h1">
-            {t("pedia.title")}
+            {t("pedia.mechanics.title")}
           </Typography>
-          <Typography color="text.secondary">{t("pedia.subtitle")}</Typography>
+          <Typography color="text.secondary">{t("pedia.mechanics.desc")}</Typography>
         </Box>
 
         <Box
           sx={{
             display: "grid",
             gap: 2,
-            gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+            gridTemplateColumns: {
+              xs: "minmax(0, 1fr)",
+              sm: "repeat(2, minmax(0, 1fr))",
+            },
           }}
         >
           {ARTICLES.map((a, i) => {

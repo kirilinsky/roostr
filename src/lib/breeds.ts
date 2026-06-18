@@ -44,6 +44,7 @@ export const BREEDS_CATALOG = data.breeds as BreedEntry[];
 // localized display only.
 export interface BreedGroup {
   id: string;
+  icon: string;
   name: { en: string; ru: string };
   description: { en: string; ru: string };
 }

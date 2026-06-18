@@ -351,7 +351,7 @@
         "effects": [
           {
             "stat": "Damage",
-            "mod": 0.1
+            "mod": 0.13
           },
           {
             "stat": "Recovery",
@@ -359,7 +359,7 @@
           },
           {
             "stat": "Fertility",
-            "mod": -0.1
+            "mod": -0.11
           }
         ],
         "description": {

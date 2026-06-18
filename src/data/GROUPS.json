@@ -1,11 +1,12 @@
 {
   "description": {
-    "en": "Breed groups. id = the canonical English key used on breeds (BREEDS.json `group`) and for palette lookups. name/description are display-only.",
-    "ru": "Группы пород. id — каноничный английский ключ на породах (BREEDS.json `group`) и для палитры. name/description — только для показа."
+    "en": "Breed groups. id = the canonical English key used on breeds (BREEDS.json `group`) and for palette lookups. icon/name/description are display-only.",
+    "ru": "Группы пород. id — каноничный английский ключ на породах (BREEDS.json `group`) и для палитры. icon/name/description — только для показа."
   },
   "groups": [
     {
       "id": "Oddities",
+      "icon": "🃏",
       "name": { "en": "Oddities", "ru": "Диковинки" },
       "description": {
         "en": "Unusual, quirky breeds — black flesh, naked necks, frizzled feathers.",
@@ -14,6 +15,7 @@
     },
     {
       "id": "Show Birds",
+      "icon": "🎀",
       "name": { "en": "Show Birds", "ru": "Выставочные" },
       "description": {
         "en": "Decorative breeds bred for looks — crests, lacing, fancy plumage.",
@@ -22,6 +24,7 @@
     },
     {
       "id": "Longtail Legends",
+      "icon": "🦚",
       "name": { "en": "Longtail Legends", "ru": "Длиннохвостые легенды" },
       "description": {
         "en": "Famous for extravagantly long, flowing tails.",
@@ -30,6 +33,7 @@
     },
     {
       "id": "Fighters",
+      "icon": "⚔️",
       "name": { "en": "Fighters", "ru": "Бойцовые" },
       "description": {
         "en": "Hard-feathered game fowl with an upright, combat-built stance.",
@@ -38,6 +42,7 @@
     },
     {
       "id": "Heavy Giants",
+      "icon": "🏋️",
       "name": { "en": "Heavy Giants", "ru": "Тяжеловесы" },
       "description": {
         "en": "Big, heavy, dual-purpose breeds with a low centre of mass.",
@@ -46,6 +51,7 @@
     },
     {
       "id": "Farm Workers",
+      "icon": "🌾",
       "name": { "en": "Farm Workers", "ru": "Фермерские" },
       "description": {
         "en": "Reliable layers and meat birds — the everyday workhorses.",
@@ -54,6 +60,7 @@
     },
     {
       "id": "Criers",
+      "icon": "📢",
       "name": { "en": "Criers", "ru": "Голосистые" },
       "description": {
         "en": "Prized for a unique, long or musical crow.",

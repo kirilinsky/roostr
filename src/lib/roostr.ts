@@ -68,7 +68,7 @@ export interface ArchetypeMeta {
   families: GeneFamily[];
   strengths: Skill[];
   weaknesses: Skill[];
-  note?: string;
+  note?: { en: string; ru: string };
 }
 
 // The interrelation table (families <-> skills <-> roles, archetypes).

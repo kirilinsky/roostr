@@ -26,10 +26,68 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.genes.boosts": "Boosts",
     "pedia.genes.weakness": "Weakness",
     "pedia.genes.role": "Leans",
+    "pedia.skills.title": "Skills",
+    "pedia.skills.desc": "What each stat does.",
+    "pedia.groups.title": "Groups",
+    "pedia.groups.desc": "Breed families and their style.",
+    "pedia.archetypes.title": "Archetypes",
+    "pedia.archetypes.desc": "The recommended build for each gene mix.",
+    "pedia.archetypes.how":
+      "An archetype is decided by a rooster's genes: a Work gene plus a combat/utility gene → Hybrid; otherwise the most-represented gene family sets the archetype. It's a hint, not a hard class.",
     "pedia.breeds.title": "Breeds",
     "pedia.breeds.desc": "Every breed — origin, trait, silhouette.",
     "pedia.mechanics.title": "Mechanics",
     "pedia.mechanics.desc": "How hatching, stats and upgrades work.",
+    "pedia.mech.hatch.title": "Hatching",
+    "pedia.mech.hatch.desc": "One free hatch a day — and what comes out.",
+    "pedia.mech.hatch.dailyTitle": "Once a day",
+    "pedia.mech.hatch.daily":
+      "You get one free hatch per day. After hatching, a 24-hour timer runs before the next free egg.",
+    "pedia.mech.hatch.skipTitle": "Skip the wait",
+    "pedia.mech.hatch.skip":
+      "You'll be able to spend Corn Coins to skip the cooldown and hatch right away.",
+    "pedia.mech.hatch.eggsTitle": "Eggs (coming later)",
+    "pedia.mech.hatch.eggs":
+      "Talented roosters working the farm will earn eggs — each egg is an extra hatch on top of the daily one.",
+    "pedia.mech.hatch.outcomeTitle": "What hatches",
+    "pedia.mech.hatch.outcome":
+      "Every hatch is a Common rooster — power comes from upgrades, not the egg. What's unique is the combo: breed, weight, colors and genes. The number of key genes (1–4) is random.",
+    "pedia.mech.feathers.title": "Feathers",
+    "pedia.mech.feathers.desc": "The energy you spend to fight.",
+    "pedia.mech.feathers.whatTitle": "What they are",
+    "pedia.mech.feathers.what":
+      "Feathers are an energy resource, shown next to your coins. They power your rooster's battles and cap at a maximum.",
+    "pedia.mech.feathers.battleTitle": "Spent on battles",
+    "pedia.mech.feathers.battle":
+      "Each battle costs feathers — no feathers, no fight. Pick your fights once the arena is live.",
+    "pedia.mech.feathers.refillTitle": "Refilling",
+    "pedia.mech.feathers.refill":
+      "Feathers regenerate over time on their own, or you can top them up instantly for Corn Coins.",
+    "pedia.mech.upgrade.title": "Skill upgrade",
+    "pedia.mech.upgrade.desc": "Spend coins to level genes, grow stats and climb tiers.",
+    "pedia.mech.upgrade.overviewTitle": "What it is",
+    "pedia.mech.upgrade.overview":
+      "Upgrading spends Corn Coins to raise a gene's level. A higher gene level means a stronger gene effect, which raises your stats, which raises the rooster's overall level (tier).",
+    "pedia.mech.upgrade.costTitle": "Corn Coins",
+    "pedia.mech.upgrade.cost":
+      "Each upgrade costs Corn Coins, and the price rises with every level — up to the max gene level ({max}).",
+    "pedia.mech.upgrade.statsTitle": "Stats grow",
+    "pedia.mech.upgrade.stats":
+      "A gene applies its stat mods × its level — so both its buffs AND its debuffs grow with each upgrade. On a rooster's stat bar the dark part is the base, the lighter part on top is what genes added.",
+    "pedia.mech.upgrade.levelTitle": "Level & rating",
+    "pedia.mech.upgrade.level":
+      "The overall level is the sum of all skills plus HP. As stats grow the rating climbs and the tier rises through these bands:",
+    "pedia.mech.upgrade.whereTitle": "Where to do it",
+    "pedia.mech.upgrade.where":
+      "Open a rooster (Collection → tap a bird) and use the Genetic Upgrades section. Only the owner can upgrade, and you need enough Corn Coins.",
+    "pedia.mech.battle.title": "Battle",
+    "pedia.mech.battle.desc": "Send roosters into the arena.",
+    "pedia.mech.farm.title": "Farm",
+    "pedia.mech.farm.desc": "Idle work for coins and eggs.",
+    "pedia.mech.lab.title": "Laboratory",
+    "pedia.mech.lab.desc": "Research super-rare mutations.",
+    "pedia.mech.market.title": "Market",
+    "pedia.mech.market.desc": "Trade roosters with players.",
 
     "currency.coin": "Corn Coin",
     "resource.feathers": "Feathers",
@@ -174,10 +232,68 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.genes.boosts": "Усиливает",
     "pedia.genes.weakness": "Слабость",
     "pedia.genes.role": "Уклон",
+    "pedia.skills.title": "Скиллы",
+    "pedia.skills.desc": "Что делает каждый стат.",
+    "pedia.groups.title": "Группы",
+    "pedia.groups.desc": "Семейства пород и их стиль.",
+    "pedia.archetypes.title": "Архетипы",
+    "pedia.archetypes.desc": "Рекомендованный билд под каждый набор генов.",
+    "pedia.archetypes.how":
+      "Архетип определяют гены петуха: ген работы + боевой/утилитарный → Гибрид; иначе самое представленное семейство генов задаёт архетип. Это подсказка, не жёсткий класс.",
     "pedia.breeds.title": "Породы",
     "pedia.breeds.desc": "Каждая порода — родина, черта, силуэт.",
     "pedia.mechanics.title": "Механики",
     "pedia.mechanics.desc": "Как работают вылуп, статы и прокачка.",
+    "pedia.mech.hatch.title": "Вылуп",
+    "pedia.mech.hatch.desc": "Один бесплатный вылуп в сутки — и что выпадает.",
+    "pedia.mech.hatch.dailyTitle": "Раз в сутки",
+    "pedia.mech.hatch.daily":
+      "Один бесплатный вылуп в сутки. После вылупа идёт 24-часовой таймер до следующего яйца.",
+    "pedia.mech.hatch.skipTitle": "Скипнуть ожидание",
+    "pedia.mech.hatch.skip":
+      "За Corn Coins можно будет скипнуть кулдаун и вылупить сразу.",
+    "pedia.mech.hatch.eggsTitle": "Яйца (позже)",
+    "pedia.mech.hatch.eggs":
+      "Талантливые петухи на ферме будут зарабатывать яйца — каждое яйцо это доп. вылуп сверх дневного.",
+    "pedia.mech.hatch.outcomeTitle": "Что выпадает",
+    "pedia.mech.hatch.outcome":
+      "Из вылупа всегда выпадает Обычный петух — сила приходит из прокачки, не из яйца. Уникальна комбинация: порода, вес, окрас и гены. Количество ключевых генов (1–4) случайно.",
+    "pedia.mech.feathers.title": "Перья",
+    "pedia.mech.feathers.desc": "Энергия, которую тратишь на бой.",
+    "pedia.mech.feathers.whatTitle": "Что это",
+    "pedia.mech.feathers.what":
+      "Перья — ресурс-энергия, показан рядом с монетами. Питают бои петуха, есть максимум.",
+    "pedia.mech.feathers.battleTitle": "Тратятся на бой",
+    "pedia.mech.feathers.battle":
+      "Каждый бой стоит перьев — нет перьев, нет боя. Выбирай бои, когда арена заработает.",
+    "pedia.mech.feathers.refillTitle": "Восстановление",
+    "pedia.mech.feathers.refill":
+      "Перья восстанавливаются сами со временем, или их можно мгновенно пополнить за Corn Coins.",
+    "pedia.mech.upgrade.title": "Апгрейд скиллов",
+    "pedia.mech.upgrade.desc": "Трать монеты, качай гены, расти статы и тиры.",
+    "pedia.mech.upgrade.overviewTitle": "Что это",
+    "pedia.mech.upgrade.overview":
+      "Прокачка тратит Corn Coins, чтобы поднять уровень гена. Выше уровень гена → сильнее эффект гена → растут статы → растёт общий уровень петуха (тир).",
+    "pedia.mech.upgrade.costTitle": "Corn Coins",
+    "pedia.mech.upgrade.cost":
+      "Каждый апгрейд стоит Corn Coins, и цена растёт с каждым уровнем — до макс. уровня гена ({max}).",
+    "pedia.mech.upgrade.statsTitle": "Статы растут",
+    "pedia.mech.upgrade.stats":
+      "Ген применяет свои стат-моды × уровень — с каждым апгрейдом растут И плюсы, И минусы. На баре статов тёмная часть — база, светлая сверху — то что добавили гены.",
+    "pedia.mech.upgrade.levelTitle": "Уровень и рейтинг",
+    "pedia.mech.upgrade.level":
+      "Общий уровень = сумма всех скиллов + HP. Растут статы → растёт рейтинг → повышается тир по этим грейдам:",
+    "pedia.mech.upgrade.whereTitle": "Где качать",
+    "pedia.mech.upgrade.where":
+      "Открой петуха (Коллекция → петух) и качай в разделе «Генетические апгрейды». Качать может только владелец; нужны Corn Coins.",
+    "pedia.mech.battle.title": "Бой",
+    "pedia.mech.battle.desc": "Отправляй петухов на арену.",
+    "pedia.mech.farm.title": "Ферма",
+    "pedia.mech.farm.desc": "Idle-работа ради монет и яиц.",
+    "pedia.mech.lab.title": "Лаборатория",
+    "pedia.mech.lab.desc": "Исследуй супер-редкие мутации.",
+    "pedia.mech.market.title": "Рынок",
+    "pedia.mech.market.desc": "Торгуй петухами с игроками.",
 
     "currency.coin": "Corn Coin",
     "resource.feathers": "Перья",

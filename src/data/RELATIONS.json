@@ -286,7 +286,10 @@
       "families": [],
       "strengths": [],
       "weaknesses": [],
-      "note": "Work gene + a combat/util gene; flexible but lower ceiling."
+      "note": {
+        "en": "Work gene + a combat/util gene; flexible but lower ceiling.",
+        "ru": "Ген работы + боевой/util ген; гибко, но потолок ниже."
+      }
     }
   ],
   "weightClasses": [
