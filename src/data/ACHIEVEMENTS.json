@@ -1,0 +1,154 @@
+{
+  "description": {
+    "en": "Achievements source of truth. Each unlocks when its `metric` reaches `value` (>=). `metric` is a key into a computed metrics map (profile or rooster). Add entries here, no code needed. Playful but informative.",
+    "ru": "Источник правды для ачивок. Открывается когда `metric` достигает `value` (>=). `metric` — ключ в посчитанной карте метрик (профиль или рустер). Добавляй сюда, без кода. Шутливо, но информативно."
+  },
+  "profile": [
+    {
+      "id": "first-hatch",
+      "icon": "🥚",
+      "name": { "en": "Out of the Shell", "ru": "Из яйца" },
+      "desc": { "en": "Hatch your first rooster.", "ru": "Вылупи первого петуха." },
+      "metric": "eggsHatched",
+      "value": 1
+    },
+    {
+      "id": "hatchery",
+      "icon": "🐣",
+      "name": { "en": "Hatchery Boss", "ru": "Инкубаторщик" },
+      "desc": { "en": "Hatch 10 roosters.", "ru": "Вылупи 10 петухов." },
+      "metric": "eggsHatched",
+      "value": 10
+    },
+    {
+      "id": "pocket-corn",
+      "icon": "🌽",
+      "name": { "en": "Pocket Corn", "ru": "Корн в кармане" },
+      "desc": { "en": "Earn 1,000 Corn Coins.", "ru": "Заработай 1 000 монет." },
+      "metric": "coinsEarned",
+      "value": 1000
+    },
+    {
+      "id": "corn-baron",
+      "icon": "💰",
+      "name": { "en": "Corn Baron", "ru": "Корн-барон" },
+      "desc": { "en": "Earn 10,000 Corn Coins.", "ru": "Заработай 10 000 монет." },
+      "metric": "coinsEarned",
+      "value": 10000
+    },
+    {
+      "id": "big-spender",
+      "icon": "🛒",
+      "name": { "en": "Big Spender", "ru": "Транжира" },
+      "desc": { "en": "Spend 10,000 Corn Coins.", "ru": "Потрать 10 000 монет." },
+      "metric": "coinsSpent",
+      "value": 10000
+    },
+    {
+      "id": "tier-r",
+      "icon": "🔥",
+      "name": { "en": "R-Rated", "ru": "До R" },
+      "desc": { "en": "Raise a rooster to tier R.", "ru": "Подними петуха до тира R." },
+      "metric": "highestTier",
+      "value": 5
+    },
+    {
+      "id": "tier-x",
+      "icon": "👑",
+      "name": { "en": "X Marks the Spot", "ru": "До X" },
+      "desc": { "en": "Raise a rooster to tier X.", "ru": "Подними петуха до тира X." },
+      "metric": "highestTier",
+      "value": 6
+    },
+    {
+      "id": "collector",
+      "icon": "📚",
+      "name": { "en": "Collector", "ru": "Коллекционер" },
+      "desc": { "en": "Own 10 roosters at once.", "ru": "Имей 10 петухов разом." },
+      "metric": "roostrsOwned",
+      "value": 10
+    },
+    {
+      "id": "popular",
+      "icon": "👥",
+      "name": { "en": "Popular Rooster", "ru": "Свой парень" },
+      "desc": { "en": "Have 25 friends.", "ru": "Имей 25 друзей." },
+      "metric": "friends",
+      "value": 25
+    },
+    {
+      "id": "recruiter",
+      "icon": "✉️",
+      "name": { "en": "Recruiter", "ru": "Вербовщик" },
+      "desc": { "en": "Invite 10 friends.", "ru": "Пригласи 10 друзей." },
+      "metric": "invites",
+      "value": 10
+    },
+    {
+      "id": "first-blood",
+      "icon": "⚔️",
+      "name": { "en": "First Blood", "ru": "Боевое крещение" },
+      "desc": { "en": "Finish your first battle.", "ru": "Заверши первый бой." },
+      "metric": "battles",
+      "value": 1
+    }
+  ],
+  "rooster": [
+    {
+      "id": "four-genes",
+      "icon": "🧬",
+      "name": { "en": "Quad Helix", "ru": "Четырёхген" },
+      "desc": { "en": "Carry 4 key genes.", "ru": "Носит 4 ключевых гена." },
+      "metric": "geneCount",
+      "value": 4
+    },
+    {
+      "id": "maxed-gene",
+      "icon": "⭐",
+      "name": { "en": "Maxed Out", "ru": "На максималке" },
+      "desc": { "en": "Max a gene to level 10.", "ru": "Прокачай ген до 10 уровня." },
+      "metric": "maxGeneLevel",
+      "value": 10
+    },
+    {
+      "id": "wins-10",
+      "icon": "🥇",
+      "name": { "en": "Contender", "ru": "Боец" },
+      "desc": { "en": "Win 10 battles.", "ru": "Выиграй 10 боёв." },
+      "metric": "wins",
+      "value": 10
+    },
+    {
+      "id": "wins-50",
+      "icon": "🏆",
+      "name": { "en": "Champion", "ru": "Чемпион" },
+      "desc": { "en": "Win 50 battles.", "ru": "Выиграй 50 боёв." },
+      "metric": "wins",
+      "value": 50
+    },
+    {
+      "id": "wins-100",
+      "icon": "👑",
+      "name": { "en": "Living Legend", "ru": "Живая легенда" },
+      "desc": { "en": "Win 100 battles.", "ru": "Выиграй 100 боёв." },
+      "metric": "wins",
+      "value": 100
+    },
+    {
+      "id": "losses-10",
+      "icon": "💔",
+      "name": { "en": "Punching Bag", "ru": "Боксёрская груша" },
+      "desc": { "en": "Lose 10 battles.", "ru": "Проиграй 10 боёв." },
+      "metric": "losses",
+      "value": 10
+    },
+    {
+      "id": "rooster-x",
+      "icon": "🌟",
+      "name": { "en": "Apex Bird", "ru": "Вершина" },
+      "desc": { "en": "Reach tier X.", "ru": "Достигни тира X." },
+      "metric": "tierRank",
+      "value": 6
+    }
+  ]
+}
