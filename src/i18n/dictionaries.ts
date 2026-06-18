@@ -9,6 +9,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "nav.collection": "Collection",
     "nav.market": "Market",
     "nav.arena": "Arena",
+    "nav.farm": "Farm",
     "nav.friends": "Friends",
     "nav.support": "Support",
     "nav.settings": "Settings",
@@ -60,6 +61,12 @@ export const dictionaries: Record<Locale, Dict> = {
     "roostrdex.unknown": "Unknown",
     "roostrdex.reveal": "Reveal all",
     "roostrdex.hide": "Hide",
+
+    "friends.intro": "Invite friends and share your profile.",
+    "friends.share": "Share my profile link",
+    "friends.copied": "Copied!",
+    "friends.loginToShare": "Log in to get your shareable profile link.",
+    "publicProfile.notFound": "Player not found.",
   },
   ru: {
     "nav.about": "О проекте",
@@ -69,6 +76,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "nav.collection": "Коллекция",
     "nav.market": "Рынок",
     "nav.arena": "Арена",
+    "nav.farm": "Ферма",
     "nav.friends": "Друзья",
     "nav.support": "Поддержка",
     "nav.settings": "Настройки",
@@ -120,5 +128,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "roostrdex.unknown": "Неизвестно",
     "roostrdex.reveal": "Открыть всё",
     "roostrdex.hide": "Скрыть",
+
+    "friends.intro": "Зови друзей и делись профилем.",
+    "friends.share": "Поделиться ссылкой на профиль",
+    "friends.copied": "Скопировано!",
+    "friends.loginToShare": "Войди, чтобы получить ссылку на профиль.",
+    "publicProfile.notFound": "Игрок не найден.",
   },
 };

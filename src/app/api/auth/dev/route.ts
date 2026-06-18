@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { signSession, SESSION_COOKIE, type SessionUser } from "@/lib/auth";
+import { upsertUser } from "@/db/queries";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,7 @@ export async function POST(req: Request) {
 
   const fake = FAKE_USERS[role] ?? FAKE_USERS.user;
   const token = await signSession(fake);
+  await upsertUser(fake);
 
   const res = NextResponse.json({ ok: true, user: fake });
   res.cookies.set(SESSION_COOKIE, token, {

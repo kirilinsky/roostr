@@ -5,6 +5,7 @@ import {
   type TelegramAuthData,
 } from "@/lib/telegram";
 import { signSession, SESSION_COOKIE } from "@/lib/auth";
+import { upsertUser } from "@/db/queries";
 
 export const runtime = "nodejs";
 
@@ -36,13 +37,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Login expired" }, { status: 401 });
   }
 
-  const token = await signSession({
+  const user = {
     id: data.id,
     firstName: data.first_name,
     lastName: data.last_name,
     username: data.username,
     photoUrl: data.photo_url,
-  });
+  };
+  const token = await signSession(user);
+  await upsertUser(user);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, token, {

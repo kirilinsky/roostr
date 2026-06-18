@@ -40,6 +40,7 @@ export default async function RootLayout({
     { href: "/roostrdex", label: t("nav.roostrdex"), icon: "📕" },
     { href: "/market", label: t("nav.market"), icon: "🛒" },
     { href: "/arena", label: t("nav.arena"), icon: "⚔️" },
+    { href: "/farm", label: t("nav.farm"), icon: "🌾" },
     { href: "/friends", label: t("nav.friends"), icon: "👥" },
   ];
 

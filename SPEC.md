@@ -10,20 +10,24 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 
 ## §C — Constraints
 
-- Stack: Next.js 15 (App Router) · MUI v6 · TS · i18n en/ru. No DB yet (client rolls, localStorage).
+- Stack: Next.js 15 (App Router) · MUI v6 · TS · i18n en/ru. Host: Vercel.
+- DB: **Neon** (serverless Postgres) + **Drizzle ORM**, layer in `src/db/`. Picked for free-no-card +
+  relational data + Stars ledgers later. Pages still on localStorage until migrated (→ T7).
 - All UI on design system → see V1.
 - Auth = Telegram `initData` → session JWT. No passwords.
 - Code comments English-only.
 
 ## §I — Interfaces
 
-- Routes: `/incubator` `/collection` `/market` `/arena` `/friends` `/bank` `/about` `/debug`
-  `/support` `/settings` `/profile`.
+- Routes: `/incubator` `/collection` `/roostrdex` `/market` `/arena` `/farm` `/friends` `/bank`
+  `/about` `/debug` `/support` `/settings` `/profile` · `/[telegramid]` (public profile by id).
 - API: `POST /api/auth/telegram` · `POST /api/auth/logout`.
 - Design tokens: `src/theme.ts` (single MUI theme).
 - i18n dicts: `src/i18n/dictionaries.ts` (en+ru).
 - Hatch lib: `rollRoostr() → RolledRoostr` in `src/lib/roostr.ts`.
 - Shared UI: `AppShell` · `StubPage` · `RoostrCard`.
+- DB: `src/db/schema.ts` (users, roostrs, breed_discoveries, battles, expeditions, farm_sessions) +
+  `src/db/index.ts` (Neon+Drizzle client). Scripts `db:generate|migrate|push|studio`. Env `DATABASE_URL`.
 
 ## §V — Invariants
 
@@ -66,6 +70,11 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T10 | x | admin gating: id allowlist, /debug server-gate, roostrdex reveal | V7 |
 | T11 | x | dev fake-auth: admin/user/guest sidebar buttons, dev-only endpoint | V8 |
 | T12 | x | per-breed innate trait (buff/debuff) in BREEDS.json + dex/hatch card | V9 |
+| T13 | x | DB scaffold: Neon+Drizzle, schema (users/roostrs/battles/farm/expeditions/dex) | C |
+| T14 | x | wire DB: upsert users row on login (Telegram + dev), best-effort | C |
+| T15 | . | server hatch: cooldown + persist roostr + dex discovery (off localStorage) | C,V5 |
+| T16 | . | roostrdex + collection read from DB | C |
+| T17 | x | friends page + share-profile link (clipboard) + public profile /[telegramid] | C |
 
 ## §B — Bugs
 

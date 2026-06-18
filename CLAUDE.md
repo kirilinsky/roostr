@@ -27,3 +27,10 @@ The app has a **design system** and it is the single source of truth for all UI.
 - `npm run build` — production build
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run lint` — `next lint`
+- `npm run db:push` / `db:generate` / `db:migrate` / `db:studio` — Drizzle (needs `DATABASE_URL`)
+
+## Database
+
+Neon (serverless Postgres) + Drizzle ORM. Schema: `src/db/schema.ts`; client: `src/db/index.ts`
+(import `db` in server code only). Env: `DATABASE_URL` (see `.env.example`). Pages still use
+localStorage until migrated.
