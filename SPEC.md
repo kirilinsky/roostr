@@ -41,7 +41,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   theme change FIRST, then usage. No drift between code + system.
 - V2 — Every roostr hatches COMMON. Never born rare/legendary. Unique = combination only
   (breed + weight + colors + pattern + 2-4 genes). Power from прокачка, not egg. [.notes/GENE-MODIFIERS.md]
-- V3 — Roostr has 2-4 key genes. Not fewer (too poor), not more (too universal).
+- V3 — Roostr has 2-4 key genes, weighted hard to 2: 3 is very rare (~1/1000), 4 is a jackpot
+  (~1/100000). `GENE_COUNT_WEIGHTS` in `lib/roostr.ts` sums to 100000 = direct odds.
 - V4 — Color/pattern = cosmetic only. No battle bonus (avoid "right color for meta").
 - V5 — Daily hatch: 1 free per 24h cooldown. Boost = pay currency to skip wait.
 - V6 — Code comments English-only.

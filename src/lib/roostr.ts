@@ -211,11 +211,13 @@ function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 2-4 distinct genes (§6). Bias toward 2-3; 4 is the rare "rich" combo.
+// Gene count: 2 almost always. Three is very rare (~1/1000), four is a jackpot
+// (~1/100000). Weights sum to 100000 so they read as direct odds.
+// (Decision: GAME-DESIGN §11.)
 const GENE_COUNT_WEIGHTS = [
-  { count: 2, weight: 45 },
-  { count: 3, weight: 40 },
-  { count: 4, weight: 15 },
+  { count: 2, weight: 99899 },
+  { count: 3, weight: 100 },
+  { count: 4, weight: 1 },
 ];
 
 function geneRollWeight(gene: Gene, breed: Breed): number {
