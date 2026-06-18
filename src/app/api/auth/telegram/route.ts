@@ -50,18 +50,25 @@ export async function GET(req: Request) {
     username: data.username,
     photoUrl: data.photo_url,
   };
-  const token = await signSession(user);
-  await upsertUser(user);
 
-  const res = NextResponse.redirect(new URL("/profile", req.url), 302);
-  res.cookies.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-  return res;
+  // Don't 500 the page on a misconfig (e.g. missing JWT_SECRET in prod, which
+  // makes signSession throw) — fail to /?login=error instead.
+  try {
+    const token = await signSession(user);
+    await upsertUser(user);
+    const res = NextResponse.redirect(new URL("/profile", req.url), 302);
+    res.cookies.set(SESSION_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    return res;
+  } catch (e) {
+    console.error("telegram GET auth failed:", e);
+    return fail();
+  }
 }
 
 export async function POST(req: Request) {
