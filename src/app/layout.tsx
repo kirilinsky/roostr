@@ -8,6 +8,7 @@ import { AdminProvider } from "@/components/AdminProvider";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
+import { getUserById } from "@/db/queries";
 import { isAdmin } from "@/lib/admin";
 import { headlineFont, bodyFont } from "@/app/fonts";
 
@@ -36,6 +37,8 @@ export default async function RootLayout({
 
   const loggedIn = !!session;
   const admin = isAdmin(session?.id);
+  // Live Corn Coin balance from the DB (was hardcoded 0).
+  const dbUser = session ? await getUserById(session.id) : null;
 
   // Game nav is for logged-in players only; guests see just public links + login.
   const mainNav: NavItem[] = loggedIn
@@ -76,7 +79,7 @@ export default async function RootLayout({
               <AdminProvider isAdmin={admin}>
                 <AppShell
                   user={user}
-                  coinBalance={user ? 0 : undefined}
+                  coinBalance={user ? dbUser?.coins ?? 0 : undefined}
                   energy={user ? { current: 10, max: 10 } : undefined}
                   feathersLabel={t("resource.feathers")}
                   botUsername={botUsername}
