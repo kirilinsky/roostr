@@ -54,6 +54,10 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 - V9 — Each breed has exactly ONE fixed innate trait (buff/debuff), grounded in look/habitat/
   character, NOT upgradeable. Lives in `BREEDS.json` `trait` (`effects` = signed stat mods for the
   future battle sim). Distinct from genes (genes = upgrade branches; trait = permanent identity).
+- V10 — Logged-in-only routes are SERVER-gated in `src/middleware.ts` (guests redirect → `/`):
+  incubator, collection, roostrdex, market, arena, farm, friends, bank, settings, profile. Public:
+  `/`, `/about`, `/support`, `/[telegramid]`. `/debug` gated separately by admin (V7). Sidebar
+  visibility (layout.tsx) mirrors this gate.
 
 ## §T — Tasks
 
@@ -77,6 +81,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T16 | . | roostrdex + collection read from DB | C |
 | T17 | x | friends page + share-profile link (clipboard) + public profile /[telegramid] | C |
 | T18 | x | friendships table + add/remove friend on public profile + since date | C |
+| T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
 
 ## §B — Bugs
 
