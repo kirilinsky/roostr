@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import BreedArt from "@/components/BreedArt";
 
 // Each breed group maps to a design-system palette token (no ad-hoc colors).
 type PaletteRef = {
@@ -59,6 +60,7 @@ export interface BreedDexCardProps {
   discovered: boolean;
   // Present only when discovered:
   name?: string;
+  breedId?: string; // for the art image: /breeds/<breedId>.png
   group?: string; // canonical id (palette lookup)
   groupLabel?: string; // localized display name
   atk?: number;
@@ -176,19 +178,8 @@ export default function BreedDexCard(props: BreedDexCardProps) {
         </Typography>
       </Box>
 
-      {/* Art placeholder (no assets yet) */}
-      <Box
-        sx={{
-          aspectRatio: "1 / 1",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: 72,
-          bgcolor: "background.default",
-        }}
-      >
-        🐓
-      </Box>
+      {/* Breed art — /breeds/<id>.png, 🐓 fallback while assets fill in */}
+      <BreedArt id={props.breedId} />
 
       <Box sx={{ p: 1.5 }}>
         <Typography sx={{ fontWeight: 800, mb: 0.75 }} noWrap>

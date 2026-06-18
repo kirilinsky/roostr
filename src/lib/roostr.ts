@@ -187,7 +187,9 @@ export const COLORS = Object.fromEntries(
 
 const PATTERN_SWATCHES = cosmeticsData.patterns as { en: string; ru: string }[];
 export const PATTERNS = PATTERN_SWATCHES.map((p) => p.en); // ids (en) — what the roll picks
-const PATTERN_RU = Object.fromEntries(PATTERN_SWATCHES.map((p) => [p.en, p.ru]));
+const PATTERN_RU = Object.fromEntries(
+  PATTERN_SWATCHES.map((p) => [p.en, p.ru]),
+);
 
 export function patternLabel(id: string, locale: Locale): string {
   return locale === "ru" ? (PATTERN_RU[id] ?? id) : id;
@@ -213,21 +215,21 @@ export const COLOR_HEX = Object.fromEntries(
 export const COLOR_LABEL_RU = Object.fromEntries(
   (Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]).map((layer) => [
     layer,
-    Object.fromEntries(COSMETIC_LAYERS[layer].map((c) => [c.name.en, c.name.ru])),
+    Object.fromEntries(
+      COSMETIC_LAYERS[layer].map((c) => [c.name.en, c.name.ru]),
+    ),
   ]),
 ) as Record<CosmeticLayer, Record<string, string>>;
 
 // Back-compat: the card paints its backdrop from the rolled body color.
 export const BODY_COLOR_HEX = COLOR_HEX.body;
 
-const SKILL_NAME = Object.fromEntries(SKILLS.map((s) => [s.id, s.name])) as Record<
-  string,
-  { en: string; ru: string }
->;
-const ROLE_NAME = Object.fromEntries(ARCHETYPES.map((a) => [a.id, a.name])) as Record<
-  string,
-  { en: string; ru: string }
->;
+const SKILL_NAME = Object.fromEntries(
+  SKILLS.map((s) => [s.id, s.name]),
+) as Record<string, { en: string; ru: string }>;
+const ROLE_NAME = Object.fromEntries(
+  ARCHETYPES.map((a) => [a.id, a.name]),
+) as Record<string, { en: string; ru: string }>;
 
 // Localized label for a skill or the special "Health" stat.
 export function skillLabel(stat: string, locale: Locale): string {
@@ -241,14 +243,20 @@ export function roleLabel(role: string, locale: Locale): string {
 }
 
 // "+2 Guard · -1 Speed" — gene starting mods (integers), localized.
-export function formatStatMods(mods: StatMods | undefined, locale: Locale): string {
+export function formatStatMods(
+  mods: StatMods | undefined,
+  locale: Locale,
+): string {
   if (!mods) return "";
   return Object.entries(mods)
     .filter(
       (entry): entry is [StatModKey, number] =>
         typeof entry[1] === "number" && entry[1] !== 0,
     )
-    .map(([stat, value]) => `${value > 0 ? "+" : ""}${value} ${skillLabel(stat, locale)}`)
+    .map(
+      ([stat, value]) =>
+        `${value > 0 ? "+" : ""}${value} ${skillLabel(stat, locale)}`,
+    )
     .join(" · ");
 }
 
@@ -282,9 +290,16 @@ export interface RolledRoostr {
 export const SKILL_IDS = SKILLS.map((s) => s.id) as Skill[];
 export const STAT_BAR_MAX = 8; // visual cap for stat bars (most start near base)
 
-function pickWeighted<T extends { weight: number }>(entries: readonly T[]): T {
+// RNG is injected (default Math.random) so the roll is deterministic in tests:
+// pass a seeded `mulberry32(seed)`. Production keeps Math.random.
+export type Rng = () => number;
+
+export function pickWeighted<T extends { weight: number }>(
+  entries: readonly T[],
+  rng: Rng = Math.random,
+): T {
   const total = entries.reduce((s, e) => s + e.weight, 0);
-  let r = Math.random() * total;
+  let r = rng() * total;
   for (const e of entries) {
     r -= e.weight;
     if (r <= 0) return e;
@@ -292,17 +307,17 @@ function pickWeighted<T extends { weight: number }>(entries: readonly T[]): T {
   return entries[entries.length - 1];
 }
 
-function pick<T>(arr: readonly T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function pick<T>(arr: readonly T[], rng: Rng = Math.random): T {
+  return arr[Math.floor(rng() * arr.length)];
 }
 
 // Gene count: 2 almost always. 3 is uncommon (~0.3%). 1 and 4 are both super-rare
 // (~1/50000 each) — a lone gene or a rich four-combo. Weights sum to 100000 so
 // they read as direct odds. (Decision: GAME-DESIGN §11.)
 const GENE_COUNT_WEIGHTS = [
-  { count: 1, weight: 19 },
+  { count: 1, weight: 20 },
   { count: 2, weight: 99696 },
-  { count: 3, weight: 399 },
+  { count: 3, weight: 411 },
   { count: 4, weight: 3 },
 ];
 
@@ -312,9 +327,16 @@ function geneRollWeight(gene: Gene, breed: Breed): number {
   return familyBias * geneBias;
 }
 
-function pickBiasedGene(pool: Gene[], breed: Breed): Gene {
-  const total = pool.reduce((sum, gene) => sum + geneRollWeight(gene, breed), 0);
-  let r = Math.random() * total;
+function pickBiasedGene(
+  pool: Gene[],
+  breed: Breed,
+  rng: Rng = Math.random,
+): Gene {
+  const total = pool.reduce(
+    (sum, gene) => sum + geneRollWeight(gene, breed),
+    0,
+  );
+  let r = rng() * total;
   for (const gene of pool) {
     r -= geneRollWeight(gene, breed);
     if (r <= 0) return gene;
@@ -322,12 +344,12 @@ function pickBiasedGene(pool: Gene[], breed: Breed): Gene {
   return pool[pool.length - 1];
 }
 
-function pickGenes(breed: Breed): Gene[] {
-  const k = pickWeighted(GENE_COUNT_WEIGHTS).count;
+export function pickGenes(breed: Breed, rng: Rng = Math.random): Gene[] {
+  const k = pickWeighted(GENE_COUNT_WEIGHTS, rng).count;
   const pool = [...GENES];
   const out: Gene[] = [];
   for (let i = 0; i < k && pool.length > 0; i++) {
-    const picked = pickBiasedGene(pool, breed);
+    const picked = pickBiasedGene(pool, breed, rng);
     const idx = pool.indexOf(picked);
     out.push(pool.splice(idx, 1)[0]);
   }
@@ -340,7 +362,7 @@ const FAMILY_ROLE = Object.fromEntries(
 
 // Recommended role (§4/§6 — the UI should surface this). A combat/util gene mixed
 // with a Work gene reads as a Hybrid; otherwise the most-represented family wins.
-function deriveRole(genes: Gene[]): string {
+export function deriveRole(genes: Gene[]): string {
   const families = genes.map((g) => g.family);
   const hasWork = families.includes("Work");
   const hasOther = families.some((f) => f !== "Work");
@@ -375,6 +397,26 @@ export type GeneLevels = Record<string, number>;
 // Coins to upgrade a gene FROM `level` to level+1 (cost rises each level).
 export function geneUpgradeCost(level: number): number {
   return Math.round(UPGRADE_BASE * UPGRADE_GROWTH ** (level - 1));
+}
+
+// --- Gene upgrade rules (pure; shared by the server action + the lab UI) ---
+
+// Current level of a gene (missing = level 1).
+export function geneLevelOf(levels: GeneLevels, geneId: string): number {
+  return levels[geneId] ?? 1;
+}
+
+// Can the gene be upgraded further?
+export function canUpgradeGene(level: number): boolean {
+  return level < GENE_MAX_LEVEL;
+}
+
+// New levels map after upgrading one gene by a level (clamped at max). Returns
+// the existing map unchanged when already maxed.
+export function upgradeGeneLevel(levels: GeneLevels, geneId: string): GeneLevels {
+  const level = geneLevelOf(levels, geneId);
+  if (!canUpgradeGene(level)) return levels;
+  return { ...levels, [geneId]: level + 1 };
 }
 
 // Skill block = base + weight body-mods + Σ over genes of (level × statMods).
@@ -431,13 +473,13 @@ export function computeRating(
   return Object.values(stats).reduce((sum, v) => sum + v, 0) + maxHealth;
 }
 
-export function rollRoostr(): RolledRoostr {
-  const breed = pickWeighted(BREEDS);
-  const weightClass = pickWeighted(WEIGHT_CLASSES);
-  const genes = pickGenes(breed);
+export function rollRoostr(rng: Rng = Math.random): RolledRoostr {
+  const breed = pickWeighted(BREEDS, rng);
+  const weightClass = pickWeighted(WEIGHT_CLASSES, rng);
+  const genes = pickGenes(breed, rng);
   const colors = {} as ColorSet;
   for (const layer of Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]) {
-    colors[layer] = pickWeighted(COSMETIC_LAYERS[layer]).name.en;
+    colors[layer] = pickWeighted(COSMETIC_LAYERS[layer], rng).name.en;
   }
   return {
     breed,
@@ -446,9 +488,21 @@ export function rollRoostr(): RolledRoostr {
     maxHealth: computeMaxHealth(breed, weightClass, genes),
     stats: computeStats(genes, {}, weightClass),
     colors,
-    pattern: pick(PATTERNS),
+    pattern: pick(PATTERNS, rng),
     role: deriveRole(genes),
-    seed: Math.floor(Math.random() * 0xffffff),
+    seed: Math.floor(rng() * 0xffffff),
+  };
+}
+
+// Seeded PRNG (mulberry32) — deterministic RNG for tests / reproducible rolls.
+export function mulberry32(seed: number): Rng {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 

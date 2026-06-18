@@ -190,6 +190,7 @@ export default function RoostrdexPage() {
                   dexNo={dexNo}
                   discovered={isFound}
                   name={localize(breed.name, locale)}
+                  breedId={breed.id}
                   group={breed.group}
                   groupLabel={groupName(breed.group, locale)}
                   atk={atk}

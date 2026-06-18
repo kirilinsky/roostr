@@ -68,8 +68,6 @@ export const dictionaries: Record<Locale, Dict> = {
     "stats.offense": "Attack",
     "stats.defense": "Defense",
     "stats.utility": "Utility",
-    "stats.base": "Base",
-    "stats.fromGenes": "From genes",
     "archetype.intro":
       "An archetype is the recommended build for a rooster, derived from its key genes — not a fixed class. It hints which skills are cheaper and stronger to upgrade.",
     "archetype.profile": "Profile",
@@ -218,8 +216,6 @@ export const dictionaries: Record<Locale, Dict> = {
     "stats.offense": "Атака",
     "stats.defense": "Защита",
     "stats.utility": "Утилити",
-    "stats.base": "База",
-    "stats.fromGenes": "От генов",
     "archetype.intro":
       "Архетип — рекомендованный билд петуха, выведенный из его ключевых генов. Это не жёсткий класс, а подсказка: какие навыки качать дешевле и сильнее.",
     "archetype.profile": "Профиль",

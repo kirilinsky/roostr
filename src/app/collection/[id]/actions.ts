@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
-import { GENE_MAX_LEVEL, geneUpgradeCost } from "@/lib/roostr";
+import {
+  canUpgradeGene,
+  geneLevelOf,
+  geneUpgradeCost,
+  upgradeGeneLevel,
+} from "@/lib/roostr";
 import {
   getRoostr,
   setGeneLevels,
@@ -33,17 +38,18 @@ export async function upgradeGeneAction(
   if (!row.geneIds.includes(geneId)) return { ok: false, error: "gene" };
 
   const levels = row.geneLevels ?? {};
-  const level = levels[geneId] ?? 1;
-  if (level >= GENE_MAX_LEVEL) return { ok: false, error: "max" };
+  const level = geneLevelOf(levels, geneId);
+  if (!canUpgradeGene(level)) return { ok: false, error: "max" };
 
   const cost = geneUpgradeCost(level);
   const coins = await spendCoins(session.id, cost, "upgrade", roostrId);
   if (coins === null) return { ok: false, error: "coins" };
 
-  const saved = await setGeneLevels(roostrId, session.id, {
-    ...levels,
-    [geneId]: level + 1,
-  });
+  const saved = await setGeneLevels(
+    roostrId,
+    session.id,
+    upgradeGeneLevel(levels, geneId),
+  );
   if (!saved) {
     await grantCoins(session.id, cost, "refund", roostrId); // spend bought nothing
     return { ok: false, error: "save" };

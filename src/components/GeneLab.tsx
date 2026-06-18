@@ -16,11 +16,14 @@ import {
   SKILLS,
   SKILL_IDS,
   STAT_BAR_MAX,
+  canUpgradeGene,
   computeMaxHealth,
   computeRating,
   computeStats,
+  geneLevelOf,
   geneUpgradeCost,
   skillLabel,
+  upgradeGeneLevel,
   tierFor,
   type GeneLevels,
   type RolledRoostr,
@@ -50,12 +53,12 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
   const tier = tierFor(rating);
 
   function upgrade(geneId: string) {
-    const lvl = levels[geneId] ?? 1;
-    if (lvl >= GENE_MAX_LEVEL) return;
+    const lvl = geneLevelOf(levels, geneId);
+    if (!canUpgradeGene(lvl)) return;
     const cost = geneUpgradeCost(lvl);
     if (coins < cost) return;
     setCoins((c) => c - cost);
-    setLevels((l) => ({ ...l, [geneId]: lvl + 1 }));
+    setLevels((l) => upgradeGeneLevel(l, geneId));
   }
 
   return (

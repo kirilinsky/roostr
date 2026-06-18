@@ -66,7 +66,9 @@ export default function RoostrDetail({
   const tier = roostr.tier;
   const kgUnit = locale === "ru" ? "кг" : "kg";
   // Weight is a grade on a scale (tiny → huge); it can shift, so show position.
-  const weightIdx = WEIGHT_CLASSES.findIndex((w) => w.id === roostr.weightClass.id);
+  const weightIdx = WEIGHT_CLASSES.findIndex(
+    (w) => w.id === roostr.weightClass.id,
+  );
   // Current HP isn't tracked yet (no battle damage) → full. Shows as cur/max,
   // e.g. "1/43" once battles deplete it.
   const curHp = roostr.maxHealth;
@@ -106,7 +108,12 @@ export default function RoostrDetail({
 
       {/* Title + badges — full width, top-left (above the avatar/stats row) */}
       <Box>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={1}
+          sx={{ minWidth: 0 }}
+        >
           <Typography
             variant="h3"
             sx={{ fontWeight: 800, textTransform: "uppercase", minWidth: 0 }}
@@ -123,7 +130,13 @@ export default function RoostrDetail({
             ⓘ
           </IconButton>
         </Stack>
-        <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
+        <Stack
+          direction="row"
+          spacing={0.5}
+          sx={{ mt: 0.5 }}
+          flexWrap="wrap"
+          useFlexGap
+        >
           {/* recommended archetype/role — click to learn what it means */}
           <Chip
             label={`${roleLabel(roostr.role, locale).toUpperCase()} ⓘ`}
@@ -158,7 +171,10 @@ export default function RoostrDetail({
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "300px 1fr" },
+          gridTemplateColumns: {
+            xs: "minmax(0, 1fr)",
+            md: "300px minmax(0, 1fr)",
+          },
           gap: 3,
           alignItems: "start",
         }}
@@ -206,7 +222,12 @@ export default function RoostrDetail({
 
           {/* level / rating progress */}
           <Card sx={{ p: 1.5 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 0.5 }}
+            >
               <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
                 {t("collection.level")} {tier.id}
               </Typography>
@@ -286,7 +307,12 @@ export default function RoostrDetail({
         {/* combat stats + trait */}
         <Stack spacing={1.5} sx={{ flexGrow: 1, minWidth: 0 }}>
           <Card sx={{ p: 2, flexGrow: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1.5 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={0.5}
+              sx={{ mb: 1.5 }}
+            >
               <Typography variant="h6">{t("detail.combatStats")}</Typography>
               {/* legend: red attack / blue defense / green utility */}
               <IconButton
@@ -298,25 +324,14 @@ export default function RoostrDetail({
                 ⓘ
               </IconButton>
             </Stack>
-            {/* legend: solid = base, lighter = gene upgrades on top */}
-            <Stack direction="row" spacing={1.5} sx={{ mb: 1 }}>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: "text.primary" }} />
-                <Typography variant="caption" color="text.secondary">
-                  {t("stats.base")}
-                </Typography>
-              </Stack>
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: "text.disabled" }} />
-                <Typography variant="caption" color="text.secondary">
-                  {t("stats.fromGenes")}
-                </Typography>
-              </Stack>
-            </Stack>
+           
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gridTemplateColumns: {
+                  xs: "minmax(0, 1fr)",
+                  sm: "minmax(0, 1fr) minmax(0, 1fr)",
+                },
                 columnGap: 2,
                 rowGap: 0.75,
               }}
@@ -325,7 +340,10 @@ export default function RoostrDetail({
                 const total = roostr.stats[id];
                 const base = baseStats[id];
                 const color = STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary";
-                const basePct = Math.min(100, (Math.min(base, total) / STAT_BAR_MAX) * 100);
+                const basePct = Math.min(
+                  100,
+                  (Math.min(base, total) / STAT_BAR_MAX) * 100,
+                );
                 const buffPct = Math.min(
                   100 - basePct,
                   (Math.max(0, total - base) / STAT_BAR_MAX) * 100,
@@ -336,9 +354,13 @@ export default function RoostrDetail({
                       <Typography variant="caption" color="text.secondary">
                         {skillLabel(id, locale)}
                       </Typography>
+                      <br />
                       <Typography
                         variant="caption"
-                        sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
+                        sx={{
+                          fontWeight: 700,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
                       >
                         {total}
                       </Typography>
@@ -353,8 +375,12 @@ export default function RoostrDetail({
                         bgcolor: "action.hover",
                       }}
                     >
-                      <Box sx={{ width: `${basePct}%`, bgcolor: `${color}.main` }} />
-                      <Box sx={{ width: `${buffPct}%`, bgcolor: `${color}.light` }} />
+                      <Box
+                        sx={{ width: `${basePct}%`, bgcolor: `${color}.main` }}
+                      />
+                      <Box
+                        sx={{ width: `${buffPct}%`, bgcolor: `${color}.light` }}
+                      />
                     </Box>
                   </Box>
                 );
@@ -373,7 +399,13 @@ export default function RoostrDetail({
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {roostr.breed.trait.description[locale]}
             </Typography>
-            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+            <Stack
+              direction="row"
+              spacing={0.5}
+              flexWrap="wrap"
+              useFlexGap
+              sx={{ mt: 1 }}
+            >
               {roostr.breed.trait.effects.map((e) => {
                 const pct = Math.round(e.mod * 100);
                 return (
@@ -393,14 +425,23 @@ export default function RoostrDetail({
 
       {/* Genetic upgrades */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h5" sx={{ fontWeight: 800, textTransform: "uppercase" }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 800, textTransform: "uppercase" }}
+        >
           {t("detail.geneticUpgrades")}
         </Typography>
         <Stack direction="row" spacing={0.5} alignItems="center">
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             {coins.toLocaleString()}
           </Typography>
-          <Image src="/corn-coin.png" alt="Corn Coin" width={18} height={17} style={{ height: 16, width: "auto" }} />
+          <Image
+            src="/corn-coin.png"
+            alt="Corn Coin"
+            width={18}
+            height={17}
+            style={{ height: 16, width: "auto" }}
+          />
         </Stack>
       </Stack>
 
@@ -409,9 +450,9 @@ export default function RoostrDetail({
           display: "grid",
           gap: 2,
           gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, 1fr)",
-            lg: "repeat(4, 1fr)",
+            xs: "minmax(0, 1fr)",
+            sm: "repeat(2, minmax(0, 1fr))",
+            lg: "repeat(4, minmax(0, 1fr))",
           },
         }}
       >
@@ -421,13 +462,23 @@ export default function RoostrDetail({
           const cost = geneUpgradeCost(level);
           const canAfford = coins >= cost;
           const disabled =
-            !isOwner || maxed || !canAfford || (pending && busyGene === gene.id);
+            !isOwner ||
+            maxed ||
+            !canAfford ||
+            (pending && busyGene === gene.id);
           return (
-            <Card key={gene.id} sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
+            <Card
+              key={gene.id}
+              sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}
+            >
               <Stack direction="row" alignItems="center" spacing={1.5}>
                 <GeneIcon no={gene.no} family={gene.family} size={64} />
                 <Stack spacing={0.5} sx={{ minWidth: 0, flexGrow: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }} noWrap>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 800 }}
+                    noWrap
+                  >
                     {gene.name[locale]}
                   </Typography>
                   <Chip
@@ -457,9 +508,23 @@ export default function RoostrDetail({
                       {maxed ? t("detail.maxLevel") : t("detail.upgrade")}
                     </span>
                     {!maxed && (
-                      <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.25, opacity: 0.9 }}>
+                      <Box
+                        component="span"
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 0.25,
+                          opacity: 0.9,
+                        }}
+                      >
                         {cost}
-                        <Image src="/corn-coin.png" alt="" width={18} height={17} style={{ height: 13, width: "auto" }} />
+                        <Image
+                          src="/corn-coin.png"
+                          alt=""
+                          width={18}
+                          height={17}
+                          style={{ height: 13, width: "auto" }}
+                        />
                       </Box>
                     )}
                   </Stack>
@@ -475,7 +540,10 @@ export default function RoostrDetail({
         open={infoOpen}
         onClose={() => setInfoOpen(false)}
       />
-      <StatInfoModal open={statInfoOpen} onClose={() => setStatInfoOpen(false)} />
+      <StatInfoModal
+        open={statInfoOpen}
+        onClose={() => setStatInfoOpen(false)}
+      />
       <ArchetypeInfoModal
         roleId={roostr.role}
         genes={roostr.genes}
