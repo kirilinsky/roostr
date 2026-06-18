@@ -29,7 +29,9 @@ export default function TelegramLoginButton({
     script.setAttribute("data-size", "large");
     script.setAttribute("data-userpic", "true");
     script.setAttribute("data-radius", "8");
-    script.setAttribute("data-request-access", "write");
+    // No data-request-access="write": we don't message users, and asking for
+    // write permission complicates the first-time confirmation for new users.
+    // Add it back only when the app actually needs to message players.
     // Redirect to our own origin's verify endpoint (must match the bot domain).
     script.setAttribute(
       "data-auth-url",
