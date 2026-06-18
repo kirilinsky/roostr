@@ -4,8 +4,10 @@ import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import FriendButton from "@/components/FriendButton";
 import { getTranslations } from "@/i18n/server";
-import { getUserById } from "@/db/queries";
+import { getSession } from "@/lib/auth";
+import { getUserById, getFriendship } from "@/db/queries";
 
 // Public profile reachable via the shared link: /<telegramId>. Single-segment
 // dynamic route — static routes (/friends, /market, …) win, so it only catches
@@ -16,7 +18,8 @@ export default async function PublicProfilePage({
   params: Promise<{ telegramid: string }>;
 }) {
   const { telegramid } = await params;
-  const { t } = await getTranslations();
+  const { locale, t } = await getTranslations();
+  const session = await getSession();
   const id = Number(telegramid);
   const user = Number.isFinite(id) ? await getUserById(id) : null;
 
@@ -35,6 +38,15 @@ export default async function PublicProfilePage({
   const displayName =
     [user.firstName, user.lastName].filter(Boolean).join(" ") ||
     (user.username ? `@${user.username}` : String(user.id));
+
+  // Friend controls — only for a logged-in viewer looking at someone else.
+  const viewerId = session?.id;
+  const isOwnProfile = viewerId === user.id;
+  const friendship =
+    viewerId && !isOwnProfile ? await getFriendship(viewerId, user.id) : null;
+  const since = friendship
+    ? new Date(friendship.createdAt).toLocaleDateString(locale)
+    : null;
 
   return (
     <Container maxWidth="sm" sx={{ py: 6 }}>
@@ -73,6 +85,22 @@ export default async function PublicProfilePage({
           />
           <Typography>{user.coins.toLocaleString()}</Typography>
         </Box>
+
+        {viewerId && !isOwnProfile && (
+          <Stack spacing={0.75} alignItems="center">
+            <FriendButton
+              targetId={user.id}
+              isFriend={!!friendship}
+              addLabel={t("friends.add")}
+              removeLabel={t("friends.remove")}
+            />
+            {since && (
+              <Typography variant="caption" color="text.secondary">
+                {t("friends.since", { date: since })}
+              </Typography>
+            )}
+          </Stack>
+        )}
       </Stack>
     </Container>
   );

@@ -26,7 +26,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 - i18n dicts: `src/i18n/dictionaries.ts` (en+ru).
 - Hatch lib: `rollRoostr() → RolledRoostr` in `src/lib/roostr.ts`.
 - Shared UI: `AppShell` · `StubPage` · `RoostrCard`.
-- DB: `src/db/schema.ts` (users, roostrs, breed_discoveries, battles, expeditions, farm_sessions) +
+- DB: `src/db/schema.ts` (users, roostrs, breed_discoveries, battles, expeditions, farm_sessions,
+  friendships) +
   `src/db/index.ts` (Neon+Drizzle client). Scripts `db:generate|migrate|push|studio`. Env `DATABASE_URL`.
 
 ## §V — Invariants
@@ -75,6 +76,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T15 | . | server hatch: cooldown + persist roostr + dex discovery (off localStorage) | C,V5 |
 | T16 | . | roostrdex + collection read from DB | C |
 | T17 | x | friends page + share-profile link (clipboard) + public profile /[telegramid] | C |
+| T18 | x | friendships table + add/remove friend on public profile + since date | C |
 
 ## §B — Bugs
 

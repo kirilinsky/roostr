@@ -1,5 +1,60 @@
 import type { SessionUser } from "@/lib/auth";
 
+// Canonical pair order so a friendship is stored once regardless of direction.
+function pair(a: number, b: number): [number, number] {
+  return a < b ? [a, b] : [b, a];
+}
+
+// Returns the friendship row (with createdAt = since) or null.
+export async function getFriendship(a: number, b: number) {
+  if (!process.env.DATABASE_URL || a === b) return null;
+  try {
+    const { db } = await import("@/db");
+    const { friendships } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [x, y] = pair(a, b);
+    const rows = await db
+      .select()
+      .from(friendships)
+      .where(and(eq(friendships.userAId, x), eq(friendships.userBId, y)))
+      .limit(1);
+    return rows[0] ?? null;
+  } catch (e) {
+    console.error("getFriendship failed:", e);
+    return null;
+  }
+}
+
+export async function addFriend(a: number, b: number): Promise<void> {
+  if (!process.env.DATABASE_URL || a === b) return;
+  try {
+    const { db } = await import("@/db");
+    const { friendships } = await import("@/db/schema");
+    const [x, y] = pair(a, b);
+    await db
+      .insert(friendships)
+      .values({ userAId: x, userBId: y })
+      .onConflictDoNothing();
+  } catch (e) {
+    console.error("addFriend failed:", e);
+  }
+}
+
+export async function removeFriend(a: number, b: number): Promise<void> {
+  if (!process.env.DATABASE_URL || a === b) return;
+  try {
+    const { db } = await import("@/db");
+    const { friendships } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [x, y] = pair(a, b);
+    await db
+      .delete(friendships)
+      .where(and(eq(friendships.userAId, x), eq(friendships.userBId, y)));
+  } catch (e) {
+    console.error("removeFriend failed:", e);
+  }
+}
+
 // Public profile lookup by Telegram id. Returns null if absent / DB unavailable.
 export async function getUserById(id: number) {
   if (!process.env.DATABASE_URL || !Number.isFinite(id)) return null;

@@ -1,52 +1,65 @@
-# Roostr — foundation
+# Roostr
 
-Telegram-authed web app foundation. Phase: **auth shell only** (see
-[NEXTGEN-SPEC.md](./NEXTGEN-SPEC.md) §13.2). Sign in with Telegram → see your
-avatar, name, and Telegram ID.
+Collect, hatch and raise quirky roosters. A Telegram-authed web game built with
+Next.js — work in progress.
 
-Stack: Next.js 15 (App Router) · TypeScript · MUI (bare Material baseline) ·
-Telegram **Login Widget** · stateless session JWT (httpOnly cookie). No DB yet.
+> **Status:** early development. Core systems are landing; some screens are still
+> placeholders and some state is client-side until the DB wiring is finished.
 
-> Auth note: this uses the website **Login Widget**
-> (`secret = SHA256(bot_token)`), not the Mini App `initData` scheme. Swap later
-> when moving into Telegram (spec §5).
+## Stack
 
-## Setup
+- **Next.js 15** (App Router) · **React 19** · **TypeScript**
+- **MUI v6** — all UI flows from one design system (`src/theme.ts`)
+- **i18n** (en / ru), cookie-based locale
+- **Neon** (serverless Postgres) + **Drizzle ORM**
+- **Auth:** Telegram Login Widget → stateless JWT session (httpOnly cookie)
 
-1. **Create a bot** with [@BotFather](https://t.me/BotFather) → copy the token.
-2. **Link your domain** to the bot: in BotFather send `/setdomain`, pick the
-   bot, send the domain the site runs on (e.g. `localhost` won't work for the
-   widget — use a real domain or a tunnel like `https://<id>.ngrok.app`). The
-   widget only renders on the domain registered here.
-3. **Env:** copy `.env.example` → `.env` and fill:
-   - `TELEGRAM_BOT_TOKEN` — from BotFather
-   - `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` — bot username without `@`
-   - `JWT_SECRET` — `openssl rand -hex 32`
-4. **Run:**
-   ```bash
-   npm install
-   npm run dev
-   ```
+## Features
 
-## Flow
+- **Incubator** — one free hatch per day (24h cooldown) + pay-to-skip boost.
+- **Hatch model** — every roostr hatches *Common*; what's unique is the combo:
+  breed + weight class + 2–4 key genes + cosmetic colors/pattern + one innate
+  breed trait (buff/debuff). Power comes from upgrades, not the egg.
+- **Roostrdex** — breed bestiary (38 breeds from `src/data/BREEDS.json`),
+  discovered by hatching, filterable by group.
+- **Friends** — share a link to your public profile (`/<telegramId>`).
+- **Admin tools** — id-gated debug page + Roostrdex "reveal".
+- *Planned:* market, arena, farm, expeditions, TON NFT mint (see `.notes/`).
 
-```
-/ (page.tsx)            login card + Telegram Login Widget
-  └─ widget callback ──▶ POST /api/auth/telegram
-                          verify HMAC(SHA256(bot_token)) + auth_date freshness
-                          sign JWT → httpOnly cookie
-  └─ redirect ─────────▶ /profile  (avatar, name, @username, Telegram ID)
-                          POST /api/auth/logout  clears cookie
+## Quick start
+
+```bash
+npm install
+cp .env.example .env      # fill in values (see below)
+npm run db:push           # create tables in your Neon database
+npm run dev               # http://localhost:3000
 ```
 
-## Files
+**Local without Telegram:** a dev-only **DEV LOGIN** panel (sidebar) signs you in
+as a fake **Admin**, **User**, or **Guest**. Disabled in production.
 
-| Path | Role |
-|------|------|
-| `src/lib/telegram.ts` | verify Login Widget hash + freshness |
-| `src/lib/auth.ts` | JWT sign / session read (jose) |
-| `src/app/api/auth/telegram/route.ts` | verify + set session cookie |
-| `src/app/api/auth/logout/route.ts` | clear session |
-| `src/components/TelegramLoginButton.tsx` | injects widget script, posts to API |
-| `src/app/page.tsx` | login page |
-| `src/app/profile/page.tsx` | the win: avatar + name + ID |
+### Environment (`.env`)
+
+| Var | Purpose |
+|-----|---------|
+| `DATABASE_URL` | Neon Postgres connection string |
+| `TELEGRAM_BOT_TOKEN` | bot token from [@BotFather](https://t.me/BotFather) |
+| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | bot username (no `@`) |
+| `JWT_SECRET` | session signing secret (`openssl rand -hex 32`); dev has a fallback |
+| `NEXT_PUBLIC_APP_URL` | public base URL for share links |
+| `NEXT_PUBLIC_ADMIN_IDS` | extra admin Telegram ids (comma-separated, optional) |
+
+## Scripts
+
+| Command | Does |
+|---------|------|
+| `npm run dev` / `build` / `start` | Next.js dev / production build / serve |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | `next lint` |
+| `npm run db:push` / `db:generate` / `db:migrate` / `db:studio` | Drizzle (needs `DATABASE_URL`) |
+
+## Docs
+
+- [`SPEC.md`](./SPEC.md) — invariants and task ledger.
+- [`CLAUDE.md`](./CLAUDE.md) — contributor/agent notes (design system is binding).
+- [`.notes/`](./.notes/) — product spec, game design, gene & visual systems.

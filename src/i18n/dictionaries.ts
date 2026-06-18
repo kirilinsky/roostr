@@ -66,6 +66,9 @@ export const dictionaries: Record<Locale, Dict> = {
     "friends.share": "Share my profile link",
     "friends.copied": "Copied!",
     "friends.loginToShare": "Log in to get your shareable profile link.",
+    "friends.add": "Add friend",
+    "friends.remove": "Remove friend",
+    "friends.since": "Friends since {date}",
     "publicProfile.notFound": "Player not found.",
   },
   ru: {
@@ -133,6 +136,9 @@ export const dictionaries: Record<Locale, Dict> = {
     "friends.share": "Поделиться ссылкой на профиль",
     "friends.copied": "Скопировано!",
     "friends.loginToShare": "Войди, чтобы получить ссылку на профиль.",
+    "friends.add": "Добавить в друзья",
+    "friends.remove": "Удалить из друзей",
+    "friends.since": "В друзьях с {date}",
     "publicProfile.notFound": "Игрок не найден.",
   },
 };

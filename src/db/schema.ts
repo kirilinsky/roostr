@@ -104,6 +104,24 @@ export const expeditions = pgTable("expeditions", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Mutual friendship, one row per pair. Stored canonically (userAId < userBId)
+// so a pair can't be duplicated. createdAt = when the friendship started.
+export const friendships = pgTable(
+  "friendships",
+  {
+    userAId: bigint("user_a_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    userBId: bigint("user_b_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userAId, t.userBId] })],
+);
+
 export const farmSessions = pgTable("farm_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: bigint("user_id", { mode: "number" })

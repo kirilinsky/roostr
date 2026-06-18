@@ -34,27 +34,33 @@ export default async function RootLayout({
       }
     : null;
 
-  const mainNav: NavItem[] = [
-    { href: "/incubator", label: t("nav.incubator"), icon: "🥚" },
-    { href: "/collection", label: t("nav.collection"), icon: "🐔" },
-    { href: "/roostrdex", label: t("nav.roostrdex"), icon: "📕" },
-    { href: "/market", label: t("nav.market"), icon: "🛒" },
-    { href: "/arena", label: t("nav.arena"), icon: "⚔️" },
-    { href: "/farm", label: t("nav.farm"), icon: "🌾" },
-    { href: "/friends", label: t("nav.friends"), icon: "👥" },
-  ];
-
+  const loggedIn = !!session;
   const admin = isAdmin(session?.id);
 
+  // Game nav is for logged-in players only; guests see just public links + login.
+  const mainNav: NavItem[] = loggedIn
+    ? [
+        { href: "/incubator", label: t("nav.incubator"), icon: "🥚" },
+        { href: "/collection", label: t("nav.collection"), icon: "🐔" },
+        { href: "/roostrdex", label: t("nav.roostrdex"), icon: "📕" },
+        { href: "/market", label: t("nav.market"), icon: "🛒" },
+        { href: "/arena", label: t("nav.arena"), icon: "⚔️" },
+        { href: "/farm", label: t("nav.farm"), icon: "🌾" },
+        { href: "/friends", label: t("nav.friends"), icon: "👥" },
+      ]
+    : [];
+
   const bottomNav: NavItem[] = [
-    { href: "/bank", label: t("nav.bank"), icon: "🏦" },
+    ...(loggedIn ? [{ href: "/bank", label: t("nav.bank"), icon: "🏦" }] : []),
     { href: "/about", label: t("nav.about"), icon: "ℹ️" },
     // Debug is admin-only.
     ...(admin
       ? [{ href: "/debug", label: t("nav.debug"), icon: "🐞" }]
       : []),
     { href: "/support", label: t("nav.support"), icon: "🛟" },
-    { href: "/settings", label: t("nav.settings"), icon: "⚙️" },
+    ...(loggedIn
+      ? [{ href: "/settings", label: t("nav.settings"), icon: "⚙️" }]
+      : []),
   ];
 
   return (
