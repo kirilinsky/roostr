@@ -43,6 +43,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "breedInfo.region": "Origin",
     "breedInfo.baseHp": "Base HP",
     "breedInfo.geneAffinity": "Gene affinity",
+    "stats.kindsTitle": "Stat types",
+    "stats.offense": "Attack",
+    "stats.defense": "Defense",
+    "stats.utility": "Utility",
 
     "about.title": "About",
     "about.tba": "TBA",
@@ -157,6 +161,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "breedInfo.region": "Родина",
     "breedInfo.baseHp": "Базовое HP",
     "breedInfo.geneAffinity": "Склонность к генам",
+    "stats.kindsTitle": "Виды статов",
+    "stats.offense": "Атака",
+    "stats.defense": "Защита",
+    "stats.utility": "Утилити",
 
     "about.title": "О проекте",
     "about.tba": "Скоро",

@@ -14,7 +14,9 @@ import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
 import BreedInfoModal from "@/components/BreedInfoModal";
+import StatInfoModal from "@/components/StatInfoModal";
 import { countryFlag } from "@/lib/flag";
+import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import {
   GENE_MAX_LEVEL,
   SKILLS,
@@ -23,20 +25,16 @@ import {
   TIERS,
   formatStatMods,
   geneUpgradeCost,
+  roleLabel,
   skillLabel,
   type HydratedRoostr,
 } from "@/lib/roostr";
 import { upgradeGeneAction } from "@/app/collection/[id]/actions";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
-const KIND_COLOR: Record<string, "primary" | "secondary" | "success"> = {
-  offense: "secondary",
-  defense: "primary",
-  utility: "success",
-};
 const SKILL_KIND = Object.fromEntries(
   SKILLS.map((s) => [s.id, s.kind]),
-) as Record<string, string>;
+) as Record<string, StatKind>;
 
 export default function RoostrDetail({
   roostr,
@@ -54,11 +52,15 @@ export default function RoostrDetail({
   const [pending, startTransition] = useTransition();
   const [busyGene, setBusyGene] = useState<string | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [statInfoOpen, setStatInfoOpen] = useState(false);
 
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
   const seedId = `#${roostr.seed.toString(16).padStart(6, "0").toUpperCase()}-RSTR`;
   const tier = roostr.tier;
+  const weightLabel = `${roostr.weightClass.name[locale]} · ${roostr.weightClass.kg} ${
+    locale === "ru" ? "кг" : "kg"
+  }`;
 
   // Rating progress within the current tier band (our level/XP analog).
   const nextTier = TIERS.find((tr) => tr.min > roostr.rating);
@@ -171,6 +173,13 @@ export default function RoostrDetail({
               {name}
             </Typography>
             <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
+              {/* recommended archetype/role */}
+              <Chip
+                label={roleLabel(roostr.role, locale).toUpperCase()}
+                size="small"
+                color="primary"
+                sx={{ fontWeight: 800, letterSpacing: 0.5 }}
+              />
               <Chip
                 label={seedId}
                 size="small"
@@ -183,13 +192,24 @@ export default function RoostrDetail({
                 size="small"
                 variant="outlined"
               />
+              {/* weight class */}
+              <Chip label={`⚖️ ${weightLabel}`} size="small" variant="outlined" />
             </Stack>
           </Box>
 
           <Card sx={{ p: 2, flexGrow: 1 }}>
-            <Typography variant="h6" sx={{ mb: 1.5 }}>
-              {t("detail.combatStats")}
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1.5 }}>
+              <Typography variant="h6">{t("detail.combatStats")}</Typography>
+              {/* legend: red attack / blue defense / green utility */}
+              <IconButton
+                size="small"
+                aria-label={t("stats.kindsTitle")}
+                onClick={() => setStatInfoOpen(true)}
+                sx={{ color: "primary.main" }}
+              >
+                ⓘ
+              </IconButton>
+            </Stack>
             {/* HP — so a gene's +HP is visible/corroborated as level grows */}
             <Stack
               direction="row"
@@ -231,7 +251,7 @@ export default function RoostrDetail({
                   <LinearProgress
                     variant="determinate"
                     value={Math.min(100, (roostr.stats[id] / STAT_BAR_MAX) * 100)}
-                    color={KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
+                    color={STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
                     sx={{ height: 6, borderRadius: 1 }}
                   />
                 </Box>
@@ -320,6 +340,7 @@ export default function RoostrDetail({
         open={infoOpen}
         onClose={() => setInfoOpen(false)}
       />
+      <StatInfoModal open={statInfoOpen} onClose={() => setStatInfoOpen(false)} />
     </Stack>
   );
 }

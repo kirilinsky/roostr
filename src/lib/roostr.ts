@@ -466,6 +466,7 @@ export interface RoostrRow {
   pattern: string;
   seed: number;
   nickname?: string | null;
+  role?: string; // recommended archetype (stored at hatch)
 }
 
 export interface HydratedRoostr {
@@ -478,6 +479,7 @@ export interface HydratedRoostr {
   pattern: string;
   seed: number;
   nickname: string | null;
+  role: string; // recommended archetype id
   maxHealth: number;
   stats: Record<Skill, number>;
   rating: number;
@@ -504,6 +506,7 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     pattern: row.pattern,
     seed: row.seed,
     nickname: row.nickname ?? null,
+    role: row.role ?? deriveRole(genes),
     maxHealth,
     stats,
     rating,

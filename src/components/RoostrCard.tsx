@@ -8,6 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import RoostrAvatar from "@/components/RoostrAvatar";
+import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import {
   BODY_COLOR_HEX,
   COLOR_HEX,
@@ -28,15 +29,10 @@ import {
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import type { Locale } from "@/i18n/config";
 
-// Stat bar color by skill kind (theme tokens).
-const KIND_COLOR: Record<string, "primary" | "secondary" | "success"> = {
-  offense: "secondary",
-  defense: "primary",
-  utility: "success",
-};
+// Stat bar color by skill kind — shared map (red attack / blue defense / green).
 const SKILL_KIND = Object.fromEntries(
   SKILLS.map((s) => [s.id, s.kind]),
-) as Record<string, string>;
+) as Record<string, StatKind>;
 
 const COLOR_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
   { key: "body", labelKey: "card.body" },
@@ -276,7 +272,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
               <LinearProgress
                 variant="determinate"
                 value={Math.min(100, (stats[id] / STAT_BAR_MAX) * 100)}
-                color={KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
+                color={STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
                 sx={{ height: 5, borderRadius: 1 }}
               />
             </Box>

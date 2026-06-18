@@ -9,6 +9,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
+import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import {
   GENE_MAX_LEVEL,
   SKILLS,
@@ -26,14 +27,9 @@ import {
 } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
-const KIND_COLOR: Record<string, "primary" | "secondary" | "success"> = {
-  offense: "secondary",
-  defense: "primary",
-  utility: "success",
-};
 const SKILL_KIND = Object.fromEntries(SKILLS.map((s) => [s.id, s.kind])) as Record<
   string,
-  string
+  StatKind
 >;
 
 const START_COINS = 1000;
@@ -134,7 +130,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
             <LinearProgress
               variant="determinate"
               value={Math.min(100, (stats[id] / STAT_BAR_MAX) * 100)}
-              color={KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
+              color={STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
               sx={{ height: 6, borderRadius: 1 }}
             />
           </Box>
