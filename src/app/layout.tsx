@@ -6,36 +6,41 @@ import Box from "@mui/material/Box";
 import theme from "@/theme";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { I18nProvider } from "@/i18n/I18nProvider";
+import { getLocale } from "@/i18n/server";
 
 export const metadata: Metadata = {
   title: "Roostr",
   description: "Telegram-authed collectibles",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body>
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                minHeight: "100dvh",
-              }}
-            >
-              <Header />
-              <Box component="main" sx={{ flexGrow: 1 }}>
-                {children}
+            <I18nProvider locale={locale}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: "100dvh",
+                }}
+              >
+                <Header />
+                <Box component="main" sx={{ flexGrow: 1 }}>
+                  {children}
+                </Box>
+                <Footer />
               </Box>
-              <Footer />
-            </Box>
+            </I18nProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>

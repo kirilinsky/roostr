@@ -4,9 +4,11 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { getSession } from "@/lib/auth";
+import { getTranslations } from "@/i18n/server";
 
 export default async function HomePage() {
   const user = await getSession();
+  const { t } = await getTranslations();
   const fullName = user
     ? [user.firstName, user.lastName].filter(Boolean).join(" ")
     : "";
@@ -20,16 +22,16 @@ export default async function HomePage() {
         {user ? (
           <>
             <Typography color="text.secondary">
-              Вошёл как {fullName || `@${user.username ?? user.id}`}.
+              {t("home.signedInAs", {
+                name: fullName || `@${user.username ?? user.id}`,
+              })}
             </Typography>
             <Button component={Link} href="/profile" variant="contained">
-              Профиль
+              {t("home.profile")}
             </Button>
           </>
         ) : (
-          <Typography color="text.secondary">
-            Войди через кнопку Telegram справа сверху.
-          </Typography>
+          <Typography color="text.secondary">{t("home.guest")}</Typography>
         )}
       </Stack>
     </Container>

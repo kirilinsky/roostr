@@ -7,10 +7,12 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { getSession } from "@/lib/auth";
+import { getTranslations } from "@/i18n/server";
 import TelegramLoginButton from "@/components/TelegramLoginButton";
 
 export default async function Header() {
   const user = await getSession();
+  const { t } = await getTranslations();
   const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "";
   const fullName = user
     ? [user.firstName, user.lastName].filter(Boolean).join(" ")
@@ -37,7 +39,10 @@ export default async function Header() {
 
         {/* Primary nav */}
         <Button component={Link} href="/about" color="inherit" sx={{ ml: 2 }}>
-          About
+          {t("nav.about")}
+        </Button>
+        <Button component={Link} href="/debug" color="inherit">
+          {t("nav.debug")}
         </Button>
 
         <Box sx={{ flexGrow: 1 }} />

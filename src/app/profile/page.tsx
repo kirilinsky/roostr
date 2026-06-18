@@ -7,12 +7,14 @@ import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import { getSession } from "@/lib/auth";
+import { getTranslations } from "@/i18n/server";
 import LogoutButton from "@/components/LogoutButton";
 
 export default async function ProfilePage() {
   const user = await getSession();
   if (!user) redirect("/");
 
+  const { t } = await getTranslations();
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
   return (
@@ -30,7 +32,7 @@ export default async function ProfilePage() {
 
             <Stack spacing={0.5} alignItems="center">
               <Typography variant="h5" component="h1">
-                {fullName || "Telegram user"}
+                {fullName || t("profile.fallbackName")}
               </Typography>
               {user.username && (
                 <Typography variant="body1" color="text.secondary">
@@ -42,10 +44,10 @@ export default async function ProfilePage() {
             <Divider flexItem />
 
             <Stack spacing={1} sx={{ width: "100%" }}>
-              <Row label="Telegram ID" value={String(user.id)} />
-              <Row label="Name" value={fullName || "—"} />
+              <Row label={t("profile.id")} value={String(user.id)} />
+              <Row label={t("profile.name")} value={fullName || "—"} />
               <Row
-                label="Username"
+                label={t("profile.username")}
                 value={user.username ? `@${user.username}` : "—"}
               />
             </Stack>

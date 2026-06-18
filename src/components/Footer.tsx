@@ -1,6 +1,7 @@
 import MuiLink from "@mui/material/Link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -12,7 +13,11 @@ export default function Footer() {
         borderColor: "divider",
         py: 2,
         px: 3,
-        textAlign: "center",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 1,
+        alignItems: "center",
+        justifyContent: "space-between",
       }}
     >
       <Typography variant="body2" color="text.secondary">
@@ -26,6 +31,7 @@ export default function Footer() {
           github.com/kirilinsky
         </MuiLink>
       </Typography>
+      <LocaleSwitcher />
     </Box>
   );
 }
