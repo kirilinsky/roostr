@@ -442,3 +442,68 @@ export function rollRoostr(): RolledRoostr {
     seed: Math.floor(Math.random() * 0xffffff),
   };
 }
+
+// --- Hydration: DB row -> usable model ---
+// A persisted roostr stores only ids (breedId/weightClassId/geneIds) + colors +
+// pattern + seed + geneLevels. Cards/pages rehydrate the full objects from the
+// catalogs and recompute the derived stats (never stored) on read.
+
+const BREED_BY_ID = Object.fromEntries(BREEDS.map((b) => [b.id, b]));
+const WEIGHT_BY_ID = Object.fromEntries(WEIGHT_CLASSES.map((w) => [w.id, w]));
+const GENE_BY_ID = Object.fromEntries(GENES.map((g) => [g.id, g]));
+
+// Minimal shape we need off a roostrs row (extra columns are ignored).
+export interface RoostrRow {
+  id?: string;
+  breedId: string;
+  weightClassId: string;
+  geneIds: string[];
+  geneLevels?: Record<string, number> | null;
+  colors: Record<string, string>;
+  pattern: string;
+  seed: number;
+  nickname?: string | null;
+}
+
+export interface HydratedRoostr {
+  id?: string;
+  breed: Breed;
+  weightClass: WeightClass;
+  genes: Gene[];
+  geneLevels: GeneLevels;
+  colors: ColorSet;
+  pattern: string;
+  seed: number;
+  nickname: string | null;
+  maxHealth: number;
+  stats: Record<Skill, number>;
+  rating: number;
+  tier: TierMeta; // overall level/grade band (D < C < B < A < S < R < X)
+}
+
+export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
+  const breed = BREED_BY_ID[row.breedId] ?? BREEDS[0];
+  const weightClass = WEIGHT_BY_ID[row.weightClassId] ?? WEIGHT_CLASSES[2];
+  const genes = row.geneIds
+    .map((id) => GENE_BY_ID[id])
+    .filter((g): g is Gene => Boolean(g));
+  const geneLevels = row.geneLevels ?? {};
+  const stats = computeStats(genes, geneLevels, weightClass);
+  const maxHealth = computeMaxHealth(breed, weightClass, genes, geneLevels);
+  const rating = computeRating(stats, maxHealth);
+  return {
+    id: row.id,
+    breed,
+    weightClass,
+    genes,
+    geneLevels,
+    colors: row.colors as ColorSet,
+    pattern: row.pattern,
+    seed: row.seed,
+    nickname: row.nickname ?? null,
+    maxHealth,
+    stats,
+    rating,
+    tier: tierFor(rating),
+  };
+}

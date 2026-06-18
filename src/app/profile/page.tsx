@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import { getSession } from "@/lib/auth";
 import { getTranslations } from "@/i18n/server";
+import { getUserById, getUserStats } from "@/db/queries";
 import LogoutButton from "@/components/LogoutButton";
 
 export default async function ProfilePage() {
@@ -16,6 +17,13 @@ export default async function ProfilePage() {
 
   const { t } = await getTranslations();
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+
+  // Economy stats (derived from the coin ledger + roostrs).
+  const [dbUser, stats] = await Promise.all([
+    getUserById(user.id),
+    getUserStats(user.id),
+  ]);
+  const balance = dbUser?.coins ?? 0;
 
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>
@@ -49,6 +57,22 @@ export default async function ProfilePage() {
               <Row
                 label={t("profile.username")}
                 value={user.username ? `@${user.username}` : "—"}
+              />
+            </Stack>
+
+            <Divider flexItem />
+
+            {/* Economy / progress stats */}
+            <Stack spacing={1} sx={{ width: "100%" }}>
+              <Row label={t("profile.balance")} value={`${balance.toLocaleString()} 🌽`} />
+              <Row label={t("profile.eggsHatched")} value={String(stats.eggsHatched)} />
+              <Row
+                label={t("profile.coinsEarned")}
+                value={stats.coinsEarned.toLocaleString()}
+              />
+              <Row
+                label={t("profile.coinsSpent")}
+                value={stats.coinsSpent.toLocaleString()}
               />
             </Stack>
 

@@ -72,6 +72,112 @@ export async function recordTransfer(
   }
 }
 
+// Atomically spend coins. Deducts only if the balance covers `amount`; returns
+// the new balance, or null if insufficient / DB unavailable. Single conditional
+// UPDATE → race-safe against concurrent spends. Writes a signed ledger row
+// (coin_txns) so spending is always tracked server-side — no client trust.
+export async function spendCoins(
+  userId: number,
+  amount: number,
+  kind: string,
+  ref?: string,
+): Promise<number | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { users, coinTxns } = await import("@/db/schema");
+    const { and, eq, gte, sql } = await import("drizzle-orm");
+    const res = await db
+      .update(users)
+      .set({ coins: sql`${users.coins} - ${amount}`, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), gte(users.coins, amount)))
+      .returning({ coins: users.coins });
+    const balanceAfter = res[0]?.coins ?? null;
+    if (balanceAfter === null) return null; // insufficient — nothing spent, no ledger row
+    await db.insert(coinTxns).values({
+      userId,
+      amount: -amount,
+      kind,
+      ref: ref ?? null,
+      balanceAfter,
+    });
+    return balanceAfter;
+  } catch (e) {
+    console.error("spendCoins failed:", e);
+    return null;
+  }
+}
+
+// Grant coins (reward / refund / faucet / admin). Returns the new balance or
+// null. Also writes a positive ledger row.
+export async function grantCoins(
+  userId: number,
+  amount: number,
+  kind: string,
+  ref?: string,
+): Promise<number | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { users, coinTxns } = await import("@/db/schema");
+    const { eq, sql } = await import("drizzle-orm");
+    const res = await db
+      .update(users)
+      .set({ coins: sql`${users.coins} + ${amount}`, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning({ coins: users.coins });
+    const balanceAfter = res[0]?.coins ?? null;
+    if (balanceAfter === null) return null; // no such user
+    await db.insert(coinTxns).values({
+      userId,
+      amount,
+      kind,
+      ref: ref ?? null,
+      balanceAfter,
+    });
+    return balanceAfter;
+  } catch (e) {
+    console.error("grantCoins failed:", e);
+    return null;
+  }
+}
+
+// Player economy stats: eggs hatched (roostrs minted by hatch) + lifetime coins
+// earned/spent (from the ledger). Derived, not denormalized.
+export async function getUserStats(userId: number): Promise<{
+  eggsHatched: number;
+  coinsEarned: number;
+  coinsSpent: number;
+}> {
+  const empty = { eggsHatched: 0, coinsEarned: 0, coinsSpent: 0 };
+  if (!process.env.DATABASE_URL) return empty;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, coinTxns } = await import("@/db/schema");
+    const { and, eq, gt, lt, sql } = await import("drizzle-orm");
+    const [eggs] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(roostrs)
+      .where(and(eq(roostrs.ownerId, userId), eq(roostrs.origin, "hatch")));
+    const [earned] = await db
+      .select({ s: sql<number>`coalesce(sum(${coinTxns.amount}), 0)` })
+      .from(coinTxns)
+      .where(and(eq(coinTxns.userId, userId), gt(coinTxns.amount, 0)));
+    const [spent] = await db
+      .select({ s: sql<number>`coalesce(sum(${coinTxns.amount}), 0)` })
+      .from(coinTxns)
+      .where(and(eq(coinTxns.userId, userId), lt(coinTxns.amount, 0)));
+    return {
+      eggsHatched: Number(eggs?.n ?? 0),
+      coinsEarned: Number(earned?.s ?? 0),
+      coinsSpent: Math.abs(Number(spent?.s ?? 0)),
+    };
+  } catch (e) {
+    console.error("getUserStats failed:", e);
+    return empty;
+  }
+}
+
 // Full ownership history for a rooster, oldest first (genesis → current owner).
 export async function getRoostrHistory(roostrId: string) {
   if (!process.env.DATABASE_URL) return [];

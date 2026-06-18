@@ -100,6 +100,24 @@ export const breedDiscoveries = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.breedId] })],
 );
 
+// Coin movement ledger — the single source of truth for every Corn Coin change.
+// Append-only: spendCoins/grantCoins write a row here on each mutation. Derive
+// "earned" (Σ positive), "spent" (Σ |negative|), and a full audit trail from it.
+// amount is signed (+ earned, − spent); balanceAfter snapshots the post-op
+// balance so the chain is self-auditing.
+export const coinTxns = pgTable("coin_txns", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: bigint("user_id", { mode: "number" })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  amount: integer("amount").notNull(), // + earned, − spent
+  // hatch | battle | expedition | farm | upgrade | refund | market | gift | faucet | admin_grant
+  kind: text("kind").notNull(),
+  ref: text("ref"), // optional reference id (roostrId, battleId, …)
+  balanceAfter: integer("balance_after").notNull(),
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const battles = pgTable("battles", {
   id: uuid("id").primaryKey().defaultRandom(),
   attackerUserId: bigint("attacker_user_id", { mode: "number" }).references(

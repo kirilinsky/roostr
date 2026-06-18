@@ -15,6 +15,13 @@
       "when": 1781800816341,
       "tag": "0001_lethal_silver_fox",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781801985036,
+      "tag": "0002_tiresome_alice",
+      "breakpoints": true
     }
   ]
 }

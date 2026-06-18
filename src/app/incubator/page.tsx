@@ -12,6 +12,7 @@ import RoostrCard from "@/components/RoostrCard";
 import { type RolledRoostr } from "@/lib/roostr";
 import { markDiscovered } from "@/lib/dex";
 import { hatchAction } from "@/app/incubator/actions";
+import { useIsAdmin } from "@/components/AdminProvider";
 import { useT } from "@/i18n/I18nProvider";
 
 // One free hatch per day; boost lets the player skip the wait for currency.
@@ -37,6 +38,10 @@ function formatRemaining(ms: number): string {
 
 export default function IncubatorPage() {
   const t = useT();
+  // Admins have no daily limit (server bypasses it). The client must know too,
+  // else a stale localStorage cooldown would show the timer + disabled boost and
+  // trap the admin with no way to hatch.
+  const admin = useIsAdmin();
   const [lastHatchAt, setLastHatchAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [hydrated, setHydrated] = useState(false);
@@ -61,7 +66,7 @@ export default function IncubatorPage() {
   const remaining = lastHatchAt
     ? Math.max(0, lastHatchAt + HATCH_COOLDOWN_MS - now)
     : 0;
-  const ready = remaining <= 0;
+  const ready = admin || remaining <= 0; // admin: always ready, no cooldown
 
   // Reflect the server's authoritative cooldown into the local countdown.
   // cooldownUntil is the unlock time; the timer is anchored one full cooldown
@@ -99,7 +104,8 @@ export default function IncubatorPage() {
     }
   }, [pending, applyCooldown, t]);
 
-  const eggClickable = hydrated && ready;
+  // Admin needs no hydration gate (ready is constant for them, no SSR mismatch).
+  const eggClickable = (admin || hydrated) && ready && !pending;
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
@@ -173,7 +179,7 @@ export default function IncubatorPage() {
 
             {/* Status + actions */}
             <Stack spacing={2} alignItems="center" sx={{ minHeight: 96 }}>
-              {!hydrated ? null : ready ? (
+              {!hydrated && !admin ? null : ready ? (
                 <>
                   <Typography color="text.secondary">
                     {t("incubator.ready")}

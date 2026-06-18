@@ -10,6 +10,7 @@ import Box from "@mui/material/Box";
 import RoostrCard from "@/components/RoostrCard";
 import RoostrAvatarLab from "@/components/RoostrAvatarLab";
 import GeneLab from "@/components/GeneLab";
+import DebugCoinGrant from "@/components/DebugCoinGrant";
 import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
 import { markDiscovered } from "@/lib/dex";
 import { useT } from "@/i18n/I18nProvider";
@@ -108,6 +109,11 @@ export default function DebugPage() {
 
         {/* Avatar workshop — author/verify the SVG layer compositor. */}
         <RoostrAvatarLab />
+
+        <Divider flexItem />
+
+        {/* Dev faucet — grant coins to test the economy. */}
+        <DebugCoinGrant />
 
         <Divider flexItem />
 
