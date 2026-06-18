@@ -93,7 +93,7 @@ export default function RoostrDetail({
       <Stack direction={{ xs: "column", md: "row" }} spacing={3} alignItems="stretch">
         {/* avatar + identity */}
         <Stack spacing={1.5} sx={{ width: { xs: "100%", md: 360 }, flexShrink: 0 }}>
-          <Box sx={{ position: "relative" }}>
+          <Box sx={{ position: "relative", mt: { md: 7 } }}>
             <Box
               sx={{
                 aspectRatio: "1 / 1",
@@ -168,7 +168,8 @@ export default function RoostrDetail({
 
         {/* name + id + combat stats */}
         <Stack spacing={1.5} sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Box>
+          {/* name + badges indented right; stats below stay flush */}
+          <Box sx={{ pl: { md: 4 } }}>
             <Typography variant="h3" sx={{ fontWeight: 800, textTransform: "uppercase" }} noWrap>
               {name}
             </Typography>
@@ -257,6 +258,33 @@ export default function RoostrDetail({
                 </Box>
               ))}
             </Box>
+          </Card>
+
+          {/* Breed trait — innate, non-upgradeable buff/debuff */}
+          <Card sx={{ p: 2 }}>
+            <Typography variant="overline" color="text.secondary">
+              {t("detail.breedTrait")}
+            </Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, mt: 0.25 }}>
+              ☆ {roostr.breed.trait.name[locale]}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {roostr.breed.trait.description[locale]}
+            </Typography>
+            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+              {roostr.breed.trait.effects.map((e) => {
+                const pct = Math.round(e.mod * 100);
+                return (
+                  <Chip
+                    key={e.stat}
+                    size="small"
+                    variant="outlined"
+                    color={pct >= 0 ? "success" : "error"}
+                    label={`${pct > 0 ? "+" : ""}${pct}% ${skillLabel(e.stat, locale)}`}
+                  />
+                );
+              })}
+            </Stack>
           </Card>
         </Stack>
       </Stack>
