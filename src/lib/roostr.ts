@@ -121,6 +121,7 @@ export interface Breed {
     families?: Partial<Record<string, number>>;
     genes?: Partial<Record<string, number>>;
   };
+  tags: string[]; // visual/identity tags — drive avatar silhouette & add-on layers
   weight: number; // roll weight (some breeds are simply more common)
 }
 
@@ -132,6 +133,7 @@ export const BREEDS: Breed[] = BREEDS_CATALOG.map((b) => ({
   baseHealth: b.baseHealth,
   trait: b.trait,
   geneAffinities: b.geneAffinities,
+  tags: b.tags,
   weight: b.dropWeight,
 }));
 

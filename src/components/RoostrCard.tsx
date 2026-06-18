@@ -7,6 +7,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
+import RoostrAvatar from "@/components/RoostrAvatar";
 import {
   BODY_COLOR_HEX,
   COLOR_HEX,
@@ -154,7 +155,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
           </Stack>
         </Stack>
 
-        {/* art (no asset yet → checkered placeholder + rooster) */}
+        {/* art — deterministic SVG avatar composited from this roostr's params */}
         <Box
           sx={{
             alignSelf: "center",
@@ -167,14 +168,20 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 84,
             backgroundColor: "#1c1c22",
             backgroundImage:
               "repeating-conic-gradient(#26262e 0% 25%, #1c1c22 0% 50%)",
             backgroundSize: "18px 18px",
           }}
         >
-          🐓
+          <RoostrAvatar
+            colors={colors}
+            pattern={pattern}
+            breed={breed}
+            weightClass={weightClass}
+            seed={seed}
+            size={172}
+          />
         </Box>
 
         {/* Marble traits (cosmetic colors) — fill the space under the art */}

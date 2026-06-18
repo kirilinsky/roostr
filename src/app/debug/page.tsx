@@ -8,6 +8,7 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import RoostrCard from "@/components/RoostrCard";
+import RoostrAvatarLab from "@/components/RoostrAvatarLab";
 import GeneLab from "@/components/GeneLab";
 import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
 import { markDiscovered } from "@/lib/dex";
@@ -102,6 +103,11 @@ export default function DebugPage() {
 
         {/* DNA upgrade lab for the freshly crafted roostr (resets per craft). */}
         {current && <GeneLab key={current.seed} roostr={current} />}
+
+        <Divider flexItem />
+
+        {/* Avatar workshop — author/verify the SVG layer compositor. */}
+        <RoostrAvatarLab />
 
         <Divider flexItem />
 
