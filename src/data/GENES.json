@@ -263,6 +263,7 @@
       "weakness": "Guard",
       "role": "Striker",
       "statMods": {
+        "Damage": -1,
         "Crit": 2,
         "Guard": -1,
         "Fertility": -1
@@ -304,7 +305,8 @@
       "statMods": {
         "Accuracy": 2,
         "Crit": 1,
-        "Damage": -1
+        "Damage": -1,
+        "Speed": -1
       },
       "passive": "Stays calm — steadier hits, less wild burst."
     },
@@ -521,6 +523,26 @@
         "Damage": -1
       },
       "no": 26
+    },
+    {
+      "id": "war-talons",
+      "name": {
+        "en": "War Talons",
+        "ru": "Боевые когти"
+      },
+      "family": "Weapons",
+      "boosts": [
+        "Damage",
+        "Crit"
+      ],
+      "weakness": "Endurance",
+      "role": "Striker",
+      "statMods": {
+        "Damage": 2,
+        "Crit": 1,
+        "Endurance": -1
+      },
+      "no": 27
     }
   ]
 }

@@ -59,7 +59,8 @@ export interface BreedDexCardProps {
   discovered: boolean;
   // Present only when discovered:
   name?: string;
-  group?: string;
+  group?: string; // canonical id (palette lookup)
+  groupLabel?: string; // localized display name
   atk?: number;
   def?: number;
   health?: number; // breed base HP (raw)
@@ -171,7 +172,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
           sx={{ fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}
           noWrap
         >
-          {props.group}
+          {props.groupLabel ?? props.group}
         </Typography>
       </Box>
 

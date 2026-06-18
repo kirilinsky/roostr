@@ -17,6 +17,8 @@ import {
   BREEDS_CATALOG,
   BREED_GROUPS,
   breedProfile,
+  groupName,
+  groupDescription,
   localize,
 } from "@/lib/breeds";
 import { formatTraitEffects } from "@/lib/roostr";
@@ -121,6 +123,18 @@ export default function RoostrdexPage() {
           />
         </Box>
 
+        {/* Selected group blurb */}
+        {filter !== ALL && (
+          <Box sx={{ borderRadius: 2, p: 2, bgcolor: "background.paper" }}>
+            <Typography sx={{ fontWeight: 800 }}>
+              {groupName(filter, locale)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {groupDescription(filter, locale)}
+            </Typography>
+          </Box>
+        )}
+
         {/* Filter + grid */}
         <Box
           sx={{
@@ -152,7 +166,7 @@ export default function RoostrdexPage() {
                     selected={filter === g}
                     onClick={() => setFilter(g)}
                   >
-                    <ListItemText primary={g} />
+                    <ListItemText primary={groupName(g, locale)} />
                   </ListItemButton>
                 </ListItem>
               ))}
@@ -177,6 +191,7 @@ export default function RoostrdexPage() {
                   discovered={isFound}
                   name={localize(breed.name, locale)}
                   group={breed.group}
+                  groupLabel={groupName(breed.group, locale)}
                   atk={atk}
                   def={def}
                   health={breed.baseHealth}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -7,17 +8,27 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
-import type { HydratedRoostr } from "@/lib/roostr";
-import { useLocale, useT } from "@/i18n/I18nProvider";
+import { SKILLS, type HydratedRoostr } from "@/lib/roostr";
+import { STAT_KIND_COLOR, STAT_KIND_ORDER, type StatKind } from "@/lib/statKinds";
+import { countryFlag } from "@/lib/flag";
+import { tierBackground } from "@/lib/tierBg";
+import { groupName } from "@/lib/breeds";
+import { useLocale } from "@/i18n/I18nProvider";
 
-// Minimal roster card: avatar + name + breed + level (tier). No stat readout —
-// the full RoostrCard is for the detail view. Just enough to scan a collection.
+// Minimal roster card: avatar + name + origin flag + level (tier · rating) + a
+// short stat-by-category readout (red attack / blue defense / green utility) so
+// the upgrade lean is visible at a glance. Full detail lives on the rooster page.
 export default function CollectionCard({ roostr }: { roostr: HydratedRoostr }) {
-  const t = useT();
   const locale = useLocale();
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
-  const seedId = `#${roostr.seed.toString(16).padStart(6, "0").toUpperCase()}`;
+
+  // Sum of stats per kind → shows where the build leans.
+  const kindSum = useMemo(() => {
+    const sum: Record<StatKind, number> = { offense: 0, defense: 0, utility: 0 };
+    for (const s of SKILLS) sum[s.kind] += roostr.stats[s.id] ?? 0;
+    return sum;
+  }, [roostr.stats]);
 
   return (
     <Card
@@ -44,10 +55,7 @@ export default function CollectionCard({ roostr }: { roostr: HydratedRoostr }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#1c1c22",
-          backgroundImage:
-            "repeating-conic-gradient(#26262e 0% 25%, #1c1c22 0% 50%)",
-          backgroundSize: "16px 16px",
+          background: tierBackground(roostr.tier.color),
         }}
       >
         <RoostrAvatarPixel
@@ -60,27 +68,43 @@ export default function CollectionCard({ roostr }: { roostr: HydratedRoostr }) {
         />
       </Box>
 
-      {/* name + breed + level */}
+      {/* name + origin flag + tier·rating */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700 }} noWrap>
-            {name}
+            {countryFlag(roostr.breed.region.iso)} {name}
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap component="div">
-            {/* show breed under a custom nickname; otherwise the seed passport */}
-            {roostr.nickname ? breedName : seedId}
+            {/* breed when a nickname overrides the title, plus the group */}
+            {roostr.nickname ? `${breedName} · ` : ""}
+            {groupName(roostr.breed.group, locale)}
           </Typography>
         </Box>
         <Chip
-          label={`${t("collection.level")} ${roostr.tier.id}`}
+          label={`${roostr.tier.id} · ${roostr.rating}`}
           size="small"
-          sx={(theme) => ({
-            flexShrink: 0,
-            fontWeight: 800,
-            bgcolor: roostr.tier.color,
-            color: theme.palette.getContrastText(roostr.tier.color),
-          })}
+          variant="outlined"
+          sx={{ flexShrink: 0, fontWeight: 800 }}
         />
+      </Stack>
+
+      {/* stat-by-category sums — the build's lean */}
+      <Stack direction="row" spacing={1.5} justifyContent="center">
+        {STAT_KIND_ORDER.map((kind) => (
+          <Stack key={kind} direction="row" alignItems="center" spacing={0.5}>
+            <Box
+              sx={{
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                bgcolor: `${STAT_KIND_COLOR[kind]}.main`,
+              }}
+            />
+            <Typography variant="caption" sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+              {kindSum[kind]}
+            </Typography>
+          </Stack>
+        ))}
       </Stack>
     </Card>
   );

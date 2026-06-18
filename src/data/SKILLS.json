@@ -95,7 +95,7 @@
         "en": "Crow",
         "ru": "Крик"
       },
-      "kind": "utility",
+      "kind": "defense",
       "description": {
         "en": "Charisma: intimidate, break tempo, show rating.",
         "ru": "Харизма: запугать, сбить темп, шоу-рейтинг."

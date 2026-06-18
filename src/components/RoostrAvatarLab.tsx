@@ -7,12 +7,9 @@ import Chip from "@mui/material/Chip";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
-import RoostrAvatar from "@/components/RoostrAvatar";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
-import RoostrAvatarRaster from "@/components/RoostrAvatarRaster";
+import { tierBackground } from "@/lib/tierBg";
 import {
   BREEDS,
   COLORS,
@@ -45,8 +42,6 @@ const LAYER_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
 export default function RoostrAvatarLab() {
   const t = useT();
   const locale = useLocale();
-
-  const [renderer, setRenderer] = useState<"pixel" | "vector" | "raster">("pixel");
 
   // Seed the lab from a real roll so it opens on a valid rooster.
   const [state, setState] = useState(() => {
@@ -104,60 +99,26 @@ export default function RoostrAvatarLab() {
             flexShrink: 0,
           }}
         >
-          <ToggleButtonGroup
-            size="small"
-            exclusive
-            value={renderer}
-            onChange={(_, v) => v && setRenderer(v)}
-            color="primary"
-          >
-            <ToggleButton value="pixel">Pixel</ToggleButton>
-            <ToggleButton value="vector">Vector</ToggleButton>
-            <ToggleButton value="raster">Raster</ToggleButton>
-          </ToggleButtonGroup>
           <Box
             sx={{
+              width: 240,
+              maxWidth: "100%",
+              aspectRatio: "1 / 1",
               borderRadius: 2,
-              backgroundColor: "#1c1c22",
-              backgroundImage:
-                "repeating-conic-gradient(#26262e 0% 25%, #1c1c22 0% 50%)",
-              backgroundSize: "18px 18px",
+              overflow: "hidden",
+              // lab has no rating → default to the D (gray) backdrop
+              background: tierBackground("#9e9e9e"),
             }}
           >
-            {renderer === "pixel" && (
-              <RoostrAvatarPixel
-                colors={state.colors}
-                pattern={state.pattern}
-                breed={breed}
-                weightClass={weightClass}
-                seed={state.seed}
-                size={240}
-              />
-            )}
-            {renderer === "vector" && (
-              <RoostrAvatar
-                colors={state.colors}
-                pattern={state.pattern}
-                breed={breed}
-                weightClass={weightClass}
-                seed={state.seed}
-                size={240}
-              />
-            )}
-            {renderer === "raster" && (
-              <RoostrAvatarRaster colors={state.colors} size={240} />
-            )}
+            <RoostrAvatarPixel
+              colors={state.colors}
+              pattern={state.pattern}
+              breed={breed}
+              weightClass={weightClass}
+              seed={state.seed}
+              size={240}
+            />
           </Box>
-          {renderer === "raster" && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ maxWidth: 240, textAlign: "center" }}
-            >
-              Realism = tint mechanism only (leg layer = talon asset, recolored by
-              leg color). Full rooster needs grayscale layer masks.
-            </Typography>
-          )}
           <Stack direction="row" spacing={0.5} flexWrap="wrap" justifyContent="center">
             {breed.tags.map((tag) => (
               <Chip key={tag} label={tag} size="small" variant="outlined" />

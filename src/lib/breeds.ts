@@ -2,6 +2,7 @@
 // reads it directly; the hatch roll in lib/roostr.ts maps from it too).
 
 import data from "@/data/BREEDS.json";
+import groupsData from "@/data/GROUPS.json";
 import type { Locale } from "@/i18n/config";
 
 // One fixed innate buff/debuff per breed — grounded in look/habitat/character.
@@ -38,9 +39,28 @@ export interface BreedEntry {
 export const BREEDS_CATALOG = data.breeds as BreedEntry[];
 
 // Groups in first-seen order — drive the Roostrdex filter.
-export const BREED_GROUPS: string[] = Array.from(
-  new Set(BREEDS_CATALOG.map((b) => b.group)),
-);
+// Breed groups — data in GROUPS.json. `id` is the canonical English key stored on
+// each breed (BreedEntry.group) and used for palette lookups; name/description are
+// localized display only.
+export interface BreedGroup {
+  id: string;
+  name: { en: string; ru: string };
+  description: { en: string; ru: string };
+}
+export const BREED_GROUP_LIST = groupsData.groups as BreedGroup[];
+const GROUP_BY_ID = Object.fromEntries(
+  BREED_GROUP_LIST.map((g) => [g.id, g]),
+) as Record<string, BreedGroup>;
+
+// Group ids in canonical order (drive the Roostrdex / catalog filters).
+export const BREED_GROUPS: string[] = BREED_GROUP_LIST.map((g) => g.id);
+
+export function groupName(id: string, locale: Locale): string {
+  return GROUP_BY_ID[id]?.name[locale] ?? id;
+}
+export function groupDescription(id: string, locale: Locale): string {
+  return GROUP_BY_ID[id]?.description[locale] ?? "";
+}
 
 export function localize(
   field: { en: string; ru: string },

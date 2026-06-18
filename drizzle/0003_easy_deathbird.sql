@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "eggs" integer DEFAULT 0 NOT NULL;

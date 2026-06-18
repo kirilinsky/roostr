@@ -399,7 +399,11 @@ export function computeStats(
       }
     }
   }
-  for (const s of SKILL_IDS) stats[s] = Math.max(1, stats[s]);
+  // Skills floor at 0: a fully debuffed combat skill CAN hit zero — the rooster
+  // just loses fast at it (accepted design). HP is the one thing kept ≥1
+  // (computeMaxHealth), so a bird is never dead on arrival. NOTE for the future
+  // battle sim: handle 0 gracefully — no divide-by-stat, define 0-Speed/0-Accuracy.
+  for (const s of SKILL_IDS) stats[s] = Math.max(0, stats[s]);
   return stats;
 }
 
@@ -416,8 +420,10 @@ export function computeMaxHealth(
   return Math.max(1, breed.baseHealth + weightClass.healthMod + geneHealth);
 }
 
-// Overall power/level = sum of all 10 stats + maxHealth. Monotonic with upgrades:
-// debuffed stats floor at 1, so leveling keeps adding net points → tier climbs.
+// Overall power/level = sum of all skills + maxHealth. Skills floor at 0, HP ≥1.
+// Most genes are net-positive (esp. with +Health → HP), so leveling climbs the
+// tier. A few genes with no Health and net-negative skill mods (Thunder Crow,
+// Wild Rage) dip the rating mid-climb until their debuffs bottom out — intended.
 export function computeRating(
   stats: Record<Skill, number>,
   maxHealth: number,

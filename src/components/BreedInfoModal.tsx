@@ -6,7 +6,7 @@ import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Popup from "@/components/Popup";
-import { BREEDS_CATALOG } from "@/lib/breeds";
+import { BREEDS_CATALOG, groupName, groupDescription } from "@/lib/breeds";
 import { FAMILIES, GENES, formatTraitEffects } from "@/lib/roostr";
 import { countryFlag } from "@/lib/flag";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -52,12 +52,15 @@ export default function BreedInfoModal({
       <Stack spacing={2}>
         {/* meta chips */}
         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-          <Chip size="small" label={breed.group} />
+          <Chip size="small" label={groupName(breed.group, locale)} />
           <Chip size="small" color="secondary" label={breed.rarity} />
           {breed.tags.map((tag) => (
             <Chip key={tag} size="small" variant="outlined" label={tag} />
           ))}
         </Stack>
+        <Typography variant="caption" color="text.secondary">
+          {groupDescription(breed.group, locale)}
+        </Typography>
 
         {/* Real-world info */}
         <Box>

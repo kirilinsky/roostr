@@ -1,10 +1,9 @@
 import Link from "next/link";
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import CollectionCard from "@/components/CollectionCard";
+import CollectionView from "@/components/CollectionView";
 import { getSession } from "@/lib/auth";
 import { getRoostrs } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
@@ -45,21 +44,7 @@ export default async function CollectionPage() {
             </Button>
           </Stack>
         ) : (
-          <Box
-            sx={{
-              display: "grid",
-              gap: 2,
-              gridTemplateColumns: {
-                xs: "repeat(2, 1fr)",
-                sm: "repeat(3, 1fr)",
-                md: "repeat(4, 1fr)",
-              },
-            }}
-          >
-            {roostrs.map((r) => (
-              <CollectionCard key={r.id ?? r.seed} roostr={r} />
-            ))}
-          </Box>
+          <CollectionView roostrs={roostrs} />
         )}
       </Stack>
     </Container>

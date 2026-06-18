@@ -41,6 +41,7 @@ export const config = {
     "/market/:path*",
     "/arena/:path*",
     "/farm/:path*",
+    "/lab/:path*",
     "/friends/:path*",
     "/bank/:path*",
     "/settings/:path*",

@@ -54,7 +54,7 @@ export default async function PublicProfilePage({
   const roostrs = (await getRoostrs(user.id)).map(hydrateRoostr);
 
   return (
-    <Container maxWidth="sm" sx={{ py: 6 }}>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
       <Stack spacing={3} alignItems="center" textAlign="center">
         <Avatar
           src={user.photoUrl ?? undefined}
@@ -118,7 +118,11 @@ export default async function PublicProfilePage({
             sx={{
               display: "grid",
               gap: 2,
-              gridTemplateColumns: { xs: "repeat(2, 1fr)", sm: "repeat(3, 1fr)" },
+              gridTemplateColumns: {
+                xs: "repeat(2, 1fr)",
+                sm: "repeat(3, 1fr)",
+                md: "repeat(4, 1fr)",
+              },
             }}
           >
             {roostrs.map((r) => (

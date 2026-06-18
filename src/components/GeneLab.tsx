@@ -9,6 +9,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
+import StatModBadges from "@/components/StatModBadges";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import {
   GENE_MAX_LEVEL,
@@ -18,7 +19,6 @@ import {
   computeMaxHealth,
   computeRating,
   computeStats,
-  formatStatMods,
   geneUpgradeCost,
   skillLabel,
   tierFor,
@@ -164,9 +164,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
                     {t("lab.level")} {lvl}/{GENE_MAX_LEVEL}
                   </Typography>
                 </Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {formatStatMods(g.statMods, locale)}
-                </Typography>
+                <StatModBadges mods={g.statMods} locale={locale} />
               </Box>
               <Button
                 size="small"

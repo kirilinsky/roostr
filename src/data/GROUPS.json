@@ -1,0 +1,64 @@
+{
+  "description": {
+    "en": "Breed groups. id = the canonical English key used on breeds (BREEDS.json `group`) and for palette lookups. name/description are display-only.",
+    "ru": "Группы пород. id — каноничный английский ключ на породах (BREEDS.json `group`) и для палитры. name/description — только для показа."
+  },
+  "groups": [
+    {
+      "id": "Oddities",
+      "name": { "en": "Oddities", "ru": "Диковинки" },
+      "description": {
+        "en": "Unusual, quirky breeds — black flesh, naked necks, frizzled feathers.",
+        "ru": "Необычные, причудливые породы — чёрная плоть, голые шеи, завитое перо."
+      }
+    },
+    {
+      "id": "Show Birds",
+      "name": { "en": "Show Birds", "ru": "Выставочные" },
+      "description": {
+        "en": "Decorative breeds bred for looks — crests, lacing, fancy plumage.",
+        "ru": "Декоративные породы — хохолки, окаймление, нарядное оперение."
+      }
+    },
+    {
+      "id": "Longtail Legends",
+      "name": { "en": "Longtail Legends", "ru": "Длиннохвостые легенды" },
+      "description": {
+        "en": "Famous for extravagantly long, flowing tails.",
+        "ru": "Знамениты экстравагантно длинными струящимися хвостами."
+      }
+    },
+    {
+      "id": "Fighters",
+      "name": { "en": "Fighters", "ru": "Бойцовые" },
+      "description": {
+        "en": "Hard-feathered game fowl with an upright, combat-built stance.",
+        "ru": "Жёсткоперые бойцовые птицы с прямой боевой стойкой."
+      }
+    },
+    {
+      "id": "Heavy Giants",
+      "name": { "en": "Heavy Giants", "ru": "Тяжеловесы" },
+      "description": {
+        "en": "Big, heavy, dual-purpose breeds with a low centre of mass.",
+        "ru": "Крупные тяжёлые универсальные породы с низким центром массы."
+      }
+    },
+    {
+      "id": "Farm Workers",
+      "name": { "en": "Farm Workers", "ru": "Фермерские" },
+      "description": {
+        "en": "Reliable layers and meat birds — the everyday workhorses.",
+        "ru": "Надёжные несушки и мясные — повседневные рабочие лошадки."
+      }
+    },
+    {
+      "id": "Criers",
+      "name": { "en": "Criers", "ru": "Голосистые" },
+      "description": {
+        "en": "Prized for a unique, long or musical crow.",
+        "ru": "Ценятся за уникальный, долгий или музыкальный крик."
+      }
+    }
+  ]
+}

@@ -42,8 +42,10 @@ export interface EnergyState {
 export default function AppShell({
   user,
   coinBalance,
+  eggsBalance,
   energy,
   feathersLabel,
+  eggsLabel,
   botUsername,
   mainNav,
   bottomNav,
@@ -52,8 +54,10 @@ export default function AppShell({
 }: {
   user: ShellUser | null;
   coinBalance?: number;
+  eggsBalance?: number;
   energy?: EnergyState;
   feathersLabel?: string;
+  eggsLabel?: string;
   botUsername: string;
   mainNav: NavItem[];
   bottomNav: NavItem[];
@@ -95,7 +99,8 @@ export default function AppShell({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          p: 2,
+          px: 2,
+          py: 0,
         }}
       >
         <Image
@@ -104,7 +109,7 @@ export default function AppShell({
           width={138}
           height={60}
           priority
-          style={{ height: 48, width: "auto" }}
+          style={{ height: 156, width: "auto", display: "block" }}
         />
       </Box>
       <Divider />
@@ -158,6 +163,23 @@ export default function AppShell({
                     />
                     <Typography variant="body2" noWrap>
                       {coinBalance.toLocaleString()}
+                    </Typography>
+                  </Box>
+                )}
+                {typeof eggsBalance === "number" && (
+                  <Box
+                    title={eggsLabel ?? "Eggs"}
+                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                  >
+                    <Image
+                      src="/eggs.png"
+                      alt={eggsLabel ?? "Eggs"}
+                      width={16}
+                      height={16}
+                      style={{ height: 16, width: "auto" }}
+                    />
+                    <Typography variant="body2" noWrap>
+                      {eggsBalance.toLocaleString()}
                     </Typography>
                   </Box>
                 )}

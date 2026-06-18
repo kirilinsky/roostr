@@ -7,8 +7,10 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
-import RoostrAvatar from "@/components/RoostrAvatar";
+import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
+import StatModBadges from "@/components/StatModBadges";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
+import { tierBackground } from "@/lib/tierBg";
 import {
   BODY_COLOR_HEX,
   COLOR_HEX,
@@ -23,11 +25,9 @@ import {
   skillLabel,
   tierFor,
   type CosmeticLayer,
-  type Gene,
   type RolledRoostr,
 } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
-import type { Locale } from "@/i18n/config";
 
 // Stat bar color by skill kind — shared map (red attack / blue defense / green).
 const SKILL_KIND = Object.fromEntries(
@@ -44,35 +44,6 @@ const COLOR_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
   { key: "leg", labelKey: "card.leg" },
   { key: "eye", labelKey: "card.eye" },
 ];
-
-// Gene starting mods as colored tokens (buff = primary, debuff = error).
-// One right-aligned text block (wraps as a unit) so rows line up cleanly.
-function GeneMods({ gene, locale }: { gene: Gene; locale: Locale }) {
-  const entries = Object.entries(gene.statMods ?? {}).filter(([, v]) => v !== 0);
-  if (entries.length === 0) return null;
-  return (
-    <Typography
-      variant="caption"
-      component="div"
-      sx={{ fontWeight: 700, lineHeight: 1.4, mt: 0.25 }}
-    >
-      {entries.map(([stat, value], i) => (
-        <Box
-          component="span"
-          key={stat}
-          sx={{
-            whiteSpace: "nowrap",
-            color: value > 0 ? "primary.main" : "error.main",
-          }}
-        >
-          {value > 0 ? "+" : ""}
-          {value} {skillLabel(stat, locale)}
-          {i < entries.length - 1 ? " · " : ""}
-        </Box>
-      ))}
-    </Typography>
-  );
-}
 
 export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
   const t = useT();
@@ -165,13 +136,10 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#1c1c22",
-            backgroundImage:
-              "repeating-conic-gradient(#26262e 0% 25%, #1c1c22 0% 50%)",
-            backgroundSize: "18px 18px",
+            background: tierBackground(tier.color),
           }}
         >
-          <RoostrAvatar
+          <RoostrAvatarPixel
             colors={colors}
             pattern={pattern}
             breed={breed}
@@ -325,7 +293,9 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                 >
                   {g.boosts.map((b) => skillLabel(b, locale)).join(" · ")}
                 </Typography>
-                <GeneMods gene={g} locale={locale} />
+                <Box sx={{ mt: 0.25 }}>
+                  <StatModBadges mods={g.statMods} locale={locale} />
+                </Box>
               </Box>
             </Stack>
           ))}
