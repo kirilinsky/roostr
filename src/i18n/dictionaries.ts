@@ -4,8 +4,23 @@ export const dictionaries: Record<Locale, Dict> = {
   en: {
     "nav.about": "About",
     "nav.debug": "Debug",
+    "nav.collection": "Collection",
+    "nav.market": "Market",
+    "nav.arena": "Arena",
+    "nav.friends": "Friends",
+    "nav.support": "Support",
+    "nav.settings": "Settings",
+    "nav.bank": "Bank",
+    "nav.login": "Log in:",
 
-    "home.guest": "Sign in via the Telegram button at the top right.",
+    "currency.coin": "Corn Coin",
+    "resource.feathers": "Feathers",
+    "bank.title": "Bank",
+    "bank.balance": "Balance",
+    "bank.empty": "No transactions yet.",
+    "bank.topup": "Top up (soon)",
+
+    "home.guest": "Sign in via the Telegram button in the sidebar.",
     "home.signedInAs": "Signed in as {name}.",
     "home.profile": "Profile",
 
@@ -28,8 +43,23 @@ export const dictionaries: Record<Locale, Dict> = {
   ru: {
     "nav.about": "О проекте",
     "nav.debug": "Дебаг",
+    "nav.collection": "Коллекция",
+    "nav.market": "Рынок",
+    "nav.arena": "Арена",
+    "nav.friends": "Друзья",
+    "nav.support": "Поддержка",
+    "nav.settings": "Настройки",
+    "nav.bank": "Банк",
+    "nav.login": "Войти:",
 
-    "home.guest": "Войди через кнопку Telegram справа сверху.",
+    "currency.coin": "Corn Coin",
+    "resource.feathers": "Перья",
+    "bank.title": "Банк",
+    "bank.balance": "Баланс",
+    "bank.empty": "Пока операций нет.",
+    "bank.topup": "Пополнить (скоро)",
+
+    "home.guest": "Войди через кнопку Telegram в меню слева.",
     "home.signedInAs": "Вошёл как {name}.",
     "home.profile": "Профиль",
 

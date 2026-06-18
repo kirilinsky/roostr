@@ -21,6 +21,12 @@ export interface Trait {
   gradient?: string; // for background
   glow?: string; // for aura (css color)
   filter?: string; // for mutation (css filter on the species emoji)
+
+  // Seasonality hooks. A seasonal/limited trait belongs to a `season` and can be
+  // retired by setting `enabled: false` — it stops dropping (scarcity/FOMO) while
+  // already-minted creatures keep it. Absent season = evergreen base set.
+  season?: string; // e.g. "s1-halloween"
+  enabled?: boolean; // default true
 }
 
 export const LAYERS: LayerKey[] = [
@@ -155,20 +161,23 @@ function pickWeighted(entries: Trait[]): { trait: Trait; p: number } {
   return { trait: last, p: last.weight / total };
 }
 
+// Ember scale (incubator heat): cold spark -> blazing inferno -> solar gold.
 function rarityFromP(p: number): RarityTier {
-  if (p > 0.2) return { label: "Common", color: "#9e9e9e" };
-  if (p > 0.05) return { label: "Uncommon", color: "#4caf50" };
-  if (p > 0.01) return { label: "Rare", color: "#2196f3" };
-  if (p > 0.002) return { label: "Epic", color: "#9c27b0" };
-  if (p > 0.0003) return { label: "Legendary", color: "#ff9800" };
-  return { label: "Mythic", color: "#f4436e" };
+  if (p > 0.2) return { label: "Spark", color: "#607d8b" };
+  if (p > 0.05) return { label: "Ember", color: "#e65100" };
+  if (p > 0.01) return { label: "Flame", color: "#ff6d00" };
+  if (p > 0.002) return { label: "Blaze", color: "#ff3d00" };
+  if (p > 0.0003) return { label: "Inferno", color: "#d50000" };
+  return { label: "Solar", color: "#ffab00" };
 }
 
 export function rollRoostr(): RolledRoostr {
   const traits = {} as RolledTraits;
   let comboP = 1;
   for (const layer of LAYERS) {
-    const { trait, p } = pickWeighted(LIBRARY[layer]);
+    // Only currently-enabled traits drop (retired seasonal sets are excluded).
+    const pool = LIBRARY[layer].filter((t) => t.enabled !== false);
+    const { trait, p } = pickWeighted(pool);
     traits[layer] = trait;
     comboP *= p;
   }
