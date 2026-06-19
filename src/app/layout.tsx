@@ -57,7 +57,6 @@ export default async function RootLayout({
   const bottomNav: NavItem[] = [
     ...(loggedIn ? [{ href: "/bank", label: t("nav.bank"), icon: "🏦" }] : []),
     { href: "/pedia", label: t("nav.pedia"), icon: "📖" },
-    { href: "/about", label: t("nav.about"), icon: "ℹ️" },
     // Debug is admin-only.
     ...(admin
       ? [{ href: "/debug", label: t("nav.debug"), icon: "🐞" }]
@@ -83,13 +82,16 @@ export default async function RootLayout({
                   user={user}
                   coinBalance={user ? dbUser?.coins ?? 0 : undefined}
                   eggsBalance={user ? dbUser?.eggs ?? 0 : undefined}
+                  sciBalance={user ? dbUser?.sci ?? 0 : undefined}
                   energy={user ? { current: 10, max: 10 } : undefined}
                   feathersLabel={t("resource.feathers")}
                   eggsLabel={t("resource.eggs")}
+                  sciLabel={t("resource.sci")}
                   botUsername={botUsername}
                   mainNav={mainNav}
                   bottomNav={bottomNav}
                   loginLabel={t("nav.login")}
+                  aboutLabel={t("nav.about")}
                 >
                   {children}
                 </AppShell>

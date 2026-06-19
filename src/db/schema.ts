@@ -23,6 +23,7 @@ export const users = pgTable("users", {
   coins: integer("coins").notNull().default(0),
   feathers: integer("feathers").notNull().default(0),
   eggs: integer("eggs").notNull().default(0),
+  sci: integer("sci").notNull().default(0), // science points (lab research)
   tonAddress: text("ton_address"),
   lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // daily hatch cooldown (off localStorage)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

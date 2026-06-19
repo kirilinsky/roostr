@@ -1,9 +1,10 @@
+import Link from "next/link";
 import MuiLink from "@mui/material/Link";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
 
-export default function Footer() {
+export default function Footer({ aboutLabel }: { aboutLabel: string }) {
   const year = new Date().getFullYear();
   return (
     <Box
@@ -22,6 +23,14 @@ export default function Footer() {
     >
       <Typography variant="body2" color="text.secondary">
         © {year} ·{" "}
+        <MuiLink
+          component={Link}
+          href="/about"
+          color="inherit"
+        >
+          {aboutLabel}
+        </MuiLink>
+        {" · "}
         <MuiLink
           href="https://github.com/kirilinsky"
           target="_blank"

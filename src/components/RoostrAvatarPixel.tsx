@@ -17,7 +17,11 @@ import {
 // No hand-authored bezier curves: an ellipse at 48px is just a clean pixel blob.
 // Breed `tags` toggle structural detail (crest, hooked beak, longtail, …).
 
-const GRID = 64;
+// Coordinates in buildGrid are authored in a 64-unit DESIGN space; the grid is
+// rasterized at GRID = D * S so curves/feathers come out smooth and detailed.
+const D = 64;
+const S = 4;
+const GRID = D * S; // 256 native
 const BEAK_HEX = "#E9A23B";
 const OUTLINE = "#15151b";
 const EYE_WHITE = "#fbf6ea";
@@ -62,36 +66,103 @@ function shade(hex: string, amount: number): string {
     .join("")}`;
 }
 
+function hexRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  return [
+    parseInt(h.slice(0, 2), 16),
+    parseInt(h.slice(2, 4), 16),
+    parseInt(h.slice(4, 6), 16),
+  ];
+}
+function rgbHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b]
+    .map((c) => clamp8(c).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+// blend two hex colors, t = 0..1
+function lerpHex(a: string, b: string, t: number): string {
+  const [r1, g1, b1] = hexRgb(a);
+  const [r2, g2, b2] = hexRgb(b);
+  return rgbHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+}
+// box-blur the shade layer so light/shadow read as soft gradients, not blocky
+// steps — the core "hybrid" move toward the painterly reference art.
+function blurShade(sh: Int8Array): Float32Array {
+  const out = new Float32Array(GRID * GRID);
+  for (let y = 0; y < GRID; y++)
+    for (let x = 0; x < GRID; x++) {
+      let sum = 0;
+      let n = 0;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const xx = x + dx;
+          const yy = y + dy;
+          if (xx < 0 || xx >= GRID || yy < 0 || yy >= GRID) continue;
+          sum += sh[yy * GRID + xx];
+          n++;
+        }
+      out[y * GRID + x] = sum / n;
+    }
+  return out;
+}
+
 // --- grid helpers ---
+// Public ops (set/addSh/ellipse/line/quad) take 64-unit DESIGN coordinates and
+// rasterize into the GRID (256) pixel grid, so shapes come out smooth/detailed.
+// `half` thickness is in DESIGN units and scaled to keep stroke proportions.
 type Grid = { ids: Int8Array; sh: Int8Array };
 const at = (x: number, y: number) => y * GRID + x;
 const inb = (x: number, y: number) => x >= 0 && x < GRID && y >= 0 && y < GRID;
+const halfPx = (half: number) => Math.round(half * S + (S - 1) / 2);
 
-function set(g: Grid, x: number, y: number, id: number) {
-  if (inb(x, y)) g.ids[at(x, y)] = id;
+// low-level PIXEL-space writes
+function put(g: Grid, px: number, py: number, id: number) {
+  if (inb(px, py)) g.ids[at(px, py)] = id;
 }
-function addSh(g: Grid, x: number, y: number, d: number) {
-  if (inb(x, y)) {
-    const v = g.sh[at(x, y)] + d;
-    g.sh[at(x, y)] = Math.max(-4, Math.min(4, v));
+function putSh(g: Grid, px: number, py: number, d: number) {
+  if (inb(px, py)) {
+    const v = g.sh[at(px, py)] + d;
+    g.sh[at(px, py)] = Math.max(-4, Math.min(4, v));
   }
 }
+// DESIGN cell → S×S pixel block
+function set(g: Grid, x: number, y: number, id: number) {
+  const bx = Math.round(x * S);
+  const by = Math.round(y * S);
+  for (let dy = 0; dy < S; dy++)
+    for (let dx = 0; dx < S; dx++) put(g, bx + dx, by + dy, id);
+}
+function addSh(g: Grid, x: number, y: number, d: number) {
+  const bx = Math.round(x * S);
+  const by = Math.round(y * S);
+  for (let dy = 0; dy < S; dy++)
+    for (let dx = 0; dx < S; dx++) putSh(g, bx + dx, by + dy, d);
+}
 function ellipse(g: Grid, cx: number, cy: number, rx: number, ry: number, id: number) {
-  for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++)
-    for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
-      const dx = (x - cx) / rx;
-      const dy = (y - cy) / ry;
-      if (dx * dx + dy * dy <= 1.04) set(g, x, y, id);
+  const CX = cx * S;
+  const CY = cy * S;
+  const RX = rx * S;
+  const RY = ry * S;
+  for (let y = Math.floor(CY - RY); y <= Math.ceil(CY + RY); y++)
+    for (let x = Math.floor(CX - RX); x <= Math.ceil(CX + RX); x++) {
+      const dx = (x - CX) / RX;
+      const dy = (y - CY) / RY;
+      if (dx * dx + dy * dy <= 1.04) put(g, x, y, id);
     }
 }
 function line(g: Grid, x0: number, y0: number, x1: number, y1: number, half: number, id: number) {
-  const steps = Math.ceil(Math.hypot(x1 - x0, y1 - y0)) + 1;
+  const X0 = x0 * S;
+  const Y0 = y0 * S;
+  const X1 = x1 * S;
+  const Y1 = y1 * S;
+  const H = halfPx(half);
+  const steps = Math.ceil(Math.hypot(X1 - X0, Y1 - Y0)) + 1;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
-    const cx = Math.round(x0 + (x1 - x0) * t);
-    const cy = Math.round(y0 + (y1 - y0) * t);
-    for (let dy = -half; dy <= half; dy++)
-      for (let dx = -half; dx <= half; dx++) set(g, cx + dx, cy + dy, id);
+    const cx = Math.round(X0 + (X1 - X0) * t);
+    const cy = Math.round(Y0 + (Y1 - Y0) * t);
+    for (let dy = -H; dy <= H; dy++)
+      for (let dx = -H; dx <= H; dx++) put(g, cx + dx, cy + dy, id);
   }
 }
 // quadratic bezier swept with thickness `half`, painting id (or shading if id<0)
@@ -107,18 +178,25 @@ function quad(
   id: number,
   shd = 0,
 ) {
-  const steps = Math.ceil(Math.hypot(x1 - x0, y1 - y0)) + 6;
+  const X0 = x0 * S;
+  const Y0 = y0 * S;
+  const CX = cx * S;
+  const CY = cy * S;
+  const X1 = x1 * S;
+  const Y1 = y1 * S;
+  const H = halfPx(half);
+  const steps = Math.ceil(Math.hypot(X1 - X0, Y1 - Y0)) + 6;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const mt = 1 - t;
-    const px = mt * mt * x0 + 2 * mt * t * cx + t * t * x1;
-    const py = mt * mt * y0 + 2 * mt * t * cy + t * t * y1;
-    const rx = Math.round(px);
-    const ry = Math.round(py);
-    for (let dy = -half; dy <= half; dy++)
-      for (let dx = -half; dx <= half; dx++) {
-        if (id >= 0) set(g, rx + dx, ry + dy, id);
-        if (shd) addSh(g, rx + dx, ry + dy, shd);
+    const px = mt * mt * X0 + 2 * mt * t * CX + t * t * X1;
+    const py = mt * mt * Y0 + 2 * mt * t * CY + t * t * Y1;
+    const rxp = Math.round(px);
+    const ryp = Math.round(py);
+    for (let dy = -H; dy <= H; dy++)
+      for (let dx = -H; dx <= H; dx++) {
+        if (id >= 0) put(g, rxp + dx, ryp + dy, id);
+        if (shd) putSh(g, rxp + dx, ryp + dy, shd);
       }
   }
 }
@@ -140,45 +218,58 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     tags.has("fighter") || tags.has("game") || tags.has("strong") || tags.has("hard-feather");
   const long = tags.has("longtail");
 
-  // ---- TAIL: individual sickle feathers fanning up-back ----
-  const tbx = bodyCx - rx + 3;
-  const tby = bodyCy + 2;
-  const nF = long ? 5 : 4;
-  const baseReach = long ? rx + 26 : rx + 11;
-  const baseRise = long ? ry + 30 : ry + 14;
-  ellipse(g, tbx, tby - 2, 4, 5, TAIL); // base mass connecting to body
+  // ---- TAIL: sickle feathers fanned by ANGLE (fountain, not a parallel tube) ----
+  const tbx = bodyCx - rx + 5;
+  const tby = bodyCy - 2;
+  const nF = long ? 7 : 5;
+  const reach = long ? rx + ry + 14 : rx + 8;
+  ellipse(g, tbx, tby + 2, 5, 6, TAIL); // base mass connecting to body
   for (let i = 0; i < nF; i++) {
-    const len = baseReach + i * 3;
-    const ri = baseRise + i * 3;
-    const by = tby - i * 2;
-    quad(g, tbx + 2, by, tbx - len * 0.5, by - ri * 0.6, tbx - len, by - ri, 1, TAIL);
-    quad(g, tbx + 2, by + 1, tbx - len * 0.5 + 1, by - ri * 0.6 + 2, tbx - len + 2, by - ri + 3, 0, -1, -2); // dark seam
-    quad(g, tbx, by - 1, tbx - len * 0.55, by - ri * 0.62, tbx - len, by - ri - 1, 0, -1, 2); // light edge
+    const f = i / (nF - 1); // 0 = short covert over back → 1 = long back sickle
+    const ang = (-68 - f * 60) * (Math.PI / 180); // spread up → up-back-left
+    const len = reach * (0.6 + 0.4 * f);
+    const ox = Math.cos(ang);
+    const oy = Math.sin(ang);
+    const ex = tbx + ox * len;
+    const ey = tby + oy * len;
+    const ca = ang - 0.28; // bow control back-left → sickle curve
+    const mx = tbx + Math.cos(ca) * len * 0.6;
+    const my = tby + Math.sin(ca) * len * 0.6;
+    quad(g, tbx, tby, mx, my, ex, ey, 1, TAIL);
+    const px = -oy; // unit perpendicular → feather separation seam + edge
+    const py = ox;
+    quad(g, tbx + px, tby + py, mx + px, my + py, ex + px, ey + py, 0, -1, -2); // dark seam
+    quad(g, tbx - px, tby - py, mx - px, my - py, ex - px, ey - py, 0, -1, 1); // light edge
   }
 
   // ---- HACKLE neck (skipped for naked-neck) ----
   if (!tags.has("naked-neck")) {
-    quad(g, bodyCx + rx - 4, bodyCy - ry + 3, bodyCx + rx + 2, headCy + headR + 3, headCx - 3, headCy + headR - 1, 4, HACKLE);
+    // fuller cape: thick main drape + lower shoulder spread
+    quad(g, bodyCx + rx - 5, bodyCy - ry + 2, bodyCx + rx + 3, headCy + headR + 4, headCx - 3, headCy + headR - 2, 6, HACKLE);
+    quad(g, bodyCx + rx - 3, bodyCy - ry + 7, bodyCx + rx + 4, headCy + headR + 7, headCx - 2, headCy + headR + 1, 4, HACKLE);
     // individual neck feathers (dark seams, diagonal)
-    for (let k = 0; k < 5; k++) {
-      const sx = bodyCx + rx - 2 + k * 2;
+    for (let k = 0; k < 6; k++) {
+      const sx = bodyCx + rx - 3 + k * 2;
       quad(g, sx, bodyCy - ry + 4, sx + 2, (bodyCy - ry + headCy) / 2, headCx - 4 + k, headCy + headR - 1, 0, -1, -2);
     }
   }
 
   // ---- BODY + breast ----
   ellipse(g, bodyCx, bodyCy, rx, ry, BODY);
-  ellipse(g, bodyCx + rx * 0.55, bodyCy + ry * 0.2, rx * 0.55, ry * 0.82, BODY); // breast bulge
+  // teardrop: full low breast forward (right) + raised saddle toward the tail (left)
+  ellipse(g, bodyCx + rx * 0.5, bodyCy + ry * 0.34, rx * 0.6, ry * 0.92, BODY); // breast bulge (fuller, lower)
+  ellipse(g, bodyCx - rx * 0.42, bodyCy - ry * 0.42, rx * 0.52, ry * 0.58, BODY); // saddle rise to tail base
 
   // shading: belly shadow, back/saddle highlight, breast under-shadow
+  // (iterate pixel space, convert back to design units for the body math)
   for (let y = 0; y < GRID; y++)
     for (let x = 0; x < GRID; x++) {
       if (g.ids[at(x, y)] !== BODY) continue;
-      const ny = (y - bodyCy) / ry;
-      const nx = (x - bodyCx) / rx;
-      if (ny > 0.1) addSh(g, x, y, -Math.round(ny * 2.5));
-      if (ny < -0.25 && nx < 0.1) addSh(g, x, y, 1);
-      if (nx > 0.55 && ny > 0.1) addSh(g, x, y, -1);
+      const ny = (y / S - bodyCy) / ry;
+      const nx = (x / S - bodyCx) / rx;
+      if (ny > 0.1) putSh(g, x, y, -Math.round(ny * 2.5));
+      if (ny < -0.25 && nx < 0.1) putSh(g, x, y, 1);
+      if (nx > 0.55 && ny > 0.1) putSh(g, x, y, -1);
     }
   // breast scallop feather rows (3 rows of small arcs)
   for (let row = 0; row < 3; row++) {
@@ -195,23 +286,24 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     ellipse(g, bodyCx + Math.round(rx * 0.5), bodyCy + ry + 4, 4, 4, BODY);
   }
 
-  // ---- WING: covert mass + layered primary feathers ----
-  ellipse(g, bodyCx - 1, bodyCy + 1, Math.round(rx * 0.6), Math.round(ry * 0.62), WING);
+  // ---- WING: covert mass + primaries sweeping DOWN-BACK (toward the tail) ----
+  ellipse(g, bodyCx, bodyCy + 1, Math.round(rx * 0.62), Math.round(ry * 0.6), WING);
   for (let k = 0; k < 5; k++) {
-    const yy = bodyCy - 3 + k * 2.5;
-    quad(g, bodyCx - rx * 0.5, yy, bodyCx, yy + 3, bodyCx + rx * 0.5, bodyCy + ry * 0.6 + k, 1, WING);
-    quad(g, bodyCx - rx * 0.5, yy + 1, bodyCx, yy + 4, bodyCx + rx * 0.5, bodyCy + ry * 0.6 + k + 1, 0, -1, -2); // feather edge
+    const yy = bodyCy - 3 + k * 2.2;
+    // shoulder (front-up) → primaries trailing down-back (left)
+    quad(g, bodyCx + rx * 0.45, yy, bodyCx, yy + 3, bodyCx - rx * 0.5, bodyCy + ry * 0.55 + k, 1, WING);
+    quad(g, bodyCx + rx * 0.45, yy + 1, bodyCx, yy + 4, bodyCx - rx * 0.5, bodyCy + ry * 0.55 + k + 1, 0, -1, -2); // feather edge
   }
-  // covert top highlight
-  for (let x = bodyCx - rx; x <= bodyCx; x++) addSh(g, x, bodyCy - 2, 1);
+  // covert top highlight (along the leading edge)
+  for (let x = bodyCx; x <= bodyCx + rx; x++) addSh(g, x, bodyCy - 2, 1);
 
   // ---- HEAD ----
   ellipse(g, headCx, headCy, headR, headR - 1, BODY);
-  for (let y = headCy - headR; y <= headCy + headR; y++)
-    for (let x = headCx - headR; x <= headCx + headR; x++) {
-      if (g.ids[at(x, y)] !== BODY) continue;
-      if (y > headCy) addSh(g, x, y, -1); // cheek/jaw shadow
-      if (y < headCy - 1 && x < headCx) addSh(g, x, y, 1); // crown highlight
+  for (let y = Math.round((headCy - headR) * S); y <= Math.round((headCy + headR) * S); y++)
+    for (let x = Math.round((headCx - headR) * S); x <= Math.round((headCx + headR) * S); x++) {
+      if (!inb(x, y) || g.ids[at(x, y)] !== BODY) continue;
+      if (y / S > headCy) putSh(g, x, y, -1); // cheek/jaw shadow
+      if (y / S < headCy - 1 && x / S < headCx) putSh(g, x, y, 1); // crown highlight
     }
 
   // crest tuft
@@ -240,16 +332,15 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     set(g, headCx + 1, headCy + headR + 2, WATTLE);
   }
 
-  // ---- BEAK (two-tone + nostril) ----
-  const bx = headCx + headR;
-  const beakLen = hooked ? 8 : 6;
-  for (let k = 0; k < beakLen; k++) {
-    const span = k < 2 ? 1 : 0;
-    for (let dy = -span; dy <= span; dy++) set(g, bx + k, headCy + dy, BEAK);
+  // ---- BEAK: tapered triangular wedge (sharp point, not a round blob) ----
+  const bx = headCx + headR - 1;
+  const beakLen = hooked ? 7 : 5;
+  for (let k = 0; k <= beakLen; k++) {
+    const tt = k / beakLen;
+    const h = (1 - tt) * 1.9; // half-height tapers to 0 at the tip
+    const cy = headCy + (hooked ? tt * tt * 1.4 : tt * 0.2); // hook curves down
+    line(g, bx + k, cy - h, bx + k, cy + h, 0, BEAK); // vertical column → wedge
   }
-  set(g, bx + beakLen - 1, headCy + 1, BEAK);
-  set(g, bx + beakLen - 2, headCy + 1, BEAK);
-  if (hooked) set(g, bx + beakLen, headCy + 2, BEAK);
   addSh(g, bx + 1, headCy - 1, 2); // upper mandible highlight
   addSh(g, bx + 2, headCy + 1, -2); // lower mandible shadow
   addSh(g, bx, headCy, -3); // nostril
@@ -264,8 +355,8 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
 
   // ---- LEGS: 2px scaled shanks + toes + claws + spur ----
   const footY = 60;
-  const lx1 = bodyCx + 1;
-  const lx2 = bodyCx + Math.round(rx * 0.5);
+  const lx1 = bodyCx; // shifted ~2% left relative to the body
+  const lx2 = bodyCx + Math.round(rx * 0.5) - 1;
   const legTop = bodyCy + ry - 1;
   for (const lx of [lx1, lx2]) {
     line(g, lx, legTop, lx, footY, 0, LEG);
@@ -324,6 +415,7 @@ export default function RoostrAvatarPixel({
   weightClass,
 }: RoostrAvatarPixelProps) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const offRef = useRef<HTMLCanvasElement | null>(null);
   const tags = useMemo(() => new Set(breed.tags), [breed.tags]);
   const grid = useMemo(() => buildGrid(weightClass.id, tags), [weightClass.id, tags]);
 
@@ -346,8 +438,16 @@ export default function RoostrAvatarPixel({
     if (!cv) return;
     const ctx = cv.getContext("2d");
     if (!ctx) return;
-    ctx.clearRect(0, 0, GRID, GRID);
 
+    // 1) paint native-res pixels via ImageData (fast at 256²)
+    const off =
+      offRef.current ?? (offRef.current = document.createElement("canvas"));
+    off.width = GRID;
+    off.height = GRID;
+    const octx = off.getContext("2d");
+    if (!octx) return;
+
+    const sh = blurShade(grid.sh);
     const baseHex = (id: number): string => {
       switch (id) {
         case BODY:
@@ -376,35 +476,57 @@ export default function RoostrAvatarPixel({
       }
     };
 
+    const img = octx.createImageData(GRID, GRID);
+    const data = img.data;
     for (let y = 0; y < GRID; y++)
       for (let x = 0; x < GRID; x++) {
-        const id = grid.ids[at(x, y)];
-        if (id === E) continue;
+        const p = at(x, y);
+        const id = grid.ids[p];
+        if (id === E) continue; // leave transparent
         let fill: string;
         if (id === OUT) {
           fill = OUTLINE;
         } else {
           const t = (x + y) / (2 * GRID);
-          const amt = 0.16 - t * 0.36 + grid.sh[at(x, y)] * 0.085;
+          const amt = 0.16 - t * 0.36 + sh[p] * 0.085;
           fill = shade(baseHex(id), Math.max(-0.55, Math.min(0.45, amt)));
+          // iridescent green/blue sheen banding on tail feathers (design-space)
+          if (id === TAIL) {
+            const band = Math.round((x / S) * 3 + (y / S) * 2) % 9;
+            if (band < 2) fill = lerpHex(fill, "#1f8a5a", 0.5);
+            else if (band < 3) fill = lerpHex(fill, "#2f74a6", 0.45);
+          }
         }
-        ctx.fillStyle = fill;
-        ctx.fillRect(x, y, 1, 1);
+        const [r, gg, b] = hexRgb(fill);
+        const o = p * 4;
+        data[o] = r;
+        data[o + 1] = gg;
+        data[o + 2] = b;
+        data[o + 3] = 255;
       }
+    octx.putImageData(img, 0, 0);
+
+    // 2) display: a light blur softens the high-res pixels — hybrid look
+    cv.width = GRID;
+    cv.height = GRID;
+    ctx.clearRect(0, 0, GRID, GRID);
+    ctx.filter = "blur(0.4px)";
+    ctx.drawImage(off, 0, 0);
+    ctx.filter = "none";
   }, [grid, hex]);
 
   return (
     <canvas
       ref={ref}
-      width={GRID}
-      height={GRID}
+      width={256}
+      height={256}
       role="img"
-      aria-label={`${breed.name.en} roostr pixel avatar`}
+      aria-label={`${breed.name.en} roostr avatar`}
       style={{
         width: "100%",
         height: "100%",
         aspectRatio: "1 / 1",
-        imageRendering: "pixelated",
+        imageRendering: "auto",
         display: "block",
       }}
     />

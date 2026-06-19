@@ -5,7 +5,13 @@ import Box from "@mui/material/Box";
 
 // Breed art for the Roostrdex: shows /breeds/<id>.png, falling back to a 🐓
 // placeholder when the file isn't there yet (art is being added gradually).
-export default function BreedArt({ id }: { id?: string }) {
+export default function BreedArt({
+  id,
+  smooth = false,
+}: {
+  id?: string;
+  smooth?: boolean;
+}) {
   const [errored, setErrored] = useState(false);
   const showImg = Boolean(id) && !errored;
 
@@ -31,7 +37,7 @@ export default function BreedArt({ id }: { id?: string }) {
             width: "100%",
             height: "100%",
             objectFit: "contain",
-            imageRendering: "pixelated",
+            imageRendering: smooth ? "auto" : "pixelated",
           }}
         />
       ) : (

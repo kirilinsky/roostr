@@ -43,25 +43,31 @@ export default function AppShell({
   user,
   coinBalance,
   eggsBalance,
+  sciBalance,
   energy,
   feathersLabel,
   eggsLabel,
+  sciLabel,
   botUsername,
   mainNav,
   bottomNav,
   loginLabel,
+  aboutLabel,
   children,
 }: {
   user: ShellUser | null;
   coinBalance?: number;
   eggsBalance?: number;
+  sciBalance?: number;
   energy?: EnergyState;
   feathersLabel?: string;
   eggsLabel?: string;
+  sciLabel?: string;
   botUsername: string;
   mainNav: NavItem[];
   bottomNav: NavItem[];
   loginLabel: string;
+  aboutLabel: string;
   children: ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -183,6 +189,23 @@ export default function AppShell({
                     </Typography>
                   </Box>
                 )}
+                {typeof sciBalance === "number" && (
+                  <Box
+                    title={sciLabel ?? "Science"}
+                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+                  >
+                    <Image
+                      src="/sci.png"
+                      alt={sciLabel ?? "Science"}
+                      width={16}
+                      height={16}
+                      style={{ height: 16, width: "auto" }}
+                    />
+                    <Typography variant="body2" noWrap>
+                      {sciBalance.toLocaleString()}
+                    </Typography>
+                  </Box>
+                )}
                 {energy && (
                   <Box
                     title={feathersLabel ?? "Feathers"}
@@ -301,7 +324,7 @@ export default function AppShell({
         {/* spacer for the mobile app bar */}
         <Toolbar sx={{ display: { md: "none" } }} />
         <Box sx={{ flexGrow: 1 }}>{children}</Box>
-        <Footer />
+        <Footer aboutLabel={aboutLabel} />
       </Box>
     </Box>
   );

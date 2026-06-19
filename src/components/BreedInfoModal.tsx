@@ -6,6 +6,7 @@ import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Popup from "@/components/Popup";
+import BreedArt from "@/components/BreedArt";
 import { BREEDS_CATALOG, groupName, groupDescription } from "@/lib/breeds";
 import { FAMILIES, GENES, formatTraitEffects } from "@/lib/roostr";
 import { countryFlag } from "@/lib/flag";
@@ -50,6 +51,21 @@ export default function BreedInfoModal({
   return (
     <Popup open={open} onClose={onClose} title={breed.name[locale]}>
       <Stack spacing={2}>
+        {/* breed reference art */}
+        <Box
+          sx={{
+            alignSelf: "center",
+            width: "100%",
+            maxWidth: 240,
+            borderRadius: 2,
+            overflow: "hidden",
+            border: 1,
+            borderColor: "divider",
+          }}
+        >
+          <BreedArt id={breed.id} smooth />
+        </Box>
+
         {/* meta chips */}
         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
           <Chip size="small" label={groupName(breed.group, locale)} />
