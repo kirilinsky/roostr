@@ -25,7 +25,7 @@ export type Skill =
   | "Accuracy"
   | "Crow"
   | "Recovery"
-  | "Yield"
+  | "Intellect"
   | "Luck"
   | "Stealth"
   | "Fertility";

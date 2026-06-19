@@ -594,23 +594,23 @@
           "Mobility": 1.15
         },
         "genes": {
-          "Corn Sense": 1.25,
+          "Egghead": 1.25,
           "Quick Step": 1.1
         }
       },
       "tendencies": [
         "Speed",
-        "Yield"
+        "Intellect"
       ],
       "trait": {
-        "id": "restless-forager",
+        "id": "restless-mind",
         "name": {
-          "en": "Restless Forager",
-          "ru": "Беспокойный добытчик"
+          "en": "Restless Mind",
+          "ru": "Беспокойный ум"
         },
         "effects": [
           {
-            "stat": "Yield",
+            "stat": "Intellect",
             "mod": 0.1
           },
           {
@@ -623,8 +623,8 @@
           }
         ],
         "description": {
-          "en": "Never stops foraging, never stands its ground.",
-          "ru": "Без устали добывает, но не держит оборону."
+          "en": "Always tinkering, never stands its ground.",
+          "ru": "Вечно что-то изобретает, но не держит оборону."
         }
       },
       "description": {
@@ -661,12 +661,12 @@
         },
         "genes": {
           "Heavy Beak": 1.15,
-          "Corn Sense": 1.15
+          "Egghead": 1.15
         }
       },
       "tendencies": [
         "Damage",
-        "Yield"
+        "Intellect"
       ],
       "trait": {
         "id": "all-weather-grit",
@@ -728,7 +728,7 @@
       },
       "tendencies": [
         "Endurance",
-        "Yield"
+        "Intellect"
       ],
       "trait": {
         "id": "steady-barred",
@@ -913,18 +913,18 @@
         }
       },
       "tendencies": [
-        "Yield",
+        "Intellect",
         "Endurance"
       ],
       "trait": {
-        "id": "keen-forager",
+        "id": "keen-mind",
         "name": {
-          "en": "Keen Forager",
-          "ru": "Зоркий добытчик"
+          "en": "Keen Mind",
+          "ru": "Острый ум"
         },
         "effects": [
           {
-            "stat": "Yield",
+            "stat": "Intellect",
             "mod": 0.1
           },
           {
@@ -937,13 +937,13 @@
           }
         ],
         "description": {
-          "en": "Sharp-eyed feeder, light on defense.",
-          "ru": "Зоркий едок, слаб в защите."
+          "en": "Sharp-minded, light on defense.",
+          "ru": "Острый ум, слаб в защите."
         }
       },
       "description": {
-        "en": "A reliable farm breed with steady output and strong stamina.",
-        "ru": "Надёжная фермерская порода со стабильным доходом и выносливостью."
+        "en": "A reliable farm breed with steady egg output and strong stamina.",
+        "ru": "Надёжная фермерская порода со стабильной яйценоскостью и выносливостью."
       },
       "tags": [
         "farm",
@@ -978,7 +978,7 @@
         }
       },
       "tendencies": [
-        "Yield",
+        "Intellect",
         "Luck"
       ],
       "trait": {
@@ -989,7 +989,7 @@
         },
         "effects": [
           {
-            "stat": "Yield",
+            "stat": "Intellect",
             "mod": 0.12
           },
           {
@@ -1045,7 +1045,7 @@
       },
       "tendencies": [
         "Luck",
-        "Yield"
+        "Intellect"
       ],
       "trait": {
         "id": "rumpless-oddity",
@@ -1169,7 +1169,7 @@
       },
       "tendencies": [
         "Recovery",
-        "Yield"
+        "Intellect"
       ],
       "trait": {
         "id": "docile-beard",
@@ -1735,7 +1735,7 @@
       },
       "tendencies": [
         "Guard",
-        "Yield"
+        "Intellect"
       ],
       "trait": {
         "id": "old-roots",
@@ -2165,7 +2165,7 @@
       },
       "tendencies": [
         "Speed",
-        "Yield"
+        "Intellect"
       ],
       "trait": {
         "id": "sprightly",
@@ -2221,11 +2221,11 @@
         },
         "genes": {
           "Tireless Worker": 1.3,
-          "Corn Sense": 1.15
+          "Egghead": 1.15
         }
       },
       "tendencies": [
-        "Yield",
+        "Intellect",
         "Endurance"
       ],
       "trait": {
@@ -2236,7 +2236,7 @@
         },
         "effects": [
           {
-            "stat": "Yield",
+            "stat": "Intellect",
             "mod": 0.12
           },
           {
@@ -2249,8 +2249,8 @@
           }
         ],
         "description": {
-          "en": "All output, no offense.",
-          "ru": "Сплошной доход, никакой атаки."
+          "en": "Studious and productive, never aggressive.",
+          "ru": "Усидчивая и продуктивная, без агрессии."
         }
       },
       "description": {
@@ -2286,22 +2286,22 @@
           "Mind": 1.1
         },
         "genes": {
-          "Corn Sense": 1.2
+          "Egghead": 1.2
         }
       },
       "tendencies": [
-        "Yield",
+        "Intellect",
         "Damage"
       ],
       "trait": {
-        "id": "bold-forager",
+        "id": "bold-mind",
         "name": {
-          "en": "Bold Forager",
-          "ru": "Смелый добытчик"
+          "en": "Bold Thinker",
+          "ru": "Смелый мыслитель"
         },
         "effects": [
           {
-            "stat": "Yield",
+            "stat": "Intellect",
             "mod": 0.1
           },
           {
@@ -2310,8 +2310,8 @@
           }
         ],
         "description": {
-          "en": "Confident free-ranger, light on guard.",
-          "ru": "Уверенный вольный добытчик, слаб в защите."
+          "en": "Confident and curious, light on guard.",
+          "ru": "Уверенный и любопытный, слаб в защите."
         }
       },
       "description": {
@@ -2347,11 +2347,11 @@
           "Mind": 1.1
         },
         "genes": {
-          "Corn Sense": 1.15
+          "Egghead": 1.15
         }
       },
       "tendencies": [
-        "Yield",
+        "Intellect",
         "Guard"
       ],
       "trait": {
@@ -2362,7 +2362,7 @@
         },
         "effects": [
           {
-            "stat": "Yield",
+            "stat": "Intellect",
             "mod": 0.1
           },
           {

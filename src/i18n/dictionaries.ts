@@ -139,6 +139,17 @@ export const dictionaries: Record<Locale, Dict> = {
 
     "about.title": "About",
     "about.tba": "TBA",
+    "lab.research": "Current research",
+    "lab.researchTba": "Research coming soon",
+    "lab.perHour": "{n} sci/h",
+    "lab.productivityHint":
+      "Productivity = sum of the attached workers' Intellect.",
+    "lab.workers": "Workers",
+    "lab.workersEmpty": "No workers assigned yet.",
+    "lab.addWorkers": "Add",
+    "lab.pickTitle": "Pick a worker",
+    "lab.select": "Select",
+    "lab.noneAvailable": "No roosters available.",
 
     "profile.fallbackName": "Telegram user",
     "profile.id": "Telegram ID",
@@ -346,6 +357,17 @@ export const dictionaries: Record<Locale, Dict> = {
 
     "about.title": "О проекте",
     "about.tba": "Скоро",
+    "lab.research": "Текущее исследование",
+    "lab.researchTba": "Исследование — скоро",
+    "lab.perHour": "{n} науки/ч",
+    "lab.productivityHint":
+      "Производительность = сумма Интеллекта прикреплённых петухов.",
+    "lab.workers": "Работники",
+    "lab.workersEmpty": "Работники ещё не назначены.",
+    "lab.addWorkers": "Добавить",
+    "lab.pickTitle": "Выбор работника",
+    "lab.select": "Выбрать",
+    "lab.noneAvailable": "Нет доступных петухов.",
 
     "profile.fallbackName": "Пользователь Telegram",
     "profile.id": "Telegram ID",

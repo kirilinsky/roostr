@@ -102,15 +102,15 @@
       }
     },
     {
-      "id": "Yield",
+      "id": "Intellect",
       "name": {
-        "en": "Yield",
-        "ru": "Доход"
+        "en": "Intellect",
+        "ru": "Интеллект"
       },
       "kind": "utility",
       "description": {
-        "en": "Income from farm/expeditions.",
-        "ru": "Доход от фарма/экспедиций."
+        "en": "Science output and research speed in the lab.",
+        "ru": "Выход науки и скорость исследований в лабе."
       }
     },
     {

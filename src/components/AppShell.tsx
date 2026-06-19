@@ -20,6 +20,7 @@ import Typography from "@mui/material/Typography";
 import TelegramLoginButton from "@/components/TelegramLoginButton";
 import DevLoginButtons from "@/components/DevLoginButtons";
 import Footer from "@/components/Footer";
+import ResourceBar from "@/components/ResourceBar";
 
 const DRAWER_WIDTH = 260;
 
@@ -146,84 +147,6 @@ export default function AppShell({
               <Typography variant="subtitle1" noWrap>
                 {user.name}
               </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  mt: 0.25,
-                  color: "text.secondary",
-                }}
-              >
-                {typeof coinBalance === "number" && (
-                  <Box
-                    title="Corn Coin"
-                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                  >
-                    <Image
-                      src="/corn-coin.png"
-                      alt="Corn Coin"
-                      width={18}
-                      height={17}
-                      style={{ height: 16, width: "auto" }}
-                    />
-                    <Typography variant="body2" noWrap>
-                      {coinBalance.toLocaleString()}
-                    </Typography>
-                  </Box>
-                )}
-                {typeof eggsBalance === "number" && (
-                  <Box
-                    title={eggsLabel ?? "Eggs"}
-                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                  >
-                    <Image
-                      src="/eggs.png"
-                      alt={eggsLabel ?? "Eggs"}
-                      width={16}
-                      height={16}
-                      style={{ height: 16, width: "auto" }}
-                    />
-                    <Typography variant="body2" noWrap>
-                      {eggsBalance.toLocaleString()}
-                    </Typography>
-                  </Box>
-                )}
-                {typeof sciBalance === "number" && (
-                  <Box
-                    title={sciLabel ?? "Science"}
-                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                  >
-                    <Image
-                      src="/sci.png"
-                      alt={sciLabel ?? "Science"}
-                      width={16}
-                      height={16}
-                      style={{ height: 16, width: "auto" }}
-                    />
-                    <Typography variant="body2" noWrap>
-                      {sciBalance.toLocaleString()}
-                    </Typography>
-                  </Box>
-                )}
-                {energy && (
-                  <Box
-                    title={feathersLabel ?? "Feathers"}
-                    sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                  >
-                    <Image
-                      src="/feather.png"
-                      alt={feathersLabel ?? "Feathers"}
-                      width={16}
-                      height={16}
-                      style={{ height: 16, width: "auto" }}
-                    />
-                    <Typography variant="body2" noWrap>
-                      {energy.current}/{energy.max}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
             </Box>
           </Box>
         ) : (
@@ -252,6 +175,19 @@ export default function AppShell({
 
   return (
     <Box sx={{ display: "flex", minHeight: "100dvh" }}>
+      {/* Resource HUD — fixed top-right, visible on every page */}
+      {user && (
+        <ResourceBar
+          coinBalance={coinBalance}
+          eggsBalance={eggsBalance}
+          sciBalance={sciBalance}
+          energy={energy}
+          feathersLabel={feathersLabel}
+          eggsLabel={eggsLabel}
+          sciLabel={sciLabel}
+        />
+      )}
+
       {/* Mobile top bar */}
       <AppBar
         position="fixed"

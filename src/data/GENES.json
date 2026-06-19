@@ -84,7 +84,7 @@
         "Damage": 1,
         "Crit": 1,
         "Guard": -1,
-        "Yield": -1
+        "Intellect": -1
       }
     },
     {
@@ -311,20 +311,20 @@
       "passive": "Stays calm — steadier hits, less wild burst."
     },
     {
-      "id": "corn-sense",
+      "id": "egghead",
       "no": 16,
       "name": {
-        "en": "Corn Sense",
-        "ru": "Кукурузное чутьё"
+        "en": "Egghead",
+        "ru": "Яйцеголовый"
       },
       "family": "Work",
       "boosts": [
-        "Yield"
+        "Intellect"
       ],
       "weakness": "Damage",
       "role": "Farmer",
       "statMods": {
-        "Yield": 2,
+        "Intellect": 2,
         "Damage": -1,
         "Fertility": 1
       }
@@ -338,13 +338,13 @@
       },
       "family": "Work",
       "boosts": [
-        "Yield",
+        "Intellect",
         "Recovery"
       ],
       "weakness": "Crit",
       "role": "Farmer",
       "statMods": {
-        "Yield": 1,
+        "Intellect": 1,
         "Recovery": 1,
         "Crit": -1,
         "Fertility": 1
@@ -493,13 +493,13 @@
       "family": "Work",
       "boosts": [
         "Fertility",
-        "Yield"
+        "Intellect"
       ],
       "weakness": "Speed",
       "role": "Farmer",
       "statMods": {
         "Fertility": 2,
-        "Yield": 1,
+        "Intellect": 1,
         "Speed": -1
       },
       "no": 25

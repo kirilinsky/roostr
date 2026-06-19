@@ -98,7 +98,7 @@
       },
       "color": "#2e7d32",
       "boosts": [
-        "Yield",
+        "Intellect",
         "Recovery",
         "Luck",
         "Fertility"
@@ -230,7 +230,7 @@
         "Work"
       ],
       "strengths": [
-        "Yield",
+        "Intellect",
         "Luck",
         "Recovery",
         "Fertility"
