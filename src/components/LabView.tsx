@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -53,8 +54,30 @@ export default function LabView({ roostrs }: { roostrs: HydratedRoostr[] }) {
   return (
     <Stack spacing={3}>
       {/* ── Top: research progress + productivity (placeholder values) ── */}
-      <Card sx={{ p: { xs: 2, md: 3 } }}>
-        <Stack spacing={2}>
+      <Card
+        sx={{
+          position: "relative",
+          overflow: "hidden",
+          minHeight: { xs: 220, md: 300 },
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          // inset content into the frame's inner panel; percentages track the
+          // stretched frame art at any card size
+          px: { xs: "17%", md: "20%" },
+          py: { xs: "12%", md: "13%" },
+        }}
+      >
+        {/* frame art as an optimized, eagerly-loaded layer — no CSS-bg flicker */}
+        <Image
+          src="/bg/lab.png"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 900px) 100vw, 720px"
+          style={{ objectFit: "fill", zIndex: 0 }}
+        />
+        <Stack spacing={2} sx={{ position: "relative", zIndex: 1 }}>
           <Stack
             direction="row"
             justifyContent="space-between"
