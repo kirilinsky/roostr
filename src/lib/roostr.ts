@@ -419,6 +419,45 @@ export function upgradeGeneLevel(levels: GeneLevels, geneId: string): GeneLevels
   return { ...levels, [geneId]: level + 1 };
 }
 
+// --- Sell price bounds ---
+// A listing's price is clamped to [min, max] derived from the bird's intrinsic
+// worth: weight class, gene COUNT (more genes → pricier) and the coins SUNK into
+// gene upgrades (invested birds can ask more). Keeps the market sane — there's a
+// hard floor (can't dump for nothing) and a hard ceiling (no insane prices).
+const SELL_MIN = 20; // absolute floor
+const SELL_BASE = 45;
+const SELL_PER_GENE = 60; // each gene adds value
+const SELL_WEIGHT_STEP = 25; // per weight-class index (tiny → huge)
+const SELL_UPGRADE_FACTOR = 0.55; // share of sunk upgrade coins that counts
+const SELL_MAX_MULT = 5; // max = intrinsic × this
+const SELL_HARD_CAP = 500_000; // never crazier than this
+
+export function sellPriceBounds(
+  genes: Gene[],
+  geneLevels: GeneLevels,
+  weightClass: WeightClass,
+): { min: number; max: number } {
+  const weightIdx = Math.max(
+    0,
+    WEIGHT_CLASSES.findIndex((w) => w.id === weightClass.id),
+  );
+  // total coins sunk upgrading genes (Σ geneUpgradeCost over each level gained)
+  let invested = 0;
+  for (const g of genes) {
+    const lvl = geneLevelOf(geneLevels, g.id);
+    for (let l = 1; l < lvl; l++) invested += geneUpgradeCost(l);
+  }
+  const intrinsic =
+    SELL_BASE +
+    genes.length * SELL_PER_GENE +
+    weightIdx * SELL_WEIGHT_STEP +
+    Math.round(invested * SELL_UPGRADE_FACTOR);
+
+  const min = Math.max(SELL_MIN, Math.round(intrinsic * 0.4));
+  const max = Math.min(SELL_HARD_CAP, Math.round(intrinsic * SELL_MAX_MULT));
+  return { min, max };
+}
+
 // Skill block = base + weight body-mods + Σ over genes of (level × statMods).
 // Health is tracked separately (computeMaxHealth), not one of the skills.
 export function computeStats(

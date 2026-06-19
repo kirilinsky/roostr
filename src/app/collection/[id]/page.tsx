@@ -28,6 +28,7 @@ export default async function RoostrDetailPage({
         roostrId={id}
         coins={coins}
         isOwner={isOwner}
+        locked={row.status !== "active"}
       />
     </Container>
   );

@@ -1,14 +1,25 @@
+import Link from "next/link";
 import Image from "next/image";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import FriendButton from "@/components/FriendButton";
 import CollectionCard from "@/components/CollectionCard";
+import AchievementBadge from "@/components/AchievementBadge";
+import LogoutButton from "@/components/LogoutButton";
+import { PROFILE_ACHIEVEMENTS } from "@/lib/achievements";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
-import { getUserById, getFriendship, getRoostrs } from "@/db/queries";
+import {
+  getUserById,
+  getFriendship,
+  getRoostrs,
+  getUserStats,
+} from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 
 // Public profile reachable via the shared link: /<telegramId>. Single-segment
@@ -52,6 +63,11 @@ export default async function PublicProfilePage({
 
   // Public, read-only catalog of this user's roosters.
   const roostrs = (await getRoostrs(user.id)).map(hydrateRoostr);
+
+  // Own-profile extras (economy + achievements + logout). Achievement unlocks
+  // aren't tracked yet — show one dummy unlocked.
+  const stats = isOwnProfile ? await getUserStats(user.id) : null;
+  const recentAchievements = PROFILE_ACHIEVEMENTS.slice(0, 1);
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -106,6 +122,58 @@ export default async function PublicProfilePage({
             )}
           </Stack>
         )}
+
+        {/* Own profile: economy + achievements + logout */}
+        {isOwnProfile && stats && (
+          <Stack spacing={2.5} sx={{ width: "100%", maxWidth: 380 }}>
+            <Divider flexItem />
+            <Stack spacing={1}>
+              <Row
+                label={t("profile.eggsHatched")}
+                value={String(stats.eggsHatched)}
+              />
+              <Row
+                label={t("profile.coinsEarned")}
+                value={stats.coinsEarned.toLocaleString()}
+              />
+              <Row
+                label={t("profile.coinsSpent")}
+                value={stats.coinsSpent.toLocaleString()}
+              />
+            </Stack>
+
+            <Divider flexItem />
+
+            <Stack spacing={1}>
+              <Typography
+                variant="subtitle1"
+                sx={{ fontWeight: 700 }}
+                textAlign="left"
+              >
+                {t("profile.achievements")}
+              </Typography>
+              {recentAchievements.map((a) => (
+                <AchievementBadge
+                  key={a.id}
+                  achievement={a}
+                  unlocked
+                  locale={locale}
+                />
+              ))}
+              <Button
+                component={Link}
+                href={`/${user.id}/achievements`}
+                variant="outlined"
+                color="neutral"
+                fullWidth
+              >
+                {t("profile.allAchievements")}
+              </Button>
+            </Stack>
+
+            <LogoutButton />
+          </Stack>
+        )}
       </Stack>
 
       {/* Read-only catalog of this user's roosters — open each, no upgrades. */}
@@ -132,5 +200,18 @@ export default async function PublicProfilePage({
         </Stack>
       )}
     </Container>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack direction="row" justifyContent="space-between" spacing={2}>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+        {value}
+      </Typography>
+    </Stack>
   );
 }

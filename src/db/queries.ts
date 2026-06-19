@@ -261,11 +261,13 @@ export async function getRoostrs(ownerId: number) {
   try {
     const { db } = await import("@/db");
     const { roostrs } = await import("@/db/schema");
-    const { desc, eq } = await import("drizzle-orm");
+    const { and, desc, eq } = await import("drizzle-orm");
+    // Only ACTIVE birds belong to the roster: listed / sold / recycled ones are
+    // locked out of the collection (and thus the lab/farm/battle pickers).
     return await db
       .select()
       .from(roostrs)
-      .where(eq(roostrs.ownerId, ownerId))
+      .where(and(eq(roostrs.ownerId, ownerId), eq(roostrs.status, "active")))
       .orderBy(desc(roostrs.createdAt));
   } catch (e) {
     console.error("getRoostrs failed:", e);
@@ -452,5 +454,27 @@ export async function upsertUser(
     }
   } catch (e) {
     console.error("upsertUser failed:", e);
+  }
+}
+
+// --- Market ---
+
+// Live market offers: active, not yet expired, soonest-ending first. Returns the
+// listing joined with its roostr row (hydrate the roostr in the caller).
+export async function getActiveListings() {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { listings, roostrs } = await import("@/db/schema");
+    const { and, asc, eq, gt } = await import("drizzle-orm");
+    return await db
+      .select({ listing: listings, roostr: roostrs })
+      .from(listings)
+      .innerJoin(roostrs, eq(listings.roostrId, roostrs.id))
+      .where(and(eq(listings.status, "active"), gt(listings.expiresAt, new Date())))
+      .orderBy(asc(listings.expiresAt));
+  } catch (e) {
+    console.error("getActiveListings failed:", e);
+    return [];
   }
 }

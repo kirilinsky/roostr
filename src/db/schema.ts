@@ -84,7 +84,36 @@ export const roostrTransfers = pgTable("roostr_transfers", {
     onDelete: "set null",
   }),
   kind: text("kind").notNull(), // hatch | market | gift | trade | reward | ...
+  // Sale price in coins for market transfers; null for hatch/gift/release/reward.
+  // With `at`, two consecutive rows give each owner's hold duration AND the
+  // buy/sell price — the full ownership-stats chain.
+  price: integer("price"),
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Market listing — a fixed-price, 24h offer (NO bids). Lifecycle via `status`:
+//   active  → live on the market until expiresAt
+//   sold    → a buyer paid `price`; ownership moved to buyerId (writes a
+//             roostr_transfers row with kind=market + price)
+//   expired → 24h passed, nobody bought → the roostr returns to the seller
+//   cancelled → seller pulled it early
+// While active the roostr's own status is "listed". closedAt stamps the end.
+export const listings = pgTable("listings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  roostrId: uuid("roostr_id")
+    .notNull()
+    .references(() => roostrs.id, { onDelete: "cascade" }),
+  sellerId: bigint("seller_id", { mode: "number" })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  price: integer("price").notNull(),
+  status: text("status").notNull().default("active"), // active | sold | expired | cancelled
+  buyerId: bigint("buyer_id", { mode: "number" }).references(() => users.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(), // createdAt + 24h
+  closedAt: timestamp("closed_at", { withTimezone: true }), // sold / expired / cancelled
 });
 
 // Persisted Roostrdex unlocks — survives recycling/selling the roostr.

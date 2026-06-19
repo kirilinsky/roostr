@@ -30,7 +30,7 @@ export default function TelegramLoginButton({
         body: JSON.stringify(user),
       });
       if (res.ok) {
-        router.push("/profile");
+        router.push(`/${user.id}`);
         router.refresh();
       } else {
         const body = (await res.json().catch(() => ({}))) as {

@@ -31,6 +31,7 @@ export interface NavItem {
 }
 
 export interface ShellUser {
+  id: number;
   name: string;
   photoUrl?: string;
 }
@@ -126,7 +127,7 @@ export default function AppShell({
         {user ? (
           <Box
             component={Link}
-            href="/profile"
+            href={`/${user.id}`}
             onClick={close}
             sx={{
               display: "flex",

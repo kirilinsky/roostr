@@ -28,6 +28,7 @@ export default async function RootLayout({
 
   const user: ShellUser | null = session
     ? {
+        id: session.id,
         name:
           [session.firstName, session.lastName].filter(Boolean).join(" ") ||
           (session.username ? `@${session.username}` : String(session.id)),

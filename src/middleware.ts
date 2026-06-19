@@ -45,6 +45,5 @@ export const config = {
     "/friends/:path*",
     "/bank/:path*",
     "/settings/:path*",
-    "/profile/:path*",
   ],
 };

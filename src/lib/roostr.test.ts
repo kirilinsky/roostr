@@ -19,6 +19,7 @@ import {
   pickGenes,
   pickWeighted,
   rollRoostr,
+  sellPriceBounds,
   tierFor,
   type Gene,
 } from "@/lib/roostr";
@@ -221,5 +222,29 @@ describe("hydrateRoostr", () => {
     expect(h.genes.map((g) => g.id)).toEqual(row.geneIds);
     expect(h.rating).toBe(computeRating(h.stats, h.maxHealth));
     expect(h.tier.id).toBe(tierFor(h.rating).id);
+  });
+});
+
+describe("sellPriceBounds", () => {
+  const wc = WEIGHT_CLASSES.find((w) => w.id === "middle")!;
+
+  it("clamps to a sane floor/ceiling and keeps min ≤ max", () => {
+    const b = sellPriceBounds(GENES.slice(0, 2), {}, wc);
+    expect(b.min).toBeGreaterThanOrEqual(25);
+    expect(b.max).toBeLessThanOrEqual(1_000_000);
+    expect(b.min).toBeLessThanOrEqual(b.max);
+  });
+
+  it("more genes → higher max", () => {
+    const few = sellPriceBounds(GENES.slice(0, 1), {}, wc);
+    const many = sellPriceBounds(GENES.slice(0, 4), {}, wc);
+    expect(many.max).toBeGreaterThan(few.max);
+  });
+
+  it("sunk gene upgrades raise the max", () => {
+    const genes = GENES.slice(0, 2);
+    const base = sellPriceBounds(genes, {}, wc);
+    const leveled = sellPriceBounds(genes, { [genes[0].id]: 6 }, wc);
+    expect(leveled.max).toBeGreaterThan(base.max);
   });
 });

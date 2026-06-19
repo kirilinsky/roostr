@@ -26,7 +26,7 @@ export default async function HomePage() {
                 name: fullName || `@${user.username ?? user.id}`,
               })}
             </Typography>
-            <Button component={Link} href="/profile" variant="contained">
+            <Button component={Link} href={`/${user.id}`} variant="contained">
               {t("home.profile")}
             </Button>
           </>

@@ -16,6 +16,8 @@ import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
 import BreedInfoModal from "@/components/BreedInfoModal";
 import StatInfoModal from "@/components/StatInfoModal";
 import ArchetypeInfoModal from "@/components/ArchetypeInfoModal";
+import Popup from "@/components/Popup";
+import SellRoostrForm from "@/components/SellRoostrForm";
 import { countryFlag } from "@/lib/flag";
 import { groupName } from "@/lib/breeds";
 import { tierBackground } from "@/lib/tierBg";
@@ -47,12 +49,17 @@ export default function RoostrDetail({
   roostrId,
   coins,
   isOwner,
+  locked = false,
 }: {
   roostr: HydratedRoostr;
   roostrId: string;
   coins: number;
   isOwner: boolean;
+  locked?: boolean;
 }) {
+  // The owner can manage (sell / upgrade) only an ACTIVE bird; a listed/sold one
+  // is locked.
+  const canManage = isOwner && !locked;
   const t = useT();
   const locale = useLocale();
   const [pending, startTransition] = useTransition();
@@ -60,6 +67,7 @@ export default function RoostrDetail({
   const [infoOpen, setInfoOpen] = useState(false);
   const [statInfoOpen, setStatInfoOpen] = useState(false);
   const [archOpen, setArchOpen] = useState(false);
+  const [sellOpen, setSellOpen] = useState(false);
 
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
@@ -424,6 +432,42 @@ export default function RoostrDetail({
         </Stack>
       </Box>
 
+      {/* Locked notice — bird is on the market (or otherwise non-active) */}
+      {isOwner && locked && (
+        <Card sx={{ p: 2, borderColor: "tertiary.main" }}>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            🔒 {t("detail.locked")}
+          </Typography>
+        </Card>
+      )}
+
+      {/* Owner actions — sell now; gift / release are coming */}
+      {canManage && (
+        <Card sx={{ p: 2 }}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Button variant="contained" onClick={() => setSellOpen(true)}>
+              {t("detail.sell")}
+            </Button>
+            <Button
+              variant="outlined"
+              color="neutral"
+              disabled
+              endIcon={<Chip label={t("pedia.soon")} size="small" variant="outlined" />}
+            >
+              {t("detail.gift")}
+            </Button>
+            <Button
+              variant="outlined"
+              color="neutral"
+              disabled
+              endIcon={<Chip label={t("pedia.soon")} size="small" variant="outlined" />}
+            >
+              {t("detail.release")}
+            </Button>
+          </Stack>
+        </Card>
+      )}
+
       {/* Genetic upgrades */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography
@@ -497,7 +541,7 @@ export default function RoostrDetail({
                 <StatModBadges mods={gene.statMods} locale={locale} />
               </Box>
 
-              {isOwner ? (
+              {canManage ? (
                 <Button
                   variant="contained"
                   size="small"
@@ -551,6 +595,15 @@ export default function RoostrDetail({
         open={archOpen}
         onClose={() => setArchOpen(false)}
       />
+
+      {/* Sell modal — price input (more content TBD) */}
+      <Popup
+        open={sellOpen}
+        onClose={() => setSellOpen(false)}
+        title={t("detail.sellTitle")}
+      >
+        <SellRoostrForm roostr={roostr} />
+      </Popup>
     </Stack>
   );
 }

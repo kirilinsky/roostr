@@ -19,7 +19,15 @@ export type UpgradeResult =
   | { ok: true; level: number; coins: number }
   | {
       ok: false;
-      error: "auth" | "notfound" | "owner" | "gene" | "max" | "coins" | "save";
+      error:
+        | "auth"
+        | "notfound"
+        | "owner"
+        | "locked"
+        | "gene"
+        | "max"
+        | "coins"
+        | "save";
     };
 
 // Upgrade one gene by a level: owner-guarded, spend coins atomically, bump the
@@ -35,6 +43,8 @@ export async function upgradeGeneAction(
   const row = await getRoostr(roostrId);
   if (!row) return { ok: false, error: "notfound" };
   if (row.ownerId !== session.id) return { ok: false, error: "owner" };
+  // A listed / sold / recycled bird is locked — no upgrades while on the market.
+  if (row.status !== "active") return { ok: false, error: "locked" };
   if (!row.geneIds.includes(geneId)) return { ok: false, error: "gene" };
 
   const levels = row.geneLevels ?? {};

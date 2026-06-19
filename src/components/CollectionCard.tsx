@@ -2,6 +2,7 @@
 
 import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
@@ -29,12 +30,14 @@ export default function CollectionCard({
   onClick,
   selected = false,
   href,
+  price,
 }: {
   roostr: HydratedRoostr;
   metric?: CardMetric;
   onClick?: () => void;
   selected?: boolean;
   href?: string;
+  price?: number;
 }) {
   const locale = useLocale();
   const breedName = roostr.breed.name[locale];
@@ -133,6 +136,35 @@ export default function CollectionCard({
             </Stack>
           ))}
         </Stack>
+      )}
+
+      {/* market price tag */}
+      {typeof price === "number" && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 0.5,
+            py: 0.5,
+            borderRadius: 1,
+            bgcolor: "background.default",
+          }}
+        >
+          <Image
+            src="/corn-coin.png"
+            alt=""
+            width={16}
+            height={15}
+            style={{ height: 14, width: "auto" }}
+          />
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
+          >
+            {price.toLocaleString()}
+          </Typography>
+        </Box>
       )}
     </>
   );
