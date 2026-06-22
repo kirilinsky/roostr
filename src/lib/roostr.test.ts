@@ -121,8 +121,8 @@ describe("deriveRole", () => {
   it("uses the dominant family's role otherwise", () => {
     const mind = byFamily("Mind");
     expect(mind.length).toBeGreaterThanOrEqual(2);
-    // Mind family → Duelist (per RELATIONS families.role)
-    expect(deriveRole([mind[0], mind[1]])).toBe("Duelist");
+    // Mind family → Tactician (per RELATIONS families.role)
+    expect(deriveRole([mind[0], mind[1]])).toBe("Tactician");
   });
 });
 

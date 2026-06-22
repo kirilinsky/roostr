@@ -26,6 +26,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.genes.boosts": "Boosts",
     "pedia.genes.weakness": "Weakness",
     "pedia.genes.role": "Leans",
+    "pedia.synthGenes.title": "Synthetic genes",
+    "pedia.synthGenes.desc": "Lab-built genes — one skill, no debuff.",
     "pedia.skills.title": "Skills",
     "pedia.skills.desc": "What each stat does.",
     "pedia.groups.title": "Groups",
@@ -64,7 +66,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.mech.feathers.refill":
       "Feathers regenerate over time on their own, or you can top them up instantly for Corn Coins.",
     "pedia.mech.upgrade.title": "Skill upgrade",
-    "pedia.mech.upgrade.desc": "Spend coins to level genes, grow stats and climb tiers.",
+    "pedia.mech.upgrade.desc":
+      "Spend coins to level genes, grow stats and climb tiers.",
     "pedia.mech.upgrade.overviewTitle": "What it is",
     "pedia.mech.upgrade.overview":
       "Upgrading spends Corn Coins to raise a gene's level. A higher gene level means a stronger gene effect, which raises your stats, which raises the rooster's overall level (tier).",
@@ -142,7 +145,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "detail.release": "Release",
     "detail.sellTitle": "Sell rooster",
     "detail.sellPlaceholder": "Sale form coming soon.",
-    "detail.locked": "On the market — actions are locked until it sells or returns.",
+    "detail.locked":
+      "On the market — actions are locked until it sells or returns.",
     "detail.addNickname": "Add nickname",
     "detail.editNickname": "Edit nickname",
     "detail.deleteNickname": "Delete nickname",
@@ -233,6 +237,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "card.leg": "Legs",
     "card.eye": "Eyes",
     "lab.title": "Upgrade lab",
+    "lab.geneShop": "Gene shop",
+    "lab.geneShopDesc":
+      "Synthetic genes — one skill, no downside. Buying comes soon.",
+    "lab.synthTag": "Synthetic",
     "lab.level": "Lvl",
     "lab.max": "Max",
 
@@ -295,6 +303,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.genes.boosts": "Усиливает",
     "pedia.genes.weakness": "Слабость",
     "pedia.genes.role": "Уклон",
+    "pedia.synthGenes.title": "Синтетические гены",
+    "pedia.synthGenes.desc": "Гены из лабы — один скилл, без дебафа.",
     "pedia.skills.title": "Скиллы",
     "pedia.skills.desc": "Что делает каждый стат.",
     "pedia.groups.title": "Группы",
@@ -424,7 +434,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "validation.pattern": "Неверный формат.",
     "validation.unsafe": "HTML и спецсимволы запрещены.",
     "detail.sellPlaceholder": "Форма продажи скоро.",
-    "detail.locked": "На рынке — действия заблокированы, пока не продастся или вернётся.",
+    "detail.locked":
+      "На рынке — действия заблокированы, пока не продастся или вернётся.",
     "sell.price": "Цена (коины)",
     "sell.bounds": "Допустимо: {min} – {max}",
     "sell.outOfRange": "Введи цену от {min} до {max}.",
@@ -502,6 +513,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "card.leg": "Лапы",
     "card.eye": "Глаза",
     "lab.title": "Лаборатория прокачки",
+    "lab.geneShop": "Магазин генов",
+    "lab.geneShopDesc":
+      "Синтетические гены — один скилл, без даунсайда. Покупка скоро.",
+    "lab.synthTag": "Синтетика",
     "lab.level": "Ур.",
     "lab.max": "Макс",
 

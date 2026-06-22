@@ -12,6 +12,7 @@ import { getTranslations } from "@/i18n/server";
 // Scaffold: only the Genes article is live; the rest are placeholders.
 const ARTICLES = [
   { href: "/pedia/genes", icon: "🧬", titleKey: "pedia.genes.title", descKey: "pedia.genes.desc", live: true },
+  { href: "/pedia/synth-genes", icon: "⚗️", titleKey: "pedia.synthGenes.title", descKey: "pedia.synthGenes.desc", live: true },
   { href: "/pedia/breeds", icon: "🐔", titleKey: "pedia.breeds.title", descKey: "pedia.breeds.desc", live: true },
   { href: "/pedia/groups", icon: "📂", titleKey: "pedia.groups.title", descKey: "pedia.groups.desc", live: true },
   { href: "/pedia/skills", icon: "📊", titleKey: "pedia.skills.title", descKey: "pedia.skills.desc", live: true },

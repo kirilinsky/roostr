@@ -88,7 +88,7 @@
       "weakens": [
         "Speed"
       ],
-      "role": "Duelist"
+      "role": "Tactician"
     },
     {
       "id": "Work",
@@ -189,17 +189,36 @@
         "ru": "Дуэлянт"
       },
       "families": [
-        "Mobility",
-        "Mind"
+        "Mobility"
       ],
       "strengths": [
         "Speed",
-        "Crit",
         "Accuracy"
       ],
       "weaknesses": [
         "Endurance"
       ]
+    },
+    {
+      "id": "Tactician",
+      "name": {
+        "en": "Tactician",
+        "ru": "Тактик"
+      },
+      "families": [
+        "Mind"
+      ],
+      "strengths": [
+        "Accuracy",
+        "Crit"
+      ],
+      "weaknesses": [
+        "Speed"
+      ],
+      "note": {
+        "en": "Mind-led: precise, critical hits over raw speed.",
+        "ru": "От Ума: точные критовые удары вместо чистой скорости."
+      }
     },
     {
       "id": "Grinder",

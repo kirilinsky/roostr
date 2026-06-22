@@ -10,6 +10,7 @@ import type { Locale } from "@/i18n/config";
 import { BREEDS_CATALOG, type BreedTrait } from "@/lib/breeds";
 import skillsData from "@/data/SKILLS.json";
 import genesData from "@/data/GENES.json";
+import synthGenesData from "@/data/SYNTH-GENES.json";
 import relationsData from "@/data/RELATIONS.json";
 import cosmeticsData from "@/data/COSMETICS.json";
 
@@ -108,6 +109,21 @@ export interface Gene {
 
 // MVP gene set — data in GENES.json.
 export const GENES = genesData.genes as Gene[];
+
+// --- Synthetic genes (lab-built) ---
+// Bought with science, max 2 slots per roostr. Unlike rolled genes each pumps
+// EXACTLY ONE skill with NO debuff (statMods is a single positive entry = skill).
+// Data in SYNTH-GENES.json.
+export interface SynthGene {
+  id: string;
+  no: number; // sequential synth-gene number
+  name: { en: string; ru: string };
+  skill: Skill; // the single skill it boosts
+  statMods: StatMods; // single positive entry, matches `skill`
+  lore: { en: string; ru: string }; // cyberpunk biohacking flavor
+}
+
+export const SYNTH_GENES = synthGenesData.genes as SynthGene[];
 
 // --- Breed (identity modifier, real chicken breeds) ---
 export interface Breed {

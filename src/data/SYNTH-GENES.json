@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "description": {
+    "en": "Synthetic genes — lab-built (bought with science, max 2 slots per roostr). Unlike rolled genes each pumps EXACTLY ONE skill with NO debuff. Cyberpunk biohacking vibe. statMods always a single positive entry matching `skill`.",
+    "ru": "Синтетические гены — собираются в лабе (покупка за науку, макс 2 слота на рустера). В отличие от ролловых генов качают РОВНО ОДИН скилл БЕЗ дебафа. Киберпанк-биохакинг вайб. statMods всегда одна положительная запись = `skill`."
+  },
+  "genes": [
+    {
+      "id": "syn-adrenal-overclock",
+      "no": 1,
+      "name": { "en": "Adrenal Overclock", "ru": "Адренал-оверклок" },
+      "skill": "Damage",
+      "statMods": { "Damage": 2 },
+      "lore": {
+        "en": "A bolt-on adrenal gland that dumps combat hormones straight into the muscle.",
+        "ru": "Накладная адреналовая железа вливает боевые гормоны прямо в мышцу."
+      }
+    },
+    {
+      "id": "syn-killchip-splice",
+      "no": 2,
+      "name": { "en": "Killchip Splice", "ru": "Киллчип-сплайс" },
+      "skill": "Crit",
+      "statMods": { "Crit": 2 },
+      "lore": {
+        "en": "A spliced microchip that flags soft spots and times the lethal strike.",
+        "ru": "Вшитый микрочип метит слабые точки и ловит момент для добивания."
+      }
+    },
+    {
+      "id": "syn-optic-servo",
+      "no": 3,
+      "name": { "en": "Optic Servo Array", "ru": "Оптик-серво массив" },
+      "skill": "Accuracy",
+      "statMods": { "Accuracy": 2 },
+      "lore": {
+        "en": "Servo-driven cyber-eyes lock targets with machine precision.",
+        "ru": "Серво-кибер-глаза держат цель с машинной точностью."
+      }
+    },
+    {
+      "id": "syn-myofiber-boost",
+      "no": 4,
+      "name": { "en": "Myofiber Boost", "ru": "Миофибра-буст" },
+      "skill": "Speed",
+      "statMods": { "Speed": 2 },
+      "lore": {
+        "en": "Lab-grown muscle fiber fires twitch-fast on a neural trigger.",
+        "ru": "Выращенное в лабе мышечное волокно срабатывает молниеносно по нейро-триггеру."
+      }
+    },
+    {
+      "id": "syn-chitin-plating",
+      "no": 5,
+      "name": { "en": "Chitin Plating Mod", "ru": "Хитин-платинг мод" },
+      "skill": "Guard",
+      "statMods": { "Guard": 2 },
+      "lore": {
+        "en": "Grafted chitin plates harden under the feathers into living armor.",
+        "ru": "Привитые хитиновые пластины твердеют под перьями в живую броню."
+      }
+    },
+    {
+      "id": "syn-mito-forge",
+      "no": 6,
+      "name": { "en": "Mito Forge", "ru": "Мито-форж" },
+      "skill": "Endurance",
+      "statMods": { "Endurance": 2 },
+      "lore": {
+        "en": "Overbuilt synthetic mitochondria never let the tank run dry.",
+        "ru": "Усиленные синтетические митохондрии не дают выносливости опустеть."
+      }
+    },
+    {
+      "id": "syn-nanite-swarm",
+      "no": 7,
+      "name": { "en": "Nanite Regen Swarm", "ru": "Нанит-регенрой" },
+      "skill": "Recovery",
+      "statMods": { "Recovery": 2 },
+      "lore": {
+        "en": "A swarm of repair nanites stitches wounds shut mid-fight.",
+        "ru": "Рой ремонтных нанитов затягивает раны прямо в бою."
+      }
+    },
+    {
+      "id": "syn-sonic-larynx",
+      "no": 8,
+      "name": { "en": "Sonic Larynx Implant", "ru": "Соник-ларинкс имплант" },
+      "skill": "Crow",
+      "statMods": { "Crow": 2 },
+      "lore": {
+        "en": "An implanted resonator turns the crow into a bone-rattling blast.",
+        "ru": "Вживлённый резонатор превращает крик в костедробящий залп."
+      }
+    },
+    {
+      "id": "syn-cortex-coprocessor",
+      "no": 9,
+      "name": { "en": "Cortex Coprocessor", "ru": "Кортекс-копроцессор" },
+      "skill": "Intellect",
+      "statMods": { "Intellect": 2 },
+      "lore": {
+        "en": "A wetware coprocessor wired to the brain crunches research faster.",
+        "ru": "Wetware-копроцессор, подключённый к мозгу, считает исследования быстрее."
+      }
+    },
+    {
+      "id": "syn-quantum-dice-gland",
+      "no": 10,
+      "name": { "en": "Quantum Dice Gland", "ru": "Квантовая железа удачи" },
+      "skill": "Luck",
+      "statMods": { "Luck": 2 },
+      "lore": {
+        "en": "A gland that nudges quantum noise toward outcomes you like.",
+        "ru": "Железа, что подкручивает квантовый шум в выгодную тебе сторону."
+      }
+    },
+    {
+      "id": "syn-chromakloak",
+      "no": 11,
+      "name": { "en": "Chromakloak Skin", "ru": "Хромаклоак-кожа" },
+      "skill": "Stealth",
+      "statMods": { "Stealth": 2 },
+      "lore": {
+        "en": "Chromatophore skin bends light and erases the silhouette.",
+        "ru": "Хроматофорная кожа гнёт свет и стирает силуэт."
+      }
+    },
+    {
+      "id": "syn-gamete-bioreactor",
+      "no": 12,
+      "name": { "en": "Gamete Bioreactor", "ru": "Гамета-биореактор" },
+      "skill": "Fertility",
+      "statMods": { "Fertility": 2 },
+      "lore": {
+        "en": "An onboard bioreactor mass-produces viable gametes on demand.",
+        "ru": "Бортовой биореактор массово гонит жизнеспособные гаметы по запросу."
+      }
+    }
+  ]
+}
