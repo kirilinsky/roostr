@@ -289,6 +289,7 @@ export interface RolledRoostr {
 
 export const SKILL_IDS = SKILLS.map((s) => s.id) as Skill[];
 export const STAT_BAR_MAX = 8; // visual cap for stat bars (most start near base)
+export const NICKNAME_MAX = 24; // max chars for a roostr's custom display name
 
 // RNG is injected (default Math.random) so the roll is deterministic in tests:
 // pass a seeded `mulberry32(seed)`. Production keeps Math.random.
@@ -404,6 +405,13 @@ export function geneUpgradeCost(level: number): number {
 // Current level of a gene (missing = level 1).
 export function geneLevelOf(levels: GeneLevels, geneId: string): number {
   return levels[geneId] ?? 1;
+}
+
+// Total gene-levels a roostr has bought (Σ level-1 over all genes). 0 = stock,
+// never upgraded. Drives the "upgraded" rank insignia on cards. Derived from the
+// stored geneLevels — no extra DB column needed.
+export function geneUpgradeCount(levels: GeneLevels): number {
+  return Object.values(levels).reduce((n, lvl) => n + Math.max(0, lvl - 1), 0);
 }
 
 // Can the gene be upgraded further?
@@ -566,6 +574,9 @@ export interface RoostrRow {
   seed: number;
   nickname?: string | null;
   role?: string; // recommended archetype (stored at hatch)
+  wins?: number;
+  losses?: number;
+  draws?: number;
 }
 
 export interface HydratedRoostr {
@@ -583,6 +594,9 @@ export interface HydratedRoostr {
   stats: Record<Skill, number>;
   rating: number;
   tier: TierMeta; // overall level/grade band (D < C < B < A < S < R < X)
+  wins: number; // denormalized battle record (see schema / recordBattle)
+  losses: number;
+  draws: number;
 }
 
 export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
@@ -610,5 +624,8 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     stats,
     rating,
     tier: tierFor(rating),
+    wins: row.wins ?? 0,
+    losses: row.losses ?? 0,
+    draws: row.draws ?? 0,
   };
 }

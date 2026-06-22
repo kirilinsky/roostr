@@ -10,6 +10,7 @@ import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
@@ -25,6 +26,7 @@ import { MONO_FONT } from "@/lib/tokens";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import {
   GENE_MAX_LEVEL,
+  NICKNAME_MAX,
   SKILLS,
   SKILL_IDS,
   STAT_BAR_MAX,
@@ -36,8 +38,18 @@ import {
   skillLabel,
   type HydratedRoostr,
 } from "@/lib/roostr";
+import {
+  validateText,
+  NICKNAME_RULE,
+  type TextErrorCode,
+} from "@/lib/validation";
 import StatModBadges from "@/components/StatModBadges";
-import { upgradeGeneAction } from "@/app/collection/[id]/actions";
+import BattleRecord from "@/components/BattleRecord";
+import {
+  upgradeGeneAction,
+  renameRoostrAction,
+  clearNicknameAction,
+} from "@/app/collection/[id]/actions";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
 const SKILL_KIND = Object.fromEntries(
@@ -68,6 +80,10 @@ export default function RoostrDetail({
   const [statInfoOpen, setStatInfoOpen] = useState(false);
   const [archOpen, setArchOpen] = useState(false);
   const [sellOpen, setSellOpen] = useState(false);
+  const [nickOpen, setNickOpen] = useState(false);
+  const [nickInput, setNickInput] = useState("");
+  const [nickErr, setNickErr] = useState<TextErrorCode | "server" | null>(null);
+  const [savingNick, startNick] = useTransition();
 
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
@@ -101,6 +117,36 @@ export default function RoostrDetail({
     startTransition(async () => {
       await upgradeGeneAction(roostrId, geneId);
       setBusyGene(null);
+    });
+  }
+
+  function openNickname() {
+    setNickInput(roostr.nickname ?? "");
+    setNickErr(null);
+    setNickOpen(true);
+  }
+
+  function saveNickname() {
+    // Validate client-side first (instant feedback); the action re-validates with
+    // the SAME rule server-side, so the XSS/length guard can't be bypassed.
+    const v = validateText(nickInput, NICKNAME_RULE);
+    if (!v.ok) {
+      setNickErr(v.code);
+      return;
+    }
+    startNick(async () => {
+      const res = await renameRoostrAction(roostrId, nickInput);
+      if (res.ok) setNickOpen(false);
+      else setNickErr("server");
+    });
+  }
+
+  function clearNickname() {
+    setNickErr(null);
+    startNick(async () => {
+      const res = await clearNicknameAction(roostrId);
+      if (res.ok) setNickOpen(false);
+      else setNickErr("server");
     });
   }
 
@@ -173,6 +219,17 @@ export default function RoostrDetail({
             size="small"
             variant="outlined"
           />
+          {/* custom nickname — add or edit (owner of an active bird only) */}
+          {canManage && (
+            <Chip
+              label={`✏️ ${roostr.nickname ? t("detail.editNickname") : t("detail.addNickname")}`}
+              size="small"
+              color="secondary"
+              variant="outlined"
+              clickable
+              onClick={openNickname}
+            />
+          )}
         </Stack>
       </Box>
 
@@ -254,6 +311,23 @@ export default function RoostrDetail({
               value={bandPct}
               sx={{ height: 8, borderRadius: 1 }}
             />
+            {/* battle record — wins/losses (green/red), labelled on hover */}
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mt: 1 }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                ⚔️ {t("detail.record")}
+              </Typography>
+              <BattleRecord
+                wins={roostr.wins}
+                losses={roostr.losses}
+                draws={roostr.draws}
+                variant="body2"
+              />
+            </Stack>
             {/* HP — current / max (current = full until battle damage exists) */}
             <Stack
               direction="row"
@@ -400,7 +474,7 @@ export default function RoostrDetail({
           {/* Breed trait — innate, non-upgradeable buff/debuff */}
           <Card sx={{ p: 2 }}>
             <Typography variant="overline" color="text.secondary">
-              {t("detail.breedTrait")}
+              {t("detail.breedTrait")} · {breedName}
             </Typography>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, mt: 0.25 }}>
               ☆ {roostr.breed.trait.name[locale]}
@@ -603,6 +677,62 @@ export default function RoostrDetail({
         title={t("detail.sellTitle")}
       >
         <SellRoostrForm roostr={roostr} />
+      </Popup>
+
+      {/* Nickname modal — set / clear the custom display name */}
+      <Popup
+        open={nickOpen}
+        onClose={() => setNickOpen(false)}
+        title={t("detail.nicknameTitle")}
+        maxWidth="xs"
+      >
+        <Stack spacing={2}>
+          <TextField
+            autoFocus
+            fullWidth
+            label={t("detail.nicknameLabel")}
+            value={nickInput}
+            onChange={(e) => {
+              setNickInput(e.target.value);
+              if (nickErr) setNickErr(null);
+            }}
+            slotProps={{ htmlInput: { maxLength: NICKNAME_MAX } }}
+            error={nickErr !== null}
+            helperText={
+              nickErr
+                ? nickErr === "server"
+                  ? t("detail.saveError")
+                  : t(`validation.${nickErr}`)
+                : `${nickInput.trim().length}/${NICKNAME_MAX}`
+            }
+          />
+          <Stack direction="row" spacing={1} justifyContent="space-between">
+            {/* delete — only when a nickname is actually set */}
+            {roostr.nickname ? (
+              <Button
+                color="error"
+                onClick={clearNickname}
+                disabled={savingNick}
+              >
+                {t("detail.deleteNickname")}
+              </Button>
+            ) : (
+              <span />
+            )}
+            <Stack direction="row" spacing={1}>
+              <Button color="neutral" onClick={() => setNickOpen(false)}>
+                {t("detail.cancel")}
+              </Button>
+              <Button
+                variant="contained"
+                onClick={saveNickname}
+                disabled={savingNick || nickInput.trim().length === 0}
+              >
+                {t("detail.save")}
+              </Button>
+            </Stack>
+          </Stack>
+        </Stack>
       </Popup>
     </Stack>
   );

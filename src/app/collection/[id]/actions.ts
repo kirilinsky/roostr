@@ -8,9 +8,11 @@ import {
   geneUpgradeCost,
   upgradeGeneLevel,
 } from "@/lib/roostr";
+import { validateText, NICKNAME_RULE } from "@/lib/validation";
 import {
   getRoostr,
   setGeneLevels,
+  setNickname,
   spendCoins,
   grantCoins,
 } from "@/db/queries";
@@ -67,4 +69,57 @@ export async function upgradeGeneAction(
 
   revalidatePath(`/collection/${roostrId}`);
   return { ok: true, level: level + 1, coins };
+}
+
+export type RenameResult =
+  | { ok: true; nickname: string | null }
+  | {
+      ok: false;
+      error: "auth" | "notfound" | "owner" | "locked" | "invalid" | "save";
+    };
+
+// Set (or clear) a roostr's custom nickname: owner-guarded, active-only, validated
+// server-side via the SHARED rule (NICKNAME_RULE) so the client can't bypass it.
+// Empty input clears the nickname back to the breed-name default.
+export async function renameRoostrAction(
+  roostrId: string,
+  raw: string,
+): Promise<RenameResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "auth" };
+
+  const row = await getRoostr(roostrId);
+  if (!row) return { ok: false, error: "notfound" };
+  if (row.ownerId !== session.id) return { ok: false, error: "owner" };
+  // A listed / sold / recycled bird is locked — no edits while off the roster.
+  if (row.status !== "active") return { ok: false, error: "locked" };
+
+  const v = validateText(raw, NICKNAME_RULE);
+  if (!v.ok) return { ok: false, error: "invalid" };
+
+  const saved = await setNickname(roostrId, session.id, v.value);
+  if (!saved) return { ok: false, error: "save" };
+
+  revalidatePath(`/collection/${roostrId}`);
+  return { ok: true, nickname: v.value };
+}
+
+// Clear a roostr's nickname back to the breed-name default. Separate from rename
+// so saving can require a non-empty name while deletion stays a deliberate action.
+export async function clearNicknameAction(
+  roostrId: string,
+): Promise<RenameResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "auth" };
+
+  const row = await getRoostr(roostrId);
+  if (!row) return { ok: false, error: "notfound" };
+  if (row.ownerId !== session.id) return { ok: false, error: "owner" };
+  if (row.status !== "active") return { ok: false, error: "locked" };
+
+  const saved = await setNickname(roostrId, session.id, null);
+  if (!saved) return { ok: false, error: "save" };
+
+  revalidatePath(`/collection/${roostrId}`);
+  return { ok: true, nickname: null };
 }

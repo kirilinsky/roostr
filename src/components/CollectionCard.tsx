@@ -10,12 +10,13 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
-import { SKILLS, type HydratedRoostr } from "@/lib/roostr";
+import BattleRecord from "@/components/BattleRecord";
+import { SKILLS, geneUpgradeCount, type HydratedRoostr } from "@/lib/roostr";
 import { STAT_KIND_COLOR, STAT_KIND_ORDER, type StatKind } from "@/lib/statKinds";
 import { countryFlag } from "@/lib/flag";
 import { tierBackground } from "@/lib/tierBg";
 import { groupName } from "@/lib/breeds";
-import { useLocale } from "@/i18n/I18nProvider";
+import { useLocale, useT } from "@/i18n/I18nProvider";
 
 // Footer readout mode: "kinds" = stat-by-category sums (collection); "intellect"
 // = single Intellect score (lab roster / picker).
@@ -40,9 +41,13 @@ export default function CollectionCard({
   price?: number;
 }) {
   const locale = useLocale();
+  const t = useT();
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
   const intellect = roostr.stats.Intellect ?? 0;
+  // "Sergeant" rank insignia: any bought upgrade earns chevrons (1–3 by amount).
+  const upgrades = geneUpgradeCount(roostr.geneLevels);
+  const rank = upgrades >= 10 ? 3 : upgrades >= 4 ? 2 : 1;
 
   // Sum of stats per kind → shows where the build leans.
   const kindSum = useMemo(() => {
@@ -83,12 +88,40 @@ export default function CollectionCard({
             sx={{ position: "absolute", top: 6, right: 6, fontWeight: 800 }}
           />
         )}
+        {/* upgraded insignia — gold sergeant chevrons, count scales with upgrades */}
+        {upgrades > 0 && (
+          <Chip
+            label={"⌃".repeat(rank)}
+            size="small"
+            title={`${t("card.upgraded")}: ${upgrades}`}
+            sx={(theme) => ({
+              position: "absolute",
+              top: 6,
+              left: 6,
+              height: 22,
+              fontWeight: 900,
+              fontSize: "0.8rem",
+              letterSpacing: "-1px",
+              bgcolor: "tertiary.main",
+              color: theme.palette.tertiary.contrastText,
+              "& .MuiChip-label": { px: 0.75 },
+            })}
+          />
+        )}
       </Box>
 
       {/* name + origin flag + tier·rating */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
         <Box sx={{ minWidth: 0 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }} noWrap>
+          {/* custom nickname stands out (secondary tint); breed-name default stays neutral */}
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 700,
+              color: roostr.nickname ? "secondary.main" : "inherit",
+            }}
+            noWrap
+          >
             {countryFlag(roostr.breed.region.iso)} {name}
           </Typography>
           <Typography variant="caption" color="text.secondary" noWrap component="div">
@@ -104,39 +137,43 @@ export default function CollectionCard({
         />
       </Stack>
 
-      {/* footer readout: Intellect score (lab) or stat-by-category lean */}
-      {metric === "intellect" ? (
-        <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
-          <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "success.main" }} />
-          <Typography
-            variant="caption"
-            sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
-          >
-            🧠 {intellect}
-          </Typography>
-        </Stack>
-      ) : (
-        <Stack direction="row" spacing={1.5} justifyContent="center">
-          {STAT_KIND_ORDER.map((kind) => (
-            <Stack key={kind} direction="row" alignItems="center" spacing={0.5}>
-              <Box
-                sx={{
-                  width: 9,
-                  height: 9,
-                  borderRadius: "50%",
-                  bgcolor: `${STAT_KIND_COLOR[kind]}.main`,
-                }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
-              >
-                {kindSum[kind]}
-              </Typography>
-            </Stack>
-          ))}
-        </Stack>
-      )}
+      {/* footer: stat lean (Intellect or by-category) on the left, battle record
+          on the right — one row, space-between */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        {metric === "intellect" ? (
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "success.main" }} />
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
+            >
+              🧠 {intellect}
+            </Typography>
+          </Stack>
+        ) : (
+          <Stack direction="row" spacing={1.5}>
+            {STAT_KIND_ORDER.map((kind) => (
+              <Stack key={kind} direction="row" alignItems="center" spacing={0.5}>
+                <Box
+                  sx={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: "50%",
+                    bgcolor: `${STAT_KIND_COLOR[kind]}.main`,
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
+                >
+                  {kindSum[kind]}
+                </Typography>
+              </Stack>
+            ))}
+          </Stack>
+        )}
+        <BattleRecord wins={roostr.wins} losses={roostr.losses} draws={roostr.draws} />
+      </Stack>
 
       {/* market price tag */}
       {typeof price === "number" && (

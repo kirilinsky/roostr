@@ -383,6 +383,30 @@ export async function setGeneLevels(
   }
 }
 
+// Set (or clear) a roostr's custom nickname (owner-guarded). Pass null to clear
+// back to the breed-name default. Returns true on success.
+export async function setNickname(
+  id: string,
+  ownerId: number,
+  nickname: string | null,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const res = await db
+      .update(roostrs)
+      .set({ nickname })
+      .where(and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId)))
+      .returning({ id: roostrs.id });
+    return res.length > 0;
+  } catch (e) {
+    console.error("setNickname failed:", e);
+    return false;
+  }
+}
+
 // Record a Roostrdex unlock (survives recycling the roostr). Idempotent.
 export async function recordDiscovery(userId: number, breedId: string): Promise<void> {
   if (!process.env.DATABASE_URL) return;
@@ -524,6 +548,113 @@ export async function upsertUser(
     }
   } catch (e) {
     console.error("upsertUser failed:", e);
+  }
+}
+
+// --- Battles ---
+// The `battles` table is the append-only "when / with whom" log; per-roostr and
+// per-user W/L/draw counters are denormalized (kept in sync here on each resolve)
+// so reads never COUNT over the log.
+
+export interface BattleInput {
+  attackerUserId: number | null;
+  defenderUserId: number | null;
+  attackerRoostrId: string;
+  defenderRoostrId: string;
+  winnerRoostrId: string | null; // null = draw
+  coinsReward?: number;
+  log?: unknown; // round-by-round detail (shape TBD)
+}
+
+// Persist a resolved battle AND update both sides' W/L/draw counters. Writes the
+// log row first (the source of truth), then bumps counters best-effort (no tx on
+// the neon http driver — matches the rest of this module). Returns the battle id.
+export async function recordBattle(b: BattleInput): Promise<string | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { battles, roostrs, users } = await import("@/db/schema");
+    const { eq, sql } = await import("drizzle-orm");
+
+    const [row] = await db
+      .insert(battles)
+      .values({
+        attackerUserId: b.attackerUserId,
+        defenderUserId: b.defenderUserId,
+        attackerRoostrId: b.attackerRoostrId,
+        defenderRoostrId: b.defenderRoostrId,
+        winnerRoostrId: b.winnerRoostrId,
+        coinsReward: b.coinsReward ?? 0,
+        log: b.log,
+      })
+      .returning({ id: battles.id });
+    const id = row?.id ?? null;
+
+    const draw = b.winnerRoostrId === null;
+    const winnerIsAttacker = b.winnerRoostrId === b.attackerRoostrId;
+    const loserRoostrId = winnerIsAttacker ? b.defenderRoostrId : b.attackerRoostrId;
+    const winnerUserId = winnerIsAttacker ? b.attackerUserId : b.defenderUserId;
+    const loserUserId = winnerIsAttacker ? b.defenderUserId : b.attackerUserId;
+
+    // Bump roostr counters.
+    const bumpRoostr = (rid: string, field: "wins" | "losses" | "draws") =>
+      db
+        .update(roostrs)
+        .set({ [field]: sql`${roostrs[field]} + 1` })
+        .where(eq(roostrs.id, rid));
+    // Bump user counters (skip null = system/PvE side).
+    const bumpUser = (uid: number | null, field: "wins" | "losses" | "draws") =>
+      uid === null
+        ? Promise.resolve()
+        : db
+            .update(users)
+            .set({ [field]: sql`${users[field]} + 1`, updatedAt: new Date() })
+            .where(eq(users.id, uid));
+
+    if (draw) {
+      await Promise.all([
+        bumpRoostr(b.attackerRoostrId, "draws"),
+        bumpRoostr(b.defenderRoostrId, "draws"),
+        bumpUser(b.attackerUserId, "draws"),
+        bumpUser(b.defenderUserId, "draws"),
+      ]);
+    } else {
+      await Promise.all([
+        bumpRoostr(b.winnerRoostrId as string, "wins"),
+        bumpRoostr(loserRoostrId, "losses"),
+        bumpUser(winnerUserId, "wins"),
+        bumpUser(loserUserId, "losses"),
+      ]);
+    }
+    return id;
+  } catch (e) {
+    console.error("recordBattle failed:", e);
+    return null;
+  }
+}
+
+// Battle log for one roostr (its fights, newest first) — the "when / with whom".
+// `limit` caps the page (default 50).
+export async function getRoostrBattles(roostrId: string, limit = 50) {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { battles } = await import("@/db/schema");
+    const { desc, eq, or } = await import("drizzle-orm");
+    return await db
+      .select()
+      .from(battles)
+      .where(
+        or(
+          eq(battles.attackerRoostrId, roostrId),
+          eq(battles.defenderRoostrId, roostrId),
+        ),
+      )
+      .orderBy(desc(battles.createdAt))
+      .limit(limit);
+  } catch (e) {
+    console.error("getRoostrBattles failed:", e);
+    return [];
   }
 }
 

@@ -24,6 +24,11 @@ export const users = pgTable("users", {
   feathers: integer("feathers").notNull().default(0),
   eggs: integer("eggs").notNull().default(0),
   sci: integer("sci").notNull().default(0), // science points (lab research)
+  // Denormalized lifetime battle record (source of truth = the `battles` log).
+  // Bumped on each resolve so profiles read W/L without a COUNT over battles.
+  wins: integer("wins").notNull().default(0),
+  losses: integer("losses").notNull().default(0),
+  draws: integer("draws").notNull().default(0),
   tonAddress: text("ton_address"),
   lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // daily hatch cooldown (off localStorage)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -51,6 +56,11 @@ export const roostrs = pgTable("roostrs", {
   maxHealth: integer("max_health").notNull(),
   seed: integer("seed").notNull(),
   nickname: text("nickname"),
+  // Denormalized per-roostr battle record (source of truth = the `battles` log).
+  // Bumped on resolve so cards/pages show W/L without counting battles each read.
+  wins: integer("wins").notNull().default(0),
+  losses: integer("losses").notNull().default(0),
+  draws: integer("draws").notNull().default(0),
   origin: text("origin").notNull().default("hatch"), // hatch | evolution | event | ...
   // Lifecycle state. Recycling/selling sets a non-active status instead of
   // hard-deleting the row, so the rooster's history (and provenance below)
@@ -143,7 +153,10 @@ export const resourceTxns = pgTable("resource_txns", {
   userId: bigint("user_id", { mode: "number" })
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  resource: text("resource").notNull(), // coin | sci | egg | feather
+  // coin | sci | egg | feather. Default 'coin' so adding this column to the
+  // already-populated old coin_txns table backfills cleanly (no truncate);
+  // every insert passes `resource` explicitly, so the default never actually fires.
+  resource: text("resource").notNull().default("coin"),
   amount: integer("amount").notNull(), // + earned, − spent
   // hatch | battle | expedition | farm | upgrade | refund | market | gift | faucet | admin_grant | lab
   kind: text("kind").notNull(),
