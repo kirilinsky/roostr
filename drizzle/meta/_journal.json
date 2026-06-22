@@ -29,6 +29,13 @@
       "when": 1781807355399,
       "tag": "0003_easy_deathbird",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1782154218918,
+      "tag": "0004_hard_steve_rogers",
+      "breakpoints": true
     }
   ]
 }

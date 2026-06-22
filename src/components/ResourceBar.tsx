@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Divider from "@mui/material/Divider";
@@ -58,6 +59,8 @@ export default function ResourceBar({
 }) {
   return (
     <Card
+      component={Link}
+      href="/bank"
       sx={{
         position: "fixed",
         top: { xs: 9, md: 12 },
@@ -65,6 +68,12 @@ export default function ResourceBar({
         zIndex: (theme) => theme.zIndex.drawer + 2,
         px: 1.5,
         py: 0.75,
+        display: "block",
+        textDecoration: "none",
+        color: "inherit",
+        cursor: "pointer",
+        transition: (theme) => theme.transitions.create("box-shadow"),
+        "&:hover": { boxShadow: 4 },
       }}
     >
       <Stack

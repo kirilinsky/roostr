@@ -72,12 +72,28 @@ export async function recordTransfer(
   }
 }
 
-// Atomically spend coins. Deducts only if the balance covers `amount`; returns
-// the new balance, or null if insufficient / DB unavailable. Single conditional
-// UPDATE → race-safe against concurrent spends. Writes a signed ledger row
-// (coin_txns) so spending is always tracked server-side — no client trust.
-export async function spendCoins(
+// --- Currency ledger (coins / science / eggs / feathers) ---
+// One generic ledger (resource_txns) backs every currency. `ResourceKind` maps
+// to a balance column on `users`; the helpers update that column AND append a
+// signed ledger row in one go, so the history is always in sync with the balance.
+
+export type ResourceKind = "coin" | "sci" | "egg" | "feather";
+
+// resource → drizzle field name on the users table (what `.set` keys on).
+const RESOURCE_FIELD: Record<ResourceKind, "coins" | "sci" | "eggs" | "feathers"> = {
+  coin: "coins",
+  sci: "sci",
+  egg: "eggs",
+  feather: "feathers",
+};
+
+// Atomically spend `amount` of a resource. Deducts only if the balance covers it;
+// returns the new balance, or null if insufficient / DB unavailable. Single
+// conditional UPDATE → race-safe against concurrent spends. Writes a signed
+// ledger row so spending is always tracked server-side — no client trust.
+export async function spendResource(
   userId: number,
+  resource: ResourceKind,
   amount: number,
   kind: string,
   ref?: string,
@@ -85,17 +101,20 @@ export async function spendCoins(
   if (!process.env.DATABASE_URL) return null;
   try {
     const { db } = await import("@/db");
-    const { users, coinTxns } = await import("@/db/schema");
+    const { users, resourceTxns } = await import("@/db/schema");
     const { and, eq, gte, sql } = await import("drizzle-orm");
+    const field = RESOURCE_FIELD[resource];
+    const col = users[field];
     const res = await db
       .update(users)
-      .set({ coins: sql`${users.coins} - ${amount}`, updatedAt: new Date() })
-      .where(and(eq(users.id, userId), gte(users.coins, amount)))
-      .returning({ coins: users.coins });
-    const balanceAfter = res[0]?.coins ?? null;
+      .set({ [field]: sql`${col} - ${amount}`, updatedAt: new Date() })
+      .where(and(eq(users.id, userId), gte(col, amount)))
+      .returning({ bal: col });
+    const balanceAfter = res[0]?.bal ?? null;
     if (balanceAfter === null) return null; // insufficient — nothing spent, no ledger row
-    await db.insert(coinTxns).values({
+    await db.insert(resourceTxns).values({
       userId,
+      resource,
       amount: -amount,
       kind,
       ref: ref ?? null,
@@ -103,15 +122,16 @@ export async function spendCoins(
     });
     return balanceAfter;
   } catch (e) {
-    console.error("spendCoins failed:", e);
+    console.error("spendResource failed:", e);
     return null;
   }
 }
 
-// Grant coins (reward / refund / faucet / admin). Returns the new balance or
-// null. Also writes a positive ledger row.
-export async function grantCoins(
+// Grant `amount` of a resource (reward / refund / faucet / admin). Returns the
+// new balance or null. Also writes a positive ledger row.
+export async function grantResource(
   userId: number,
+  resource: ResourceKind,
   amount: number,
   kind: string,
   ref?: string,
@@ -119,17 +139,20 @@ export async function grantCoins(
   if (!process.env.DATABASE_URL) return null;
   try {
     const { db } = await import("@/db");
-    const { users, coinTxns } = await import("@/db/schema");
+    const { users, resourceTxns } = await import("@/db/schema");
     const { eq, sql } = await import("drizzle-orm");
+    const field = RESOURCE_FIELD[resource];
+    const col = users[field];
     const res = await db
       .update(users)
-      .set({ coins: sql`${users.coins} + ${amount}`, updatedAt: new Date() })
+      .set({ [field]: sql`${col} + ${amount}`, updatedAt: new Date() })
       .where(eq(users.id, userId))
-      .returning({ coins: users.coins });
-    const balanceAfter = res[0]?.coins ?? null;
+      .returning({ bal: col });
+    const balanceAfter = res[0]?.bal ?? null;
     if (balanceAfter === null) return null; // no such user
-    await db.insert(coinTxns).values({
+    await db.insert(resourceTxns).values({
       userId,
+      resource,
       amount,
       kind,
       ref: ref ?? null,
@@ -137,8 +160,54 @@ export async function grantCoins(
     });
     return balanceAfter;
   } catch (e) {
-    console.error("grantCoins failed:", e);
+    console.error("grantResource failed:", e);
     return null;
+  }
+}
+
+// Back-compat thin wrappers — existing call sites spend/grant coins by name.
+export function spendCoins(userId: number, amount: number, kind: string, ref?: string) {
+  return spendResource(userId, "coin", amount, kind, ref);
+}
+export function grantCoins(userId: number, amount: number, kind: string, ref?: string) {
+  return grantResource(userId, "coin", amount, kind, ref);
+}
+
+// A single ledger row shape for the UI (the bank history list).
+export interface ResourceTxn {
+  id: string;
+  resource: ResourceKind;
+  amount: number; // signed: + income, − expense
+  kind: string;
+  ref: string | null;
+  balanceAfter: number;
+  at: Date;
+}
+
+// Recent currency movements for a user, newest first. Optionally filter to one
+// resource; `limit` caps the page (default 50). Drives the bank history view.
+export async function getResourceTxns(
+  userId: number,
+  opts: { resource?: ResourceKind; limit?: number } = {},
+): Promise<ResourceTxn[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { resourceTxns } = await import("@/db/schema");
+    const { and, desc, eq } = await import("drizzle-orm");
+    const where = opts.resource
+      ? and(eq(resourceTxns.userId, userId), eq(resourceTxns.resource, opts.resource))
+      : eq(resourceTxns.userId, userId);
+    const rows = await db
+      .select()
+      .from(resourceTxns)
+      .where(where)
+      .orderBy(desc(resourceTxns.at))
+      .limit(opts.limit ?? 50);
+    return rows as ResourceTxn[];
+  } catch (e) {
+    console.error("getResourceTxns failed:", e);
+    return [];
   }
 }
 
@@ -153,20 +222,21 @@ export async function getUserStats(userId: number): Promise<{
   if (!process.env.DATABASE_URL) return empty;
   try {
     const { db } = await import("@/db");
-    const { roostrs, coinTxns } = await import("@/db/schema");
+    const { roostrs, resourceTxns } = await import("@/db/schema");
     const { and, eq, gt, lt, sql } = await import("drizzle-orm");
     const [eggs] = await db
       .select({ n: sql<number>`count(*)` })
       .from(roostrs)
       .where(and(eq(roostrs.ownerId, userId), eq(roostrs.origin, "hatch")));
+    const isCoin = eq(resourceTxns.resource, "coin");
     const [earned] = await db
-      .select({ s: sql<number>`coalesce(sum(${coinTxns.amount}), 0)` })
-      .from(coinTxns)
-      .where(and(eq(coinTxns.userId, userId), gt(coinTxns.amount, 0)));
+      .select({ s: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)` })
+      .from(resourceTxns)
+      .where(and(eq(resourceTxns.userId, userId), isCoin, gt(resourceTxns.amount, 0)));
     const [spent] = await db
-      .select({ s: sql<number>`coalesce(sum(${coinTxns.amount}), 0)` })
-      .from(coinTxns)
-      .where(and(eq(coinTxns.userId, userId), lt(coinTxns.amount, 0)));
+      .select({ s: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)` })
+      .from(resourceTxns)
+      .where(and(eq(resourceTxns.userId, userId), isCoin, lt(resourceTxns.amount, 0)));
     return {
       eggsHatched: Number(eggs?.n ?? 0),
       coinsEarned: Number(earned?.s ?? 0),
