@@ -11,7 +11,10 @@ export default async function AboutPage() {
         <Typography variant="h4" component="h1">
           {t("about.title")}
         </Typography>
-        <Typography color="text.secondary">{t("about.tba")}</Typography>
+        <Typography color="text.secondary">{t("about.description")}</Typography>
+        <Typography color="text.secondary" variant="body2">
+          {t("about.disclaimer")}
+        </Typography>
       </Stack>
     </Container>
   );

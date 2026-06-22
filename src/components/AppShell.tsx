@@ -55,6 +55,7 @@ export default function AppShell({
   bottomNav,
   loginLabel,
   aboutLabel,
+  supportLabel,
   children,
 }: {
   user: ShellUser | null;
@@ -70,6 +71,7 @@ export default function AppShell({
   bottomNav: NavItem[];
   loginLabel: string;
   aboutLabel: string;
+  supportLabel: string;
   children: ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -261,7 +263,7 @@ export default function AppShell({
         {/* spacer for the mobile app bar */}
         <Toolbar sx={{ display: { md: "none" } }} />
         <Box sx={{ flexGrow: 1 }}>{children}</Box>
-        <Footer aboutLabel={aboutLabel} />
+        <Footer aboutLabel={aboutLabel} supportLabel={supportLabel} />
       </Box>
     </Box>
   );

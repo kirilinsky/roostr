@@ -3,52 +3,49 @@
 import { getSession } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
-import { claimHatch, createRoostr, recordDiscovery } from "@/db/queries";
+import {
+  createRoostr,
+  recordDiscovery,
+  spendResource,
+  grantResource,
+} from "@/db/queries";
 
-// One hatch per 24h, enforced on the server (the client cooldown is just UX).
-const HATCH_COOLDOWN_MS = 24 * 60 * 60 * 1000;
-
+// Hatch costs exactly ONE egg — no money hatch, no daily cooldown. New players
+// get a starter egg at signup (see upsertUser); more eggs come from the farm.
 export type HatchResult =
   | {
       ok: true;
       roostr: RolledRoostr;
       id: string | null; // DB row id when persisted
       saved: boolean;
-      cooldownUntil: number | null; // when the next hatch unlocks (null = admin, no limit)
+      eggsLeft: number | null; // remaining eggs after the spend (null = admin / no-db)
     }
-  | { ok: false; reason: "cooldown"; cooldownUntil: number }
+  | { ok: false; reason: "no-eggs" }
   | { ok: false; reason: "unauthenticated" };
 
-// Authoritative hatch: must be logged in (so the daily limit is enforceable),
-// claim the daily slot on the server, then roll + persist. Admins bypass the
-// limit. Non-admins are globally capped at one rooster per 24h.
 export async function hatchAction(): Promise<HatchResult> {
   const session = await getSession();
   if (!session) return { ok: false, reason: "unauthenticated" };
 
   const admin = isAdmin(session.id);
-  const claim = await claimHatch(session.id, HATCH_COOLDOWN_MS, admin);
+  // Enforce the egg cost only with a DB and for non-admins (admins hatch freely
+  // for testing; dev without DATABASE_URL falls back to a local-only reveal).
+  const enforce = !admin && !!process.env.DATABASE_URL;
 
-  if (claim.status === "cooldown") {
-    return { ok: false, reason: "cooldown", cooldownUntil: claim.retryAt };
-  }
-  if (claim.status === "no-user") {
-    return { ok: false, reason: "unauthenticated" };
+  let eggsLeft: number | null = null;
+  if (enforce) {
+    eggsLeft = await spendResource(session.id, "egg", 1, "hatch");
+    if (eggsLeft === null) return { ok: false, reason: "no-eggs" };
   }
 
-  // claim.status is "claimed" (slot reserved in DB) or "no-db" (dev, no enforcement).
   const roostr = rollRoostr();
-  let id: string | null = null;
-  if (claim.status === "claimed") {
-    id = await createRoostr(session.id, roostr);
-    if (id) await recordDiscovery(session.id, roostr.breed.id);
+  const id = await createRoostr(session.id, roostr);
+  if (id) {
+    await recordDiscovery(session.id, roostr.breed.id);
+  } else if (enforce) {
+    // Persistence failed after we charged → refund the egg so it isn't lost.
+    eggsLeft = await grantResource(session.id, "egg", 1, "refund");
   }
 
-  return {
-    ok: true,
-    roostr,
-    id,
-    saved: id !== null,
-    cooldownUntil: admin ? null : Date.now() + HATCH_COOLDOWN_MS,
-  };
+  return { ok: true, roostr, id, saved: id !== null, eggsLeft };
 }

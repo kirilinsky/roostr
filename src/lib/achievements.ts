@@ -10,9 +10,18 @@ import type { Locale } from "@/i18n/config";
 
 export type AchievementScope = "profile" | "rooster";
 
+// Rarity/prestige band. Drives badge styling (and later the art per tier).
+export type AchievementTier = "common" | "rare" | "collectible";
+export const ACHIEVEMENT_TIERS: AchievementTier[] = [
+  "common",
+  "rare",
+  "collectible",
+];
+
 export interface Achievement {
-  id: string;
+  id: string; // short stable key; also the art filename (/achievements/<id>.png)
   icon: string;
+  tier: AchievementTier;
   name: { en: string; ru: string };
   desc: { en: string; ru: string };
   metric: string; // key into the metrics map (see *Metrics types below)
@@ -29,8 +38,11 @@ export interface ProfileMetrics {
   eggsHatched: number;
   coinsEarned: number;
   coinsSpent: number;
+  sciEarned: number; // lifetime science points earned (Σ positive sci ledger rows)
   highestTier: number; // tier rank 0..6 of the user's best rooster
   roostrsOwned: number;
+  roostrsSold: number; // lifetime roosters sold on the market (not tracked yet)
+  saleEarnings: number; // lifetime coins earned from sales (not tracked yet)
   friends: number;
   invites: number; // not tracked yet
   battles: number; // not tracked yet

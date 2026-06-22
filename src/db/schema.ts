@@ -1,5 +1,6 @@
 import {
   bigint,
+  boolean,
   integer,
   jsonb,
   pgTable,
@@ -29,8 +30,10 @@ export const users = pgTable("users", {
   wins: integer("wins").notNull().default(0),
   losses: integer("losses").notNull().default(0),
   draws: integer("draws").notNull().default(0),
+  // Privacy: when false, other users can't see this player's collection.
+  collectionPublic: boolean("collection_public").notNull().default(true),
   tonAddress: text("ton_address"),
-  lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // daily hatch cooldown (off localStorage)
+  lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // legacy/unused: hatching is egg-gated now (no cooldown)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

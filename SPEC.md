@@ -50,7 +50,11 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 - V3 — Roostr has 1-4 key genes, weighted hard to 2 (~99.7%): 3 uncommon (~0.3%), 1 and 4 both
   super-rare (~1/50000 each). `GENE_COUNT_WEIGHTS` in `lib/roostr.ts` sums to 100000 = direct odds.
 - V4 — Color/pattern = cosmetic only. No battle bonus (avoid "right color for meta").
-- V5 — Daily hatch: 1 free per 24h cooldown. Boost = pay currency to skip wait.
+- V5 — Hatch = spend exactly 1 EGG (1 egg = 1 hatch). NO money/coin hatch, NO daily cooldown.
+  New player gets 1 starter egg at signup (`upsertUser` → `grantResource(egg,"starter")`, once).
+  More eggs from farm (future). Server-enforced: `hatchAction` spends via `spendResource("egg",1)`
+  (admin + no-DB bypass), refunds the egg on persist fail. `claimHatch`/cooldown removed;
+  `users.lastHatchAt` legacy/unused.
 - V6 — Code comments English-only.
 - V7 — Debug/admin features gated by Telegram-id allowlist (`src/lib/admin.ts`, default `339784494`).
   `/debug` SERVER-gated (redirect non-admins, not just hidden nav). Admin-only UI (debug nav,
@@ -85,10 +89,10 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T1 | x | design system theme | V1 |
 | T2 | x | Telegram auth + session | I.api |
 | T3 | x | hatch model: breed/weight/genes/colors, always common | V2,V3,V4 |
-| T4 | x | incubator page: daily hatch + boost | V5,V1 |
+| T4 | x | incubator page: egg-gated hatch (1 egg = 1 hatch, no boost/cooldown) | V5,V1 |
 | T5 | x | debug hatch page shows real stats | V2,V1 |
 | T6 | . | collection: persist + list hatched roostrs | V1 |
-| T7 | . | server-authoritative hatch + cooldown (move off localStorage) | V5 |
+| T7 | x | server-authoritative egg-gated hatch (off localStorage) | V5 |
 | T8 | . | market / arena real screens | V1 |
 | T9 | x | roostrdex bestiary: breeds from BREEDS.json, discovery on hatch | V1 |
 | T10 | x | admin gating: id allowlist, /debug server-gate, roostrdex reveal | V7 |
@@ -96,7 +100,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T12 | x | per-breed innate trait (buff/debuff) in BREEDS.json + dex/hatch card | V9 |
 | T13 | x | DB scaffold: Neon+Drizzle, schema (users/roostrs/battles/farm/expeditions/dex) | C |
 | T14 | x | wire DB: upsert users row on login (Telegram + dev), best-effort | C |
-| T15 | . | server hatch: cooldown + persist roostr + dex discovery (off localStorage) | C,V5 |
+| T15 | x | server hatch: spend 1 egg + persist roostr + dex discovery (off localStorage) | C,V5 |
 | T16 | . | roostrdex + collection read from DB | C |
 | T17 | x | friends page + share-profile link (clipboard) + public profile /[telegramid] | C |
 | T18 | x | friendships: add/remove on profile, since date, friends list on /friends | C |
@@ -108,6 +112,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T26 | . | thieving mode (uses Stealth) | C |
 | T23 | . | persist gene levels + real coin spend on upgrade (off mock/localStorage) | C,V12 |
 | T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
+| T27 | x | starter egg at signup (upsertUser grants 1 egg via ledger, kind "starter") | V5,C |
 
 ## §B — Bugs
 

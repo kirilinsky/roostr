@@ -266,64 +266,6 @@ export async function getRoostrHistory(roostrId: string) {
   }
 }
 
-// Atomically claim a hatch slot for a user (server-side daily cooldown).
-//
-// One conditional UPDATE sets last_hatch_at = now() only when the user is
-// eligible (admin bypass, or the cooldown has elapsed). Doing it in a single
-// statement makes it race-safe: two concurrent hatch clicks can't both win.
-//
-//  - "claimed": slot taken, caller may roll + persist.
-//  - "cooldown": still on cooldown; `retryAt` is when the next hatch unlocks.
-//  - "no-user": no users row (must be logged in / upserted first).
-//  - "no-db":  DATABASE_URL unset — cooldown can't be enforced (dev only).
-export type HatchClaim =
-  | { status: "claimed" }
-  | { status: "cooldown"; retryAt: number }
-  | { status: "no-user" }
-  | { status: "no-db" };
-
-export async function claimHatch(
-  userId: number,
-  cooldownMs: number,
-  bypass: boolean,
-): Promise<HatchClaim> {
-  if (!process.env.DATABASE_URL) return { status: "no-db" };
-  try {
-    const { db } = await import("@/db");
-    const { users } = await import("@/db/schema");
-    const { and, eq, isNull, lte, or } = await import("drizzle-orm");
-
-    const now = new Date();
-    const cutoff = new Date(now.getTime() - cooldownMs);
-    const eligible = bypass
-      ? eq(users.id, userId)
-      : and(
-          eq(users.id, userId),
-          or(isNull(users.lastHatchAt), lte(users.lastHatchAt, cutoff)),
-        );
-
-    const claimed = await db
-      .update(users)
-      .set({ lastHatchAt: now, updatedAt: now })
-      .where(eligible)
-      .returning({ id: users.id });
-    if (claimed.length > 0) return { status: "claimed" };
-
-    // Not claimed → either the user row is missing or they're on cooldown.
-    const [row] = await db
-      .select({ last: users.lastHatchAt })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    if (!row) return { status: "no-user" };
-    const retryAt = (row.last?.getTime() ?? 0) + cooldownMs;
-    return { status: "cooldown", retryAt };
-  } catch (e) {
-    console.error("claimHatch failed:", e);
-    // Fail closed: treat an error as "can't claim right now".
-    return { status: "cooldown", retryAt: Date.now() + cooldownMs };
-  }
-}
 
 // All of a user's roostrs, newest first.
 export async function getRoostrs(ownerId: number) {
@@ -428,6 +370,29 @@ export async function recordDiscovery(
   } catch (e) {
     console.error("recordDiscovery failed:", e);
     return { isNew: false };
+  }
+}
+
+// Set the collection-visibility privacy flag for a user. Returns the new value
+// on success, or null on failure / DB unavailable.
+export async function setCollectionPublic(
+  userId: number,
+  value: boolean,
+): Promise<boolean | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const res = await db
+      .update(users)
+      .set({ collectionPublic: value, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning({ v: users.collectionPublic });
+    return res[0]?.v ?? null;
+  } catch (e) {
+    console.error("setCollectionPublic failed:", e);
+    return null;
   }
 }
 
@@ -550,6 +515,8 @@ export async function getUserById(id: number) {
 // `overwrite`: real Telegram login refreshes profile fields (true). Dev fake-auth
 // passes false so logging in as the fake admin (same id 339784494) does NOT
 // clobber the real Telegram name/photo already stored — it only inserts if absent.
+const STARTER_EGGS = 1; // eggs granted once, to a brand-new player at signup
+
 export async function upsertUser(
   u: SessionUser,
   { overwrite = true }: { overwrite?: boolean } = {},
@@ -558,20 +525,32 @@ export async function upsertUser(
   try {
     const { db } = await import("@/db");
     const { users } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
     const fields = {
       username: u.username ?? null,
       firstName: u.firstName ?? null,
       lastName: u.lastName ?? null,
       photoUrl: u.photoUrl ?? null,
     };
-    const insert = db.insert(users).values({ id: u.id, ...fields });
-    if (overwrite) {
-      await insert.onConflictDoUpdate({
-        target: users.id,
-        set: { ...fields, updatedAt: new Date() },
-      });
-    } else {
-      await insert.onConflictDoNothing();
+    // Insert-if-absent; `returning` tells us whether this is a brand-new player.
+    const inserted = await db
+      .insert(users)
+      .values({ id: u.id, ...fields })
+      .onConflictDoNothing()
+      .returning({ id: users.id });
+    const isNew = inserted.length > 0;
+
+    // Existing player + real login → refresh profile fields.
+    if (!isNew && overwrite) {
+      await db
+        .update(users)
+        .set({ ...fields, updatedAt: new Date() })
+        .where(eq(users.id, u.id));
+    }
+
+    // Brand-new player → starter egg (one free hatch), through the audited ledger.
+    if (isNew) {
+      await grantResource(u.id, "egg", STARTER_EGGS, "starter");
     }
   } catch (e) {
     console.error("upsertUser failed:", e);

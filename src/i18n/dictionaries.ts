@@ -41,16 +41,16 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.mechanics.title": "Mechanics",
     "pedia.mechanics.desc": "How hatching, stats and upgrades work.",
     "pedia.mech.hatch.title": "Hatching",
-    "pedia.mech.hatch.desc": "One free hatch a day — and what comes out.",
-    "pedia.mech.hatch.dailyTitle": "Once a day",
+    "pedia.mech.hatch.desc": "Spend an egg to hatch — and what comes out.",
+    "pedia.mech.hatch.dailyTitle": "One egg, one hatch",
     "pedia.mech.hatch.daily":
-      "You get one free hatch per day. After hatching, a 24-hour timer runs before the next free egg.",
-    "pedia.mech.hatch.skipTitle": "Skip the wait",
+      "Each hatch costs exactly one egg. No timer — hatch as long as you have eggs.",
+    "pedia.mech.hatch.skipTitle": "Starter egg",
     "pedia.mech.hatch.skip":
-      "You'll be able to spend Corn Coins to skip the cooldown and hatch right away.",
-    "pedia.mech.hatch.eggsTitle": "Eggs (coming later)",
+      "Every new player gets one egg at signup — enough to hatch their first rooster.",
+    "pedia.mech.hatch.eggsTitle": "Getting more eggs",
     "pedia.mech.hatch.eggs":
-      "Talented roosters working the farm will earn eggs — each egg is an extra hatch on top of the daily one.",
+      "Talented roosters working the farm earn eggs — and every egg is one more hatch.",
     "pedia.mech.hatch.outcomeTitle": "What hatches",
     "pedia.mech.hatch.outcome":
       "Every hatch is a Common rooster — power comes from upgrades, not the egg. What's unique is the combo: breed, weight, colors and genes. The number of key genes (1–4) is random.",
@@ -116,6 +116,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "txn.faucet": "Bonus",
     "txn.admin_grant": "Admin grant",
     "txn.lab": "Lab",
+    "txn.starter": "Welcome gift",
 
     "home.guest": "Sign in via the Telegram button in the sidebar.",
     "home.signedInAs": "Signed in as {name}.",
@@ -186,6 +187,10 @@ export const dictionaries: Record<Locale, Dict> = {
 
     "about.title": "About",
     "about.tba": "TBA",
+    "about.description":
+      "Roostr is a game about collecting, breeding and upgrading roosters. The project is in active development.",
+    "about.disclaimer":
+      "All game content is for entertainment only and may change before release.",
     "lab.research": "Current research",
     "lab.researchTba": "Research coming soon",
     "lab.perHour": "{n} sci/h",
@@ -211,6 +216,9 @@ export const dictionaries: Record<Locale, Dict> = {
     "profile.allAchievements": "View all achievements",
     "achievements.title": "Achievements",
     "achievements.back": "Profile",
+    "achievement.tier.common": "Common",
+    "achievement.tier.rare": "Rare",
+    "achievement.tier.collectible": "Collectible",
 
     "debug.title": "Debug — roostr generator",
     "debug.subtitle":
@@ -245,11 +253,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.max": "Max",
 
     "incubator.title": "Incubator",
-    "incubator.subtitle": "One free hatch per day.",
-    "incubator.ready": "The egg is ready to hatch.",
-    "incubator.hatch": "Hatch",
-    "incubator.nextIn": "Next egg in {time}",
-    "incubator.boost": "Hatch now",
+    "incubator.subtitle": "One egg, one hatch.",
+    "incubator.cost": "Hatching costs 1 egg.",
+    "incubator.noEggs": "No eggs left — earn more on the farm.",
+    "incubator.hatch": "Hatch (1 egg)",
     "incubator.hatched": "It hatched!",
     "incubator.continue": "Continue",
     "incubator.needLogin": "Log in to hatch a rooster.",
@@ -277,6 +284,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "friends.catalog": "Catalog",
     "publicProfile.notFound": "Player not found.",
     "publicProfile.catalog": "Rooster catalog",
+    "publicProfile.private": "This collection is private.",
+    "settings.privacy": "Privacy",
+    "settings.collectionPublic": "Show my collection to others",
+    "settings.collectionPublicHint":
+      "When off, other players can't see your collection on your profile.",
   },
   ru: {
     "nav.about": "О проекте",
@@ -318,16 +330,16 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.mechanics.title": "Механики",
     "pedia.mechanics.desc": "Как работают вылуп, статы и прокачка.",
     "pedia.mech.hatch.title": "Вылуп",
-    "pedia.mech.hatch.desc": "Один бесплатный вылуп в сутки — и что выпадает.",
-    "pedia.mech.hatch.dailyTitle": "Раз в сутки",
+    "pedia.mech.hatch.desc": "Потрать яйцо, чтобы вылупить — и что выпадает.",
+    "pedia.mech.hatch.dailyTitle": "Одно яйцо — один вылуп",
     "pedia.mech.hatch.daily":
-      "Один бесплатный вылуп в сутки. После вылупа идёт 24-часовой таймер до следующего яйца.",
-    "pedia.mech.hatch.skipTitle": "Скипнуть ожидание",
+      "Каждый вылуп стоит ровно одно яйцо. Без таймера — вылупляй, пока есть яйца.",
+    "pedia.mech.hatch.skipTitle": "Стартовое яйцо",
     "pedia.mech.hatch.skip":
-      "За Corn Coins можно будет скипнуть кулдаун и вылупить сразу.",
-    "pedia.mech.hatch.eggsTitle": "Яйца (позже)",
+      "Каждый новый игрок получает одно яйцо при регистрации — хватит на первого петуха.",
+    "pedia.mech.hatch.eggsTitle": "Где взять ещё яйца",
     "pedia.mech.hatch.eggs":
-      "Талантливые петухи на ферме будут зарабатывать яйца — каждое яйцо это доп. вылуп сверх дневного.",
+      "Талантливые петухи на ферме зарабатывают яйца — и каждое яйцо это ещё один вылуп.",
     "pedia.mech.hatch.outcomeTitle": "Что выпадает",
     "pedia.mech.hatch.outcome":
       "Из вылупа всегда выпадает Обычный петух — сила приходит из прокачки, не из яйца. Уникальна комбинация: порода, вес, окрас и гены. Количество ключевых генов (1–4) случайно.",
@@ -392,6 +404,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "txn.faucet": "Бонус",
     "txn.admin_grant": "Начисление",
     "txn.lab": "Лаборатория",
+    "txn.starter": "Стартовый бонус",
 
     "home.guest": "Войди через кнопку Telegram в меню слева.",
     "home.signedInAs": "Вошёл как {name}.",
@@ -462,6 +475,10 @@ export const dictionaries: Record<Locale, Dict> = {
 
     "about.title": "О проекте",
     "about.tba": "Скоро",
+    "about.description":
+      "Roostr — игра про коллекционирование, разведение и прокачку петухов. Проект находится в разработке.",
+    "about.disclaimer":
+      "Весь игровой контент предназначен только для развлечения и может измениться до релиза.",
     "lab.research": "Текущее исследование",
     "lab.researchTba": "Исследование — скоро",
     "lab.perHour": "{n} науки/ч",
@@ -487,6 +504,9 @@ export const dictionaries: Record<Locale, Dict> = {
     "profile.allAchievements": "Все достижения",
     "achievements.title": "Достижения",
     "achievements.back": "Профиль",
+    "achievement.tier.common": "Обычная",
+    "achievement.tier.rare": "Редкая",
+    "achievement.tier.collectible": "Коллекционная",
 
     "debug.title": "Дебаг — генератор петухов",
     "debug.subtitle":
@@ -521,11 +541,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.max": "Макс",
 
     "incubator.title": "Инкубатор",
-    "incubator.subtitle": "Один бесплатный вылуп в сутки.",
-    "incubator.ready": "Яйцо готово к вылупу.",
-    "incubator.hatch": "Вылупить",
-    "incubator.nextIn": "Следующее яйцо через {time}",
-    "incubator.boost": "Вылупить сразу",
+    "incubator.subtitle": "Одно яйцо — один вылуп.",
+    "incubator.cost": "Вылуп стоит 1 яйцо.",
+    "incubator.noEggs": "Яйца кончились — зарабатывай на ферме.",
+    "incubator.hatch": "Вылупить (1 яйцо)",
     "incubator.hatched": "Вылупился!",
     "incubator.continue": "Продолжить",
     "incubator.needLogin": "Войдите, чтобы вылупить петуха.",
@@ -552,5 +571,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "friends.catalog": "Каталог",
     "publicProfile.notFound": "Игрок не найден.",
     "publicProfile.catalog": "Каталог петухов",
+    "publicProfile.private": "Эта коллекция скрыта.",
+    "settings.privacy": "Приватность",
+    "settings.collectionPublic": "Показывать мою коллекцию другим",
+    "settings.collectionPublicHint":
+      "Когда выключено, другие игроки не видят твою коллекцию в профиле.",
   },
 };

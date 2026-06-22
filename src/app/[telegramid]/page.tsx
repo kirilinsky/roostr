@@ -61,8 +61,12 @@ export default async function PublicProfilePage({
     ? new Date(friendship.createdAt).toLocaleDateString(locale)
     : null;
 
-  // Public, read-only catalog of this user's roosters.
-  const roostrs = (await getRoostrs(user.id)).map(hydrateRoostr);
+  // Catalog visibility: owner always sees it; others only if the player keeps
+  // their collection public (settings privacy toggle). Skip the query when hidden.
+  const canSeeCollection = isOwnProfile || user.collectionPublic;
+  const roostrs = canSeeCollection
+    ? (await getRoostrs(user.id)).map(hydrateRoostr)
+    : [];
 
   // Own-profile extras (economy + achievements + logout). Achievement unlocks
   // aren't tracked yet — show one dummy unlocked.
@@ -177,7 +181,15 @@ export default async function PublicProfilePage({
       </Stack>
 
       {/* Read-only catalog of this user's roosters — open each, no upgrades. */}
-      {roostrs.length > 0 && (
+      {!canSeeCollection && (
+        <Stack spacing={1} alignItems="center" sx={{ mt: 5, py: 4 }}>
+          <Typography color="text.secondary">
+            🔒 {t("publicProfile.private")}
+          </Typography>
+        </Stack>
+      )}
+
+      {canSeeCollection && roostrs.length > 0 && (
         <Stack spacing={2} sx={{ mt: 5 }}>
           <Typography variant="overline" color="text.secondary">
             {t("publicProfile.catalog")} ({roostrs.length})

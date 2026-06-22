@@ -62,7 +62,7 @@ export default async function RootLayout({
     ...(admin
       ? [{ href: "/debug", label: t("nav.debug"), icon: "🐞" }]
       : []),
-    { href: "/support", label: t("nav.support"), icon: "🛟" },
+    // Support moved to the footer.
     ...(loggedIn
       ? [{ href: "/settings", label: t("nav.settings"), icon: "⚙️" }]
       : []),
@@ -93,6 +93,7 @@ export default async function RootLayout({
                   bottomNav={bottomNav}
                   loginLabel={t("nav.login")}
                   aboutLabel={t("nav.about")}
+                  supportLabel={t("nav.support")}
                 >
                   {children}
                 </AppShell>
