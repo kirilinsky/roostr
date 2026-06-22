@@ -81,6 +81,14 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   not hardcoded per-screen. Overall level = TIER (D<C<B<A<S<R<X, thresholds in `RELATIONS.json`
   `tiers`) from `computeRating` = Σ stats + maxHealth — monotonic (debuffed stats floor at 1, so
   upgrades only add). No birth rarity (V2). Each gene has a sequential `no` = its DNA passport code.
+- V13 — FARM = egg engine + the ONLY farmable egg source (besides starter/tutorial grants). Hatch is
+  egg-gated (V5) → farm is the core loop. Fertility-only stat role (`Yield` removed → Intellect).
+  Slots fixed 2, buy +1 for coins → MAX 3; a roostr in a slot → `roostrs.status="farming"` (locked
+  from arena/sell/lab/gift, like `listed`). Continuous accrual + manual claim, SERVER timestamps only
+  (no client trust): claim grants whole eggs `grantResource("egg",n,"farm")` + stores frac remainder;
+  buffer cap pauses production until claimed. Rate `eggsPerDay = 2^((ΣFertility−30)/10)` (balance
+  knobs). Design [.notes/FARM-MODE.md]; onboarding carries early players [.notes/ONBOARDING.md], NOT
+  a gentler curve.
 
 ## §T — Tasks
 
@@ -113,6 +121,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T23 | . | persist gene levels + real coin spend on upgrade (off mock/localStorage) | C,V12 |
 | T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
 | T27 | x | starter egg at signup (upsertUser grants 1 egg via ledger, kind "starter") | V5,C |
+| T28 | . | farm: egg engine (Fertility, slots 2+1, server accrual/claim, exp rate) | V13,C |
 
 ## §B — Bugs
 
