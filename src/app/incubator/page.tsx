@@ -10,7 +10,6 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import RoostrCard from "@/components/RoostrCard";
 import { type RolledRoostr } from "@/lib/roostr";
-import { markDiscovered } from "@/lib/dex";
 import { hatchAction } from "@/app/incubator/actions";
 import { useIsAdmin } from "@/components/AdminProvider";
 import { useT } from "@/i18n/I18nProvider";
@@ -87,9 +86,8 @@ export default function IncubatorPage() {
     setPending(true);
     setNotice(null);
     try {
-      // Server is authoritative: it enforces the daily limit and decides the
-      // cooldown. The client clock is only UX. Keep the local dex mark until
-      // the Roostrdex reads discoveries from the DB.
+      // Server is authoritative: enforces the daily limit, records the dex
+      // discovery + reward, and decides the cooldown. The client clock is UX only.
       const res = await hatchAction();
       if (!res.ok) {
         if (res.reason === "cooldown") applyCooldown(res.cooldownUntil);
@@ -97,7 +95,6 @@ export default function IncubatorPage() {
         return;
       }
       applyCooldown(res.cooldownUntil);
-      markDiscovered(res.roostr.breed.id);
       setResult(res.roostr);
     } finally {
       setPending(false);

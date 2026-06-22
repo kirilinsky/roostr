@@ -22,7 +22,7 @@ import {
   localize,
 } from "@/lib/breeds";
 import { formatTraitEffects } from "@/lib/roostr";
-import { getDiscovered } from "@/lib/dex";
+import { myDiscoveredBreeds } from "./actions";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
 const ALL = "__all__";
@@ -35,9 +35,16 @@ export default function RoostrdexPage() {
   const [filter, setFilter] = useState<string>(ALL);
   const [reveal, setReveal] = useState(false);
 
-  // Discovery lives in localStorage (filled by hatching). Read after mount.
+  // Discovery is server-side (breedDiscoveries table, filled by hatching). Fetch
+  // after mount — the dex grid renders silhouettes until this resolves.
   useEffect(() => {
-    setDiscovered(getDiscovered());
+    let alive = true;
+    myDiscoveredBreeds().then((ids) => {
+      if (alive) setDiscovered(new Set(ids));
+    });
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const entries = useMemo(

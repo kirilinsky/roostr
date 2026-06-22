@@ -407,18 +407,45 @@ export async function setNickname(
   }
 }
 
-// Record a Roostrdex unlock (survives recycling the roostr). Idempotent.
-export async function recordDiscovery(userId: number, breedId: string): Promise<void> {
-  if (!process.env.DATABASE_URL) return;
+// Record a Roostrdex unlock (survives recycling the roostr). Idempotent — the
+// conditional insert no-ops if the breed is already discovered. Returns whether
+// this was a genuinely new breed (so the hatch reveal can flag a first catch).
+// (Collection rewards are a future step — see §A.13.)
+export async function recordDiscovery(
+  userId: number,
+  breedId: string,
+): Promise<{ isNew: boolean }> {
+  if (!process.env.DATABASE_URL) return { isNew: false };
   try {
     const { db } = await import("@/db");
     const { breedDiscoveries } = await import("@/db/schema");
-    await db
+    const inserted = await db
       .insert(breedDiscoveries)
       .values({ userId, breedId })
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning({ breedId: breedDiscoveries.breedId });
+    return { isNew: inserted.length > 0 };
   } catch (e) {
     console.error("recordDiscovery failed:", e);
+    return { isNew: false };
+  }
+}
+
+// All breed ids a user has discovered (the persistent dex source of truth).
+export async function getDiscoveredBreeds(userId: number): Promise<string[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { breedDiscoveries } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({ breedId: breedDiscoveries.breedId })
+      .from(breedDiscoveries)
+      .where(eq(breedDiscoveries.userId, userId));
+    return rows.map((r) => r.breedId);
+  } catch (e) {
+    console.error("getDiscoveredBreeds failed:", e);
+    return [];
   }
 }
 
