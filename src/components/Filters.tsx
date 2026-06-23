@@ -1,7 +1,7 @@
 "use client";
 
+import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
-import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 
 // Universal filter bar. Each group is a single-select dropdown with an "all"
@@ -28,7 +28,17 @@ export default function Filters({
   allLabel: string;
 }) {
   return (
-    <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+    <Box
+      sx={{
+        display: "grid",
+        gap: 1.5,
+        // Mobile: 2 compact columns. Desktop: natural-width pills in a row.
+        gridTemplateColumns: {
+          xs: "repeat(2, minmax(0, 1fr))",
+          sm: "repeat(auto-fit, minmax(150px, max-content))",
+        },
+      }}
+    >
       {groups.map((g) => (
         <TextField
           key={g.key}
@@ -37,7 +47,7 @@ export default function Filters({
           label={g.label}
           value={value[g.key] ?? ""}
           onChange={(e) => onChange(g.key, e.target.value)}
-          sx={{ minWidth: 160 }}
+          sx={{ width: "100%", minWidth: 0 }}
         >
           <MenuItem value="">{allLabel}</MenuItem>
           {g.options.map((o) => (
@@ -47,6 +57,6 @@ export default function Filters({
           ))}
         </TextField>
       ))}
-    </Stack>
+    </Box>
   );
 }
