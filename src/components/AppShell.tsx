@@ -50,6 +50,8 @@ export default function AppShell({
   feathersLabel,
   eggsLabel,
   sciLabel,
+  notificationsLabel,
+  notificationCount,
   telegramLoginConfigured,
   mainNav,
   bottomNav,
@@ -66,6 +68,8 @@ export default function AppShell({
   feathersLabel?: string;
   eggsLabel?: string;
   sciLabel?: string;
+  notificationsLabel?: string;
+  notificationCount?: number;
   telegramLoginConfigured: boolean;
   mainNav: NavItem[];
   bottomNav: NavItem[];
@@ -217,6 +221,8 @@ export default function AppShell({
           energy={energy}
           feathersLabel={feathersLabel}
           eggsLabel={eggsLabel}
+          notificationsLabel={notificationsLabel}
+          notificationCount={notificationCount}
           sciLabel={sciLabel}
         />
       )}

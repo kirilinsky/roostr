@@ -42,6 +42,7 @@ export const config = {
     "/arena/:path*",
     "/farm/:path*",
     "/lab/:path*",
+    "/notifications/:path*",
     "/bank/:path*",
     "/settings/:path*",
   ],

@@ -617,6 +617,220 @@ export async function removeFriend(a: number, b: number): Promise<void> {
   }
 }
 
+// --- Friend requests (pending, directed: from asked to) ---
+
+// Send a request from→to. No-op if self / already friends. If the OTHER side
+// already requested you, this acts as an ACCEPT (befriend + clear the reverse
+// request). Returns the resulting state for the UI.
+export async function sendFriendRequest(
+  fromId: number,
+  toId: number,
+): Promise<"sent" | "befriended" | "exists" | "noop"> {
+  if (!process.env.DATABASE_URL || fromId === toId) return "noop";
+  try {
+    const { db } = await import("@/db");
+    const { friendRequests } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    if (await getFriendship(fromId, toId)) return "noop"; // already friends
+    // Reverse request pending → treat this as accepting it.
+    const [reverse] = await db
+      .select({ f: friendRequests.fromUserId })
+      .from(friendRequests)
+      .where(
+        and(
+          eq(friendRequests.fromUserId, toId),
+          eq(friendRequests.toUserId, fromId),
+        ),
+      )
+      .limit(1);
+    if (reverse) {
+      await addFriend(fromId, toId);
+      await db
+        .delete(friendRequests)
+        .where(
+          and(
+            eq(friendRequests.fromUserId, toId),
+            eq(friendRequests.toUserId, fromId),
+          ),
+        );
+      return "befriended";
+    }
+    const inserted = await db
+      .insert(friendRequests)
+      .values({ fromUserId: fromId, toUserId: toId })
+      .onConflictDoNothing()
+      .returning({ f: friendRequests.fromUserId });
+    return inserted.length > 0 ? "sent" : "exists";
+  } catch (e) {
+    console.error("sendFriendRequest failed:", e);
+    return "noop";
+  }
+}
+
+// Has `fromId` already sent a pending request to `toId`? (button state)
+export async function hasPendingRequest(
+  fromId: number,
+  toId: number,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { friendRequests } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [row] = await db
+      .select({ f: friendRequests.fromUserId })
+      .from(friendRequests)
+      .where(
+        and(
+          eq(friendRequests.fromUserId, fromId),
+          eq(friendRequests.toUserId, toId),
+        ),
+      )
+      .limit(1);
+    return !!row;
+  } catch (e) {
+    console.error("hasPendingRequest failed:", e);
+    return false;
+  }
+}
+
+export interface FriendRequestSummary {
+  id: number;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  photoUrl: string | null;
+  createdAt: Date;
+}
+
+// Incoming requests for a user (the notifications feed), newest first.
+export async function getIncomingFriendRequests(
+  userId: number,
+): Promise<FriendRequestSummary[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { friendRequests, users } = await import("@/db/schema");
+    const { desc, eq } = await import("drizzle-orm");
+    return await db
+      .select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        createdAt: friendRequests.createdAt,
+      })
+      .from(friendRequests)
+      .innerJoin(users, eq(users.id, friendRequests.fromUserId))
+      .where(eq(friendRequests.toUserId, userId))
+      .orderBy(desc(friendRequests.createdAt));
+  } catch (e) {
+    console.error("getIncomingFriendRequests failed:", e);
+    return [];
+  }
+}
+
+// Accept (fromId asked toId): delete the request + befriend. False if no request.
+export async function acceptFriendRequest(
+  toId: number,
+  fromId: number,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { friendRequests } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const deleted = await db
+      .delete(friendRequests)
+      .where(
+        and(
+          eq(friendRequests.fromUserId, fromId),
+          eq(friendRequests.toUserId, toId),
+        ),
+      )
+      .returning({ f: friendRequests.fromUserId });
+    if (deleted.length === 0) return false;
+    await addFriend(toId, fromId);
+    return true;
+  } catch (e) {
+    console.error("acceptFriendRequest failed:", e);
+    return false;
+  }
+}
+
+// Decline (fromId asked toId): just delete the request.
+export async function declineFriendRequest(
+  toId: number,
+  fromId: number,
+): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { friendRequests } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    await db
+      .delete(friendRequests)
+      .where(
+        and(
+          eq(friendRequests.fromUserId, fromId),
+          eq(friendRequests.toUserId, toId),
+        ),
+      );
+  } catch (e) {
+    console.error("declineFriendRequest failed:", e);
+  }
+}
+
+// Count UNREAD notifications for the HUD bell badge: incoming friend requests
+// newer than the user's read-cursor (`notificationsSeenAt`); all of them if the
+// cursor is unset. (Friend requests are the only notification type for now.)
+export async function countUnreadNotifications(userId: number): Promise<number> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
+  try {
+    const { db } = await import("@/db");
+    const { friendRequests, users } = await import("@/db/schema");
+    const { and, eq, gt, sql } = await import("drizzle-orm");
+    const [u] = await db
+      .select({ seen: users.notificationsSeenAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const seen = u?.seen ?? null;
+    const filter = seen
+      ? and(
+          eq(friendRequests.toUserId, userId),
+          gt(friendRequests.createdAt, seen),
+        )
+      : eq(friendRequests.toUserId, userId);
+    const [row] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(friendRequests)
+      .where(filter);
+    return Number(row?.n ?? 0);
+  } catch (e) {
+    console.error("countUnreadNotifications failed:", e);
+    return 0;
+  }
+}
+
+// Mark the notifications feed as read up to now (clears the bell badge). Called
+// when the user opens /notifications.
+export async function markNotificationsSeen(userId: number): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    await db
+      .update(users)
+      .set({ notificationsSeenAt: new Date() })
+      .where(eq(users.id, userId));
+  } catch (e) {
+    console.error("markNotificationsSeen failed:", e);
+  }
+}
+
 // All friends of a user (the "other" side of each pair) + since date.
 export async function getFriends(userId: number) {
   if (!process.env.DATABASE_URL) return [];

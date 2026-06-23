@@ -10,7 +10,7 @@ import ReferralCapture from "@/components/ReferralCapture";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
-import { getUserById } from "@/db/queries";
+import { getUserById, countUnreadNotifications } from "@/db/queries";
 import { isAdmin } from "@/lib/admin";
 import { headlineFont, bodyFont } from "@/app/fonts";
 
@@ -44,6 +44,10 @@ export default async function RootLayout({
   const admin = isAdmin(session?.id);
   // Live Corn Coin balance from the DB (was hardcoded 0).
   const dbUser = session ? await getUserById(session.id) : null;
+  // Unread notifications → HUD bell badge.
+  const notificationCount = session
+    ? await countUnreadNotifications(session.id)
+    : 0;
 
   // Game nav is for logged-in players only; guests see just public links + login.
   const mainNav: NavItem[] = loggedIn
@@ -91,6 +95,8 @@ export default async function RootLayout({
                     feathersLabel={t("resource.feathers")}
                     eggsLabel={t("resource.eggs")}
                     sciLabel={t("resource.sci")}
+                    notificationsLabel={user ? t("notifications.title") : undefined}
+                    notificationCount={notificationCount}
                     telegramLoginConfigured={telegramLoginConfigured}
                     mainNav={mainNav}
                     bottomNav={bottomNav}

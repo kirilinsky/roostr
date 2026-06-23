@@ -43,6 +43,11 @@ export const users = pgTable(
       { onDelete: "set null" },
     ),
     referredAt: timestamp("referred_at", { withTimezone: true }),
+    // Read-cursor for the notifications feed: anything newer than this is "unread"
+    // and lights the HUD bell badge. Visiting /notifications bumps it to now.
+    notificationsSeenAt: timestamp("notifications_seen_at", {
+      withTimezone: true,
+    }),
     tonAddress: text("ton_address"),
     lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // legacy/unused: hatching is egg-gated now (no cooldown)
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -264,6 +269,29 @@ export const friendships = pgTable(
       .defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userAId, t.userBId] })],
+);
+
+// Pending friend requests (directed): `fromUserId` asked `toUserId` to be friends.
+// Accept → delete the row + write a `friendships` row; decline → just delete it.
+// PK on the directed pair prevents duplicate requests; index for the recipient's
+// incoming list (the notifications feed).
+export const friendRequests = pgTable(
+  "friend_requests",
+  {
+    fromUserId: bigint("from_user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: bigint("to_user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.fromUserId, t.toUserId] }),
+    index("friend_requests_to_user_id_idx").on(t.toUserId),
+  ],
 );
 
 // Work stations — the shared accrual engine's persistent state (one row per

@@ -10,7 +10,12 @@ import OwnProfile from "@/components/OwnProfile";
 import ReferralBanner from "@/components/ReferralBanner";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
-import { getUserById, getFriendship, getRoostrs } from "@/db/queries";
+import {
+  getUserById,
+  getFriendship,
+  getRoostrs,
+  hasPendingRequest,
+} from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { parseReferralId } from "@/lib/referrals";
 
@@ -66,6 +71,11 @@ export default async function PublicProfilePage({
   const since = friendship
     ? new Date(friendship.createdAt).toLocaleDateString(locale)
     : null;
+  // Did the viewer already send this user a pending friend request? (button state)
+  const requestSent =
+    !!viewerId && !isOwnProfile && !friendship
+      ? await hasPendingRequest(viewerId, user.id)
+      : false;
 
   // Catalog is for VISITORS only — on your own profile you don't need to see your
   // own collection (it lives in /collection). Others see it only if the player keeps
@@ -130,8 +140,10 @@ export default async function PublicProfilePage({
               <FriendButton
                 targetId={user.id}
                 isFriend={!!friendship}
+                requestSent={requestSent}
                 addLabel={t("friends.add")}
                 removeLabel={t("friends.remove")}
+                cancelLabel={t("friends.cancelRequest")}
               />
               {since && (
                 <Typography variant="caption" color="text.secondary">
