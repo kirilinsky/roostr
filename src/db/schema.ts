@@ -1,6 +1,7 @@
 import {
   bigint,
   boolean,
+  doublePrecision,
   integer,
   jsonb,
   pgTable,
@@ -226,6 +227,32 @@ export const friendships = pgTable(
       .defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.userAId, t.userBId] })],
+);
+
+// Work stations — the shared accrual engine's persistent state (one row per
+// user × station kind: lab, farm, …). See src/lib/stations.ts. A rooster placed
+// here gets roostrs.status="working" (locked from the roster/pickers). Accrual is
+// time-in-service: `pending` is the buffered resource (incl. fraction), settled
+// (pending += elapsed × rate) on every worker-set change + claim. `lastSettleAt`
+// is the integration anchor. Claim moves floor(pending) to the wallet (ledger).
+export const workStations = pgTable(
+  "work_stations",
+  {
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // lab | farm | ...
+    roostrIds: jsonb("roostr_ids").$type<string[]>().notNull().default([]),
+    slotsOwned: integer("slots_owned").notNull().default(2),
+    pending: doublePrecision("pending").notNull().default(0), // buffered resource
+    lastSettleAt: timestamp("last_settle_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.kind] })],
 );
 
 export const farmSessions = pgTable("farm_sessions", {

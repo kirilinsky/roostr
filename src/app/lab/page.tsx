@@ -1,16 +1,16 @@
-import Link from "next/link";
-import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import LabView from "@/components/LabView";
+import Button from "@mui/material/Button";
+import Link from "next/link";
+import StationView from "@/components/StationView";
 import { getSession } from "@/lib/auth";
-import { getRoostrs } from "@/db/queries";
+import { getRoostrs, getStationView } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 
-// Laboratory (visual only): research progress + science/hour from attached
-// workers. Server component pulls the owner's roostrs; LabView handles the UI.
+// Laboratory — science from workers' Intellect (shared station engine). Server
+// loads the station + available roster; StationView drives assign/claim.
 export default async function LabPage() {
   const { t } = await getTranslations();
   const session = await getSession();
@@ -25,7 +25,9 @@ export default async function LabPage() {
     );
   }
 
-  const roostrs = (await getRoostrs(session.id)).map(hydrateRoostr);
+  const view = await getStationView(session.id, "lab");
+  const workers = view.workers.map(hydrateRoostr);
+  const available = (await getRoostrs(session.id)).map(hydrateRoostr);
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
@@ -50,7 +52,14 @@ export default async function LabPage() {
             🧬 {t("lab.geneShop")}
           </Button>
         </Stack>
-        <LabView roostrs={roostrs} />
+        <StationView
+          kind="lab"
+          workers={workers}
+          available={available}
+          pending={view.pending}
+          lastSettleAtMs={view.lastSettleAtMs}
+          slotsOwned={view.slotsOwned}
+        />
       </Stack>
     </Container>
   );

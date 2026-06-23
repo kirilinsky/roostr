@@ -1,5 +1,11 @@
 import type { SessionUser } from "@/lib/auth";
-import type { RolledRoostr } from "@/lib/roostr";
+import { hydrateRoostr, type RolledRoostr } from "@/lib/roostr";
+import {
+  STATIONS,
+  settlePending,
+  BASE_SLOTS,
+  type StationKind,
+} from "@/lib/stations";
 
 // Canonical pair order so a friendship is stored once regardless of direction.
 function pair(a: number, b: number): [number, number] {
@@ -661,6 +667,276 @@ export async function getRoostrBattles(roostrId: string, limit = 50) {
   } catch (e) {
     console.error("getRoostrBattles failed:", e);
     return [];
+  }
+}
+
+// --- Work stations (lab / farm) — shared accrual engine; see src/lib/stations.ts ---
+
+// Roostr rows by id (loads a station's current workers, including non-active
+// "working" birds that getRoostrs filters out). Assumes a DB (callers env-guard).
+async function roostrsByIds(roostrIds: string[]) {
+  if (roostrIds.length === 0)
+    return [] as Awaited<ReturnType<typeof loadByIds>>;
+  return loadByIds(roostrIds);
+}
+async function loadByIds(roostrIds: string[]) {
+  const { db } = await import("@/db");
+  const { roostrs } = await import("@/db/schema");
+  const { inArray } = await import("drizzle-orm");
+  return db.select().from(roostrs).where(inArray(roostrs.id, roostrIds));
+}
+
+// Σ of the station's driving stat (Intellect / Fertility) over its worker rows.
+function totalStat(
+  rows: Awaited<ReturnType<typeof loadByIds>>,
+  kind: StationKind,
+): number {
+  const stat = STATIONS[kind].stat;
+  return rows.reduce((s, row) => s + (hydrateRoostr(row).stats[stat] ?? 0), 0);
+}
+
+// Settle a station's pending buffer up to NOW and persist it. Called on every
+// worker-set change + on claim + by the cron — so each interval has a constant
+// worker set and the time-integral is exact (anti-cheat). Optimistic guard on
+// lastSettleAt prevents a double-settle race.
+export async function settleStation(
+  userId: number,
+  kind: StationKind,
+): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [row] = await db
+      .select()
+      .from(workStations)
+      .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
+      .limit(1);
+    if (!row) return;
+    const workers = await roostrsByIds(row.roostrIds);
+    const nowMs = Date.now();
+    const pending = settlePending(
+      STATIONS[kind],
+      row.pending,
+      totalStat(workers, kind),
+      workers.length,
+      row.lastSettleAt.getTime(),
+      nowMs,
+    );
+    await db
+      .update(workStations)
+      .set({ pending, lastSettleAt: new Date(nowMs) })
+      .where(
+        and(
+          eq(workStations.userId, userId),
+          eq(workStations.kind, kind),
+          eq(workStations.lastSettleAt, row.lastSettleAt),
+        ),
+      );
+  } catch (e) {
+    console.error("settleStation failed:", e);
+  }
+}
+
+// Read-only station snapshot for the page. `pending`/`lastSettleAtMs` let the
+// client tick the buffer live (it recomputes settlePending against Date.now()).
+export async function getStationView(userId: number, kind: StationKind) {
+  const empty = {
+    slotsOwned: BASE_SLOTS,
+    pending: 0,
+    lastSettleAtMs: Date.now(),
+    workers: [] as Awaited<ReturnType<typeof loadByIds>>,
+  };
+  if (!process.env.DATABASE_URL) return empty;
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [row] = await db
+      .select()
+      .from(workStations)
+      .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
+      .limit(1);
+    if (!row) return empty;
+    return {
+      slotsOwned: row.slotsOwned,
+      pending: row.pending,
+      lastSettleAtMs: row.lastSettleAt.getTime(),
+      workers: await roostrsByIds(row.roostrIds),
+    };
+  } catch (e) {
+    console.error("getStationView failed:", e);
+    return empty;
+  }
+}
+
+export type StationOpResult =
+  | { ok: true; claimed?: number }
+  | { ok: false; error: "db" | "notfound" | "owner" | "locked" | "full" };
+
+// Assign a rooster to a station: owner-guarded, must be active, respects the slot
+// cap. Settles FIRST (credits the prior interval at the old worker set), then adds
+// the worker and locks it (status="working", so it leaves the roster + can't be
+// upgraded → its stat stays constant while in service).
+export async function assignWorker(
+  userId: number,
+  kind: StationKind,
+  roostrId: string,
+): Promise<StationOpResult> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
+  try {
+    const { db } = await import("@/db");
+    const { workStations, roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+
+    const rr = await getRoostr(roostrId);
+    if (!rr) return { ok: false, error: "notfound" };
+    if (rr.ownerId !== userId) return { ok: false, error: "owner" };
+    if (rr.status !== "active") return { ok: false, error: "locked" };
+
+    await settleStation(userId, kind);
+
+    const [st] = await db
+      .select()
+      .from(workStations)
+      .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
+      .limit(1);
+    const ids = st?.roostrIds ?? [];
+    const slots = st?.slotsOwned ?? BASE_SLOTS;
+    if (ids.includes(roostrId)) return { ok: true };
+    if (ids.length >= slots) return { ok: false, error: "full" };
+
+    if (st) {
+      await db
+        .update(workStations)
+        .set({ roostrIds: [...ids, roostrId] })
+        .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)));
+    } else {
+      await db
+        .insert(workStations)
+        .values({ userId, kind, roostrIds: [roostrId] });
+    }
+    // lock the bird (only if still active — guards a double-assign race)
+    await db
+      .update(roostrs)
+      .set({ status: "working" })
+      .where(
+        and(
+          eq(roostrs.id, roostrId),
+          eq(roostrs.ownerId, userId),
+          eq(roostrs.status, "active"),
+        ),
+      );
+    return { ok: true };
+  } catch (e) {
+    console.error("assignWorker failed:", e);
+    return { ok: false, error: "db" };
+  }
+}
+
+// Remove a rooster from a station: settles FIRST (credits its served time), then
+// unlocks it back to the roster (status="active").
+export async function removeWorker(
+  userId: number,
+  kind: StationKind,
+  roostrId: string,
+): Promise<StationOpResult> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
+  try {
+    const { db } = await import("@/db");
+    const { workStations, roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+
+    await settleStation(userId, kind);
+
+    const [st] = await db
+      .select()
+      .from(workStations)
+      .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
+      .limit(1);
+    if (!st || !st.roostrIds.includes(roostrId)) return { ok: true };
+
+    await db
+      .update(workStations)
+      .set({ roostrIds: st.roostrIds.filter((x) => x !== roostrId) })
+      .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)));
+    await db
+      .update(roostrs)
+      .set({ status: "active" })
+      .where(
+        and(
+          eq(roostrs.id, roostrId),
+          eq(roostrs.ownerId, userId),
+          eq(roostrs.status, "working"),
+        ),
+      );
+    return { ok: true };
+  } catch (e) {
+    console.error("removeWorker failed:", e);
+    return { ok: false, error: "db" };
+  }
+}
+
+// Claim a station's pending buffer: settle, move floor(pending) to the wallet via
+// the audited ledger, keep the fraction. Guarded so concurrent claims can't double.
+export async function claimStation(
+  userId: number,
+  kind: StationKind,
+): Promise<StationOpResult> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { and, eq, gte, sql } = await import("drizzle-orm");
+
+    await settleStation(userId, kind);
+
+    const [st] = await db
+      .select()
+      .from(workStations)
+      .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
+      .limit(1);
+    if (!st) return { ok: true, claimed: 0 };
+    const whole = Math.floor(st.pending);
+    if (whole <= 0) return { ok: true, claimed: 0 };
+
+    const dec = await db
+      .update(workStations)
+      .set({ pending: sql`${workStations.pending} - ${whole}` })
+      .where(
+        and(
+          eq(workStations.userId, userId),
+          eq(workStations.kind, kind),
+          gte(workStations.pending, whole),
+        ),
+      )
+      .returning({ p: workStations.pending });
+    if (dec.length === 0) return { ok: true, claimed: 0 };
+
+    await grantResource(userId, STATIONS[kind].resource, whole, kind);
+    return { ok: true, claimed: whole };
+  } catch (e) {
+    console.error("claimStation failed:", e);
+    return { ok: false, error: "db" };
+  }
+}
+
+// Cron: settle every station (drips pending by elapsed time + applies the buffer
+// cap) so balances stay current even if the player never opens the page.
+export async function settleAllStations(): Promise<{ settled: number }> {
+  if (!process.env.DATABASE_URL) return { settled: 0 };
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const rows = await db
+      .select({ userId: workStations.userId, kind: workStations.kind })
+      .from(workStations);
+    for (const r of rows) await settleStation(r.userId, r.kind as StationKind);
+    return { settled: rows.length };
+  } catch (e) {
+    console.error("settleAllStations failed:", e);
+    return { settled: 0 };
   }
 }
 

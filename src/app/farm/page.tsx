@@ -1,14 +1,14 @@
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import FarmView from "@/components/FarmView";
+import StationView from "@/components/StationView";
 import { getSession } from "@/lib/auth";
-import { getRoostrs } from "@/db/queries";
+import { getRoostrs, getStationView } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 
-// Farm (visual only): egg production from attached workers' Fertility. Server
-// component pulls the owner's roostrs; FarmView handles the UI.
+// Farm — egg production from workers' Fertility (shared station engine). Server
+// loads the station + available roster; StationView drives assign/claim.
 export default async function FarmPage() {
   const { t } = await getTranslations();
   const session = await getSession();
@@ -23,7 +23,9 @@ export default async function FarmPage() {
     );
   }
 
-  const roostrs = (await getRoostrs(session.id)).map(hydrateRoostr);
+  const view = await getStationView(session.id, "farm");
+  const workers = view.workers.map(hydrateRoostr);
+  const available = (await getRoostrs(session.id)).map(hydrateRoostr);
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
@@ -31,7 +33,14 @@ export default async function FarmPage() {
         <Typography variant="h4" component="h1">
           {t("nav.farm")}
         </Typography>
-        <FarmView roostrs={roostrs} />
+        <StationView
+          kind="farm"
+          workers={workers}
+          available={available}
+          pending={view.pending}
+          lastSettleAtMs={view.lastSettleAtMs}
+          slotsOwned={view.slotsOwned}
+        />
       </Stack>
     </Container>
   );

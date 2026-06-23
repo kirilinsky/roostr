@@ -32,6 +32,7 @@ export default function CollectionCard({
   selected = false,
   href,
   price,
+  compact = false,
 }: {
   roostr: HydratedRoostr;
   metric?: CardMetric;
@@ -39,6 +40,7 @@ export default function CollectionCard({
   selected?: boolean;
   href?: string;
   price?: number;
+  compact?: boolean; // half-size pick card: no stat dot, no breed/record clutter
 }) {
   const locale = useLocale();
   const t = useT();
@@ -125,10 +127,12 @@ export default function CollectionCard({
           >
             {countryFlag(roostr.breed.region.iso)} {name}
           </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap component="div">
-            {roostr.nickname ? `${breedName} · ` : ""}
-            {groupName(roostr.breed.group, locale)}
-          </Typography>
+          {!compact && (
+            <Typography variant="caption" color="text.secondary" noWrap component="div">
+              {roostr.nickname ? `${breedName} · ` : ""}
+              {groupName(roostr.breed.group, locale)}
+            </Typography>
+          )}
         </Box>
         <Chip
           label={`${roostr.tier.id} · ${roostr.rating}`}
@@ -143,7 +147,9 @@ export default function CollectionCard({
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         {metric === "intellect" ? (
           <Stack direction="row" spacing={0.5} alignItems="center">
-            <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "success.main" }} />
+            {!compact && (
+              <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "success.main" }} />
+            )}
             <Typography
               variant="caption"
               sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
@@ -153,7 +159,9 @@ export default function CollectionCard({
           </Stack>
         ) : metric === "fertility" ? (
           <Stack direction="row" spacing={0.5} alignItems="center">
-            <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "tertiary.main" }} />
+            {!compact && (
+              <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "tertiary.main" }} />
+            )}
             <Typography
               variant="caption"
               sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
@@ -165,14 +173,16 @@ export default function CollectionCard({
           <Stack direction="row" spacing={1.5}>
             {STAT_KIND_ORDER.map((kind) => (
               <Stack key={kind} direction="row" alignItems="center" spacing={0.5}>
-                <Box
-                  sx={{
-                    width: 9,
-                    height: 9,
-                    borderRadius: "50%",
-                    bgcolor: `${STAT_KIND_COLOR[kind]}.main`,
-                  }}
-                />
+                {!compact && (
+                  <Box
+                    sx={{
+                      width: 9,
+                      height: 9,
+                      borderRadius: "50%",
+                      bgcolor: `${STAT_KIND_COLOR[kind]}.main`,
+                    }}
+                  />
+                )}
                 <Typography
                   variant="caption"
                   sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
@@ -183,7 +193,13 @@ export default function CollectionCard({
             ))}
           </Stack>
         )}
-        <BattleRecord wins={roostr.wins} losses={roostr.losses} draws={roostr.draws} />
+        {!compact && (
+          <BattleRecord
+            wins={roostr.wins}
+            losses={roostr.losses}
+            draws={roostr.draws}
+          />
+        )}
       </Stack>
 
       {/* market price tag */}
@@ -218,10 +234,10 @@ export default function CollectionCard({
   );
 
   const baseSx: SxProps<Theme> = {
-    p: 1.5,
+    p: compact ? 0.75 : 1.5,
     display: "flex",
     flexDirection: "column",
-    gap: 1,
+    gap: compact ? 0.5 : 1,
     textDecoration: "none",
     color: "inherit",
     textAlign: "left",

@@ -196,9 +196,12 @@ export const dictionaries: Record<Locale, Dict> = {
       "Roostr is a game about collecting, breeding and upgrading roosters. The project is in active development.",
     "about.disclaimer":
       "All game content is for entertainment only and may change before release.",
-    "lab.research": "Current research",
+    "lab.research": "Research",
     "lab.researchTba": "Research coming soon",
     "lab.perHour": "{n} sci/h",
+    "lab.sciPerDay": "{n} sci/day",
+    "station.ready": "Ready to claim",
+    "station.claim": "Claim",
     "lab.productivityHint":
       "Productivity = sum of the attached workers' Intellect.",
     "lab.workers": "Workers",
@@ -502,9 +505,12 @@ export const dictionaries: Record<Locale, Dict> = {
       "Roostr — игра про коллекционирование, разведение и прокачку петухов. Проект находится в разработке.",
     "about.disclaimer":
       "Весь игровой контент предназначен только для развлечения и может измениться до релиза.",
-    "lab.research": "Текущее исследование",
+    "lab.research": "Исследование",
     "lab.researchTba": "Исследование — скоро",
     "lab.perHour": "{n} науки/ч",
+    "lab.sciPerDay": "{n} науки/день",
+    "station.ready": "Готово к сбору",
+    "station.claim": "Забрать",
     "lab.productivityHint":
       "Производительность = сумма Интеллекта прикреплённых петухов.",
     "lab.workers": "Работники",
