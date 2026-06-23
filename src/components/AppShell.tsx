@@ -78,6 +78,9 @@ export default function AppShell({
   const pathname = usePathname();
   const close = () => setMobileOpen(false);
 
+  // Sidebar nav, dialed a bit more "Neo-Arcade pixel": square blocks (no rounding),
+  // headline (pixel) font labels in uppercase, and a hard 3px inset bar (no blur)
+  // for the active/hover state instead of a soft highlight. All via theme tokens.
   const navList = (items: NavItem[]) => (
     <List>
       {items.map((it) => (
@@ -87,6 +90,25 @@ export default function AppShell({
             href={it.href}
             selected={pathname === it.href}
             onClick={close}
+            sx={{
+              borderRadius: 0,
+              py: 0.75,
+              "& .MuiListItemText-primary": {
+                fontFamily: "var(--font-headline), system-ui, sans-serif",
+                fontWeight: 700,
+                fontSize: "0.9rem",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+              },
+              "&:hover": {
+                boxShadow: (theme) => `inset 3px 0 0 ${theme.palette.divider}`,
+              },
+              "&.Mui-selected, &.Mui-selected:hover": {
+                bgcolor: "action.selected",
+                boxShadow: (theme) =>
+                  `inset 3px 0 0 ${theme.palette.secondary.main}`,
+              },
+            }}
           >
             <ListItemIcon sx={{ minWidth: 40, fontSize: 22 }}>
               {it.icon}

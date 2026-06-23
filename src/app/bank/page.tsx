@@ -150,6 +150,34 @@ export default async function BankPage() {
                 </Stack>
               </CardContent>
             </Card>
+
+            {/* Block 3 — collectible rarities (soon) */}
+            <Card>
+              <CardContent>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={1}
+                >
+                  <Typography variant="overline" color="text.secondary">
+                    {t("bank.rarities")}
+                  </Typography>
+                  <Chip
+                    label={t("pedia.soon")}
+                    size="small"
+                    variant="outlined"
+                  />
+                </Stack>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  {t("bank.raritiesDesc")}
+                </Typography>
+              </CardContent>
+            </Card>
           </Stack>
 
           {/* right column — ledger, tabbed by currency + paginated (client island) */}
