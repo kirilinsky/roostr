@@ -5,7 +5,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CollectionView from "@/components/CollectionView";
 import { getSession } from "@/lib/auth";
-import { getRoostrs } from "@/db/queries";
+import { getCollectionRoostrs } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 
@@ -26,7 +26,7 @@ export default async function CollectionPage() {
     );
   }
 
-  const rows = await getRoostrs(session.id);
+  const rows = await getCollectionRoostrs(session.id);
   const roostrs = rows.map(hydrateRoostr);
 
   return (

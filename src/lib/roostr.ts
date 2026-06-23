@@ -599,6 +599,8 @@ export interface RoostrRow {
   wins?: number;
   losses?: number;
   draws?: number;
+  status?: string; // active | working | listed | sold | recycled
+  meta?: Record<string, unknown> | null; // forward catch-all (holds work info)
 }
 
 export interface HydratedRoostr {
@@ -619,6 +621,19 @@ export interface HydratedRoostr {
   wins: number; // denormalized battle record (see schema / recordBattle)
   losses: number;
   draws: number;
+  status: string; // active | working | listed | sold | recycled
+  work: { kind: string; since: number } | null; // station assignment (lab/farm)
+}
+
+// Pull the station assignment ({kind, since}) out of the roostr's meta jsonb.
+function parseWork(
+  meta: Record<string, unknown> | null | undefined,
+): { kind: string; since: number } | null {
+  const w = meta?.work as { kind?: unknown; since?: unknown } | undefined;
+  if (w && typeof w.kind === "string" && typeof w.since === "number") {
+    return { kind: w.kind, since: w.since };
+  }
+  return null;
 }
 
 export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
@@ -649,5 +664,7 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     wins: row.wins ?? 0,
     losses: row.losses ?? 0,
     draws: row.draws ?? 0,
+    status: row.status ?? "active",
+    work: parseWork(row.meta),
   };
 }

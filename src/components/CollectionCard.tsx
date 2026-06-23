@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Box from "@mui/material/Box";
@@ -21,6 +21,17 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 // Footer readout mode: "kinds" = stat-by-category sums (collection); "intellect"
 // = single Intellect score (lab roster / picker).
 export type CardMetric = "kinds" | "intellect" | "fertility";
+
+// Compact "how long on the job" badge text (m / h / d).
+function shortAgo(sinceMs: number, nowMs: number): string {
+  const s = Math.max(0, Math.floor((nowMs - sinceMs) / 1000));
+  if (s < 60) return "<1m";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
 
 // Reusable roster card. Default: links to the rooster page with the per-category
 // stat lean. Pass `onClick` to use it as a button (lab worker / picker), and
@@ -51,6 +62,19 @@ export default function CollectionCard({
   // "Sergeant" rank insignia: any bought upgrade earns chevrons (1–3 by amount).
   const upgrades = geneUpgradeCount(roostr.geneLevels);
   const rank = upgrades >= 10 ? 3 : upgrades >= 4 ? 2 : 1;
+
+  // Station badge — keyed on STATUS so EVERY working bird is flagged; kind + how
+  // long are extra detail (from meta.work) shown when available. `nowMs` set after
+  // mount (avoids SSR/client time mismatch) and ticks each minute.
+  const isWorking = roostr.status === "working";
+  const work = roostr.work;
+  const [nowMs, setNowMs] = useState<number | null>(null);
+  useEffect(() => {
+    if (!isWorking) return;
+    setNowMs(Date.now());
+    const id = window.setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => window.clearInterval(id);
+  }, [isWorking]);
 
   // Sum of stats per kind → shows where the build leans.
   const kindSum = useMemo(() => {
@@ -108,6 +132,30 @@ export default function CollectionCard({
               bgcolor: "tertiary.main",
               color: theme.palette.tertiary.contrastText,
               "& .MuiChip-label": { px: 0.75 },
+            })}
+          />
+        )}
+        {/* station badge — any working bird is flagged; kind + elapsed if known */}
+        {isWorking && (
+          <Chip
+            size="small"
+            title={t(
+              work?.kind === "farm"
+                ? "card.onFarm"
+                : work?.kind === "lab"
+                  ? "card.onLab"
+                  : "card.working",
+            )}
+            label={`${work?.kind === "farm" ? "🌾" : work?.kind === "lab" ? "🧪" : "🔧"}${work && nowMs ? " " + shortAgo(work.since, nowMs) : ""}`}
+            sx={(theme) => ({
+              position: "absolute",
+              bottom: 6,
+              left: 6,
+              height: 20,
+              fontWeight: 700,
+              fontSize: 11,
+              bgcolor: "neutral.main",
+              color: theme.palette.neutral.contrastText,
             })}
           />
         )}

@@ -293,6 +293,30 @@ export async function getRoostrs(ownerId: number) {
   }
 }
 
+// Collection roster: ACTIVE + WORKING birds (working ones show a station badge,
+// stay on the roster but can't be sold). Excludes listed/sold/recycled. Newest first.
+export async function getCollectionRoostrs(ownerId: number) {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, desc, eq, inArray } = await import("drizzle-orm");
+    return await db
+      .select()
+      .from(roostrs)
+      .where(
+        and(
+          eq(roostrs.ownerId, ownerId),
+          inArray(roostrs.status, ["active", "working"]),
+        ),
+      )
+      .orderBy(desc(roostrs.createdAt));
+  } catch (e) {
+    console.error("getCollectionRoostrs failed:", e);
+    return [];
+  }
+}
+
 // A single roostr by id (null if absent / DB unavailable).
 export async function getRoostr(id: string) {
   if (!process.env.DATABASE_URL) return null;
@@ -817,10 +841,14 @@ export async function assignWorker(
         .insert(workStations)
         .values({ userId, kind, roostrIds: [roostrId] });
     }
-    // lock the bird (only if still active — guards a double-assign race)
+    // lock the bird (only if still active — guards a double-assign race) and stamp
+    // the work assignment (kind + since) into meta for the collection badge.
     await db
       .update(roostrs)
-      .set({ status: "working" })
+      .set({
+        status: "working",
+        meta: { ...rr.meta, work: { kind, since: Date.now() } },
+      })
       .where(
         and(
           eq(roostrs.id, roostrId),
@@ -861,9 +889,13 @@ export async function removeWorker(
       .update(workStations)
       .set({ roostrIds: st.roostrIds.filter((x) => x !== roostrId) })
       .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)));
+    // unlock + clear the work stamp from meta
+    const cur = await getRoostr(roostrId);
+    const meta: Record<string, unknown> = { ...cur?.meta };
+    delete meta.work;
     await db
       .update(roostrs)
-      .set({ status: "active" })
+      .set({ status: "active", meta })
       .where(
         and(
           eq(roostrs.id, roostrId),

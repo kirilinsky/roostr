@@ -84,14 +84,22 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   upgrades only add). Thresholds rescaled to the achievable range (max 4-gene+synth @L10 ≈ rating 180;
   old R650/X999 were unreachable): D0 C75 B95 A115 S135 R150 X175. No birth rarity (V2). Each gene has
   a sequential `no` = its DNA passport code.
-- V13 — FARM = egg engine + the ONLY farmable egg source (besides starter/tutorial grants). Hatch is
-  egg-gated (V5) → farm is the core loop. Fertility-only stat role (`Yield` removed → Intellect).
-  Slots fixed 2, buy +1 for coins → MAX 3; a roostr in a slot → `roostrs.status="farming"` (locked
-  from arena/sell/lab/gift, like `listed`). Continuous accrual + manual claim, SERVER timestamps only
-  (no client trust): claim grants whole eggs `grantResource("egg",n,"farm")` + stores frac remainder;
-  buffer cap pauses production until claimed. Rate `eggsPerDay = 2^((ΣFertility−30)/10)` (balance
-  knobs). Design [.notes/FARM-MODE.md]; onboarding carries early players [.notes/ONBOARDING.md], NOT
-  a gentler curve.
+- V13 — WORK STATIONS = one shared accrual engine (`src/lib/stations.ts`) behind the LAB and the FARM
+  (and any future "assign roosters → earn a resource over time" mode, e.g. thieving/Stealth — T26).
+  Per-station config in `STATIONS` (resource, driving stat, `ratePerDay` fn, `bufferCap`): farm =
+  Fertility→eggs (exponential `2^((ΣFertility−30)/10)`, cap 5), lab = Intellect→science (linear
+  ΣIntellect/day, cap 50). ANTI-CHEAT: a station's `pending` buffer accrues by TIME-IN-SERVICE
+  (`pending += elapsed × ratePerDay`), settled on EVERY worker-set change (assign/remove) + on claim
+  + by a daily cron (`/api/cron/stations`, guarded by `CRON_SECRET`) — each interval has a constant
+  worker set so the time-integral is exact (placing a worker right before a payout credits only that
+  time). ALL on SERVER timestamps (no client trust). Assigned roostr → `roostrs.status="working"`
+  (leaves the roster + can't be upgraded → stat constant in service, like `listed`). Claim moves
+  `floor(pending)` to the wallet via the ledger (`grantResource(resource,n,kind)`), keeps the
+  fraction; buffer cap pauses production until claimed. Slots fixed 2, buy +1 → MAX 3 (shared,
+  "soon"). DB: `work_stations` (userId×kind: roostrIds, slotsOwned, pending, lastSettleAt). Farm is
+  the ONLY farmable egg source (besides starter/tutorial grants); hatch egg-gated (V5) → farm is the
+  core loop; `Yield` removed → Intellect. Design [.notes/FARM-MODE.md]; onboarding carries early
+  players [.notes/ONBOARDING.md], NOT a gentler curve.
 
 ## §T — Tasks
 
@@ -120,11 +128,11 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T22 | x | gene leveling model (stats from levels, cost curve) + debug upgrade lab (GeneLab) | V12 |
 | T24 | x | tier ladder (D..X) from rating + sequential gene `no`; card shows tier not rarity | V12 |
 | T25 | x | Stealth stat: 3 genes + Stealth family + Thief archetype; weight statMods (Huge -Stealth) | V12 |
-| T26 | . | thieving mode (uses Stealth) | C |
+| T26 | . | thieving mode (uses Stealth) — reuse the V13 work-station engine | C,V13 |
 | T23 | . | persist gene levels + real coin spend on upgrade (off mock/localStorage) | C,V12 |
 | T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
 | T27 | x | starter egg at signup (upsertUser grants 1 egg via ledger, kind "starter") | V5,C |
-| T28 | . | farm: egg engine (Fertility, slots 2+1, server accrual/claim, exp rate) | V13,C |
+| T28 | x | work stations: shared accrual engine (lab+farm), server settle/claim + daily cron, status=working | V13,C |
 
 ## §B — Bugs
 

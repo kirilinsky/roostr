@@ -524,8 +524,38 @@ export default function RoostrDetail({
         </Stack>
       </Box>
 
-      {/* Locked notice — bird is on the market (or otherwise non-active) */}
-      {isOwner && locked && (
+      {/* Working notice — bird is on the farm / in the lab. Can't be sold until
+          removed from work; the Sell button explains instead of opening the form. */}
+      {isOwner && roostr.status === "working" && (
+        <Card sx={{ p: 2, borderColor: "tertiary.main" }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            useFlexGap
+          >
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              🔧{" "}
+              {t("detail.atWork", {
+                station: t(
+                  roostr.work?.kind === "farm" ? "nav.farm" : "nav.lab",
+                ),
+              })}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => window.alert(t("detail.sellBlocked"))}
+            >
+              {t("detail.sell")}
+            </Button>
+          </Stack>
+        </Card>
+      )}
+
+      {/* Locked notice — on the market (or otherwise non-active, non-working) */}
+      {isOwner && locked && roostr.status !== "working" && (
         <Card sx={{ p: 2, borderColor: "tertiary.main" }}>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             🔒 {t("detail.locked")}

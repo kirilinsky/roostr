@@ -7,6 +7,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -132,13 +133,31 @@ export default function StationView({
   const bufferPct = Math.min(100, (livePending / def.bufferCap) * 100);
   const canAdd = workers.length < slotsOwned;
 
+  // Countdown to the next WHOLE unit (continuous accrual → next integer crossing).
+  const dayShort = t("station.dayShort");
+  const fmt = (ms: number) => {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    const d = Math.floor(s / 86400);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const hms = `${pad(Math.floor((s % 86400) / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+    return d > 0 ? `${d}${dayShort} ${hms}` : hms;
+  };
+  const nextWhole = claimable + 1;
+  const countdown =
+    workers.length === 0 || ratePerDay <= 0
+      ? t("station.idle")
+      : livePending >= def.bufferCap || nextWhole > def.bufferCap
+        ? t("station.bufferFull")
+        : t("station.nextIn", {
+            time: fmt(((nextWhole - livePending) / ratePerDay) * 86_400_000),
+          });
+
   function act(fn: () => Promise<unknown>) {
     startBusy(async () => {
       await fn();
       router.refresh();
     });
   }
-  const assign = (id: string) => act(() => assignWorkerAction(kind, id));
   const remove = (id: string) => act(() => removeWorkerAction(kind, id));
   const claim = () => act(() => claimStationAction(kind));
 
@@ -146,11 +165,22 @@ export default function StationView({
     setPickerOpen(false);
     setPickedId(null);
   };
+  // Keep the modal open with a loader until the assign response lands, then close.
   const confirmPick = () => {
     if (!pickedId) return;
     const id = pickedId;
-    closePicker();
-    assign(id);
+    startBusy(async () => {
+      const res = await assignWorkerAction(kind, id);
+      if (!res.ok) {
+        // TODO: replace with a proper notification/toast later
+        window.alert(
+          res.error === "full" ? t("station.full") : t("station.assignError"),
+        );
+        return; // keep the modal open so the player can retry
+      }
+      router.refresh();
+      closePicker();
+    });
   };
 
   return (
@@ -223,6 +253,13 @@ export default function StationView({
               value={bufferPct}
               sx={{ height: 14, borderRadius: 7 }}
             />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 0.5, display: "block", fontVariantNumeric: "tabular-nums" }}
+            >
+              {countdown}
+            </Typography>
           </Box>
 
           <Stack
@@ -371,7 +408,11 @@ export default function StationView({
             onClick={confirmPick}
             sx={{ position: "sticky", bottom: 0 }}
           >
-            {t(ui.selectKey)}
+            {busy ? (
+              <CircularProgress size={26} color="inherit" />
+            ) : (
+              t(ui.selectKey)
+            )}
           </Button>
         </Stack>
       </Popup>

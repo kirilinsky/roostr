@@ -23,6 +23,7 @@ export default function CollectionView({
   const locale = useLocale();
   const [filters, setFilters] = useState<Record<string, string>>({
     level: "",
+    breed: "",
     group: "",
     country: "",
   });
@@ -35,6 +36,15 @@ export default function CollectionView({
       label: tr.id,
     }));
   }, [roostrs]);
+
+  // Breeds present, sorted by localized name.
+  const breedOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const r of roostrs) map.set(r.breed.id, r.breed.name[locale]);
+    return [...map.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .map(([value, label]) => ({ value, label }));
+  }, [roostrs, locale]);
 
   // Groups present, in canonical order, localized.
   const groupOptions = useMemo(() => {
@@ -61,6 +71,7 @@ export default function CollectionView({
 
   const groups: FilterGroup[] = [
     { key: "level", label: t("collection.level"), options: levelOptions },
+    { key: "breed", label: t("filter.breed"), options: breedOptions },
     { key: "group", label: t("filter.group"), options: groupOptions },
     { key: "country", label: t("filter.country"), options: countryOptions },
   ];
@@ -68,6 +79,7 @@ export default function CollectionView({
   const filtered = roostrs.filter(
     (r) =>
       (!filters.level || r.tier.id === filters.level) &&
+      (!filters.breed || r.breed.id === filters.breed) &&
       (!filters.group || r.breed.group === filters.group) &&
       (!filters.country || r.breed.region.iso === filters.country),
   );
