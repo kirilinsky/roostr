@@ -41,9 +41,9 @@ describe("geneUpgradeCost", () => {
 describe("tierFor", () => {
   it("maps ratings to the right tier band", () => {
     expect(tierFor(0).id).toBe("D");
-    expect(tierFor(98).id).toBe("D");
-    expect(tierFor(99).id).toBe("C"); // C threshold = 99
-    expect(tierFor(999).id).toBe("X");
+    expect(tierFor(74).id).toBe("D");
+    expect(tierFor(75).id).toBe("C"); // C threshold = 75
+    expect(tierFor(175).id).toBe("X");
     expect(tierFor(1_000_000).id).toBe("X");
   });
   it("returns each tier exactly at its min", () => {
@@ -105,10 +105,10 @@ describe("computeMaxHealth", () => {
 });
 
 describe("computeRating", () => {
-  it("is the sum of skills plus maxHealth", () => {
+  it("is the sum of skills plus HALF maxHealth (rounded)", () => {
     const stats = computeStats([], {});
     const sum = SKILL_IDS.reduce((a, id) => a + stats[id], 0);
-    expect(computeRating(stats, 30)).toBe(sum + 30);
+    expect(computeRating(stats, 30)).toBe(sum + 15); // HP weighted ×0.5
   });
 });
 

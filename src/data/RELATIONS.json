@@ -416,32 +416,32 @@
     },
     {
       "id": "C",
-      "min": 99,
+      "min": 75,
       "color": "#8d6e63"
     },
     {
       "id": "B",
-      "min": 150,
+      "min": 95,
       "color": "#4a90d9"
     },
     {
       "id": "A",
-      "min": 250,
+      "min": 115,
       "color": "#43a047"
     },
     {
       "id": "S",
-      "min": 400,
+      "min": 135,
       "color": "#ab47bc"
     },
     {
       "id": "R",
-      "min": 650,
+      "min": 150,
       "color": "#ef6c00"
     },
     {
       "id": "X",
-      "min": 999,
+      "min": 175,
       "color": "#ffca28"
     }
   ]

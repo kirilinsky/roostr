@@ -17,6 +17,7 @@ const ARTICLES = [
   { href: "/pedia/groups", icon: "📂", titleKey: "pedia.groups.title", descKey: "pedia.groups.desc", live: true },
   { href: "/pedia/skills", icon: "📊", titleKey: "pedia.skills.title", descKey: "pedia.skills.desc", live: true },
   { href: "/pedia/archetypes", icon: "🧭", titleKey: "pedia.archetypes.title", descKey: "pedia.archetypes.desc", live: true },
+  { href: "/pedia/tiers", icon: "🏆", titleKey: "pedia.tiers.title", descKey: "pedia.tiers.desc", live: true },
   { href: "/pedia/mechanics", icon: "⚙️", titleKey: "pedia.mechanics.title", descKey: "pedia.mechanics.desc", live: true },
 ] as const;
 

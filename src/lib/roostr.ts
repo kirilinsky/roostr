@@ -334,7 +334,7 @@ function pick<T>(arr: readonly T[], rng: Rng = Math.random): T {
 const GENE_COUNT_WEIGHTS = [
   { count: 1, weight: 20 },
   { count: 2, weight: 99696 },
-  { count: 3, weight: 411 },
+  { count: 3, weight: 419 },
   { count: 4, weight: 3 },
 ];
 
@@ -525,15 +525,21 @@ export function computeMaxHealth(
   return Math.max(1, breed.baseHealth + weightClass.healthMod + geneHealth);
 }
 
-// Overall power/level = sum of all skills + maxHealth. Skills floor at 0, HP ≥1.
+// HP counts at HALF weight in the rating so tiers track the BUILD (skills), not
+// just raw HP — HP pools are large and were drowning out skill investment.
+export const HP_RATING_WEIGHT = 0.5;
+
+// Overall power/level = Σ skills + HP×HP_RATING_WEIGHT. Skills floor at 0, HP ≥1.
 // Most genes are net-positive (esp. with +Health → HP), so leveling climbs the
 // tier. A few genes with no Health and net-negative skill mods (Thunder Crow,
 // Wild Rage) dip the rating mid-climb until their debuffs bottom out — intended.
+// Monotonic: HP only grows with upgrades, skills floor — so upgrades only add.
 export function computeRating(
   stats: Record<Skill, number>,
   maxHealth: number,
 ): number {
-  return Object.values(stats).reduce((sum, v) => sum + v, 0) + maxHealth;
+  const skillSum = Object.values(stats).reduce((sum, v) => sum + v, 0);
+  return skillSum + Math.round(maxHealth * HP_RATING_WEIGHT);
 }
 
 export function rollRoostr(rng: Rng = Math.random): RolledRoostr {

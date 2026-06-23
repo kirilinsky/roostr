@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { keyframes } from "@emotion/react";
 import Image from "next/image";
 import Link from "next/link";
 import Box from "@mui/material/Box";
@@ -8,6 +9,7 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
+import CircularProgress from "@mui/material/CircularProgress";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -52,6 +54,13 @@ import {
 } from "@/app/collection/[id]/actions";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
+// Brief "upgrade applied" pulse on the gene's button after a successful upgrade.
+const successPulse = keyframes`
+  0% { transform: scale(1); }
+  45% { transform: scale(1.06); filter: brightness(1.25); }
+  100% { transform: scale(1); filter: brightness(1); }
+`;
+
 const SKILL_KIND = Object.fromEntries(
   SKILLS.map((s) => [s.id, s.kind]),
 ) as Record<string, StatKind>;
@@ -76,6 +85,7 @@ export default function RoostrDetail({
   const locale = useLocale();
   const [pending, startTransition] = useTransition();
   const [busyGene, setBusyGene] = useState<string | null>(null);
+  const [flashGene, setFlashGene] = useState<string | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [statInfoOpen, setStatInfoOpen] = useState(false);
   const [archOpen, setArchOpen] = useState(false);
@@ -115,8 +125,16 @@ export default function RoostrDetail({
   function upgrade(geneId: string) {
     setBusyGene(geneId);
     startTransition(async () => {
-      await upgradeGeneAction(roostrId, geneId);
+      const res = await upgradeGeneAction(roostrId, geneId);
       setBusyGene(null);
+      if (res?.ok) {
+        // brief success pulse on the button
+        setFlashGene(geneId);
+        window.setTimeout(
+          () => setFlashGene((g) => (g === geneId ? null : g)),
+          600,
+        );
+      }
     });
   }
 
@@ -616,38 +634,56 @@ export default function RoostrDetail({
               </Box>
 
               {canManage ? (
-                <Button
-                  variant="contained"
-                  size="small"
-                  disabled={disabled}
-                  onClick={() => upgrade(gene.id)}
-                >
-                  <Stack direction="row" spacing={0.75} alignItems="center">
-                    <span>
-                      {maxed ? t("detail.maxLevel") : t("detail.upgrade")}
-                    </span>
-                    {!maxed && (
-                      <Box
-                        component="span"
-                        sx={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 0.25,
-                          opacity: 0.9,
-                        }}
-                      >
-                        {cost}
-                        <Image
-                          src="/corn-coin.png"
-                          alt=""
-                          width={18}
-                          height={17}
-                          style={{ height: 13, width: "auto" }}
-                        />
-                      </Box>
-                    )}
-                  </Stack>
-                </Button>
+                (() => {
+                  const busy = pending && busyGene === gene.id;
+                  return (
+                    <Button
+                      variant="contained"
+                      size="small"
+                      disabled={disabled}
+                      onClick={() => upgrade(gene.id)}
+                      sx={
+                        flashGene === gene.id
+                          ? { animation: `${successPulse} 0.6s ease` }
+                          : undefined
+                      }
+                    >
+                      {busy ? (
+                        <CircularProgress size={18} color="inherit" />
+                      ) : (
+                        <Stack
+                          direction="row"
+                          spacing={0.75}
+                          alignItems="center"
+                        >
+                          <span>
+                            {maxed ? t("detail.maxLevel") : t("detail.upgrade")}
+                          </span>
+                          {!maxed && (
+                            <Box
+                              component="span"
+                              sx={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 0.25,
+                                opacity: 0.9,
+                              }}
+                            >
+                              {cost}
+                              <Image
+                                src="/corn-coin.png"
+                                alt=""
+                                width={18}
+                                height={17}
+                                style={{ height: 13, width: "auto" }}
+                              />
+                            </Box>
+                          )}
+                        </Stack>
+                      )}
+                    </Button>
+                  );
+                })()
               ) : null}
             </Card>
           );

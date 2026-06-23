@@ -79,8 +79,11 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   leveling a gene scales its buffs AND debuffs (balance). Upgrade cost `round(10×1.6^(L-1))`, cap
   `GENE_MAX_LEVEL=10`. Logic in `roostr.ts` (`computeStats`/`computeMaxHealth`/`geneUpgradeCost`),
   not hardcoded per-screen. Overall level = TIER (D<C<B<A<S<R<X, thresholds in `RELATIONS.json`
-  `tiers`) from `computeRating` = Σ stats + maxHealth — monotonic (debuffed stats floor at 1, so
-  upgrades only add). No birth rarity (V2). Each gene has a sequential `no` = its DNA passport code.
+  `tiers`) from `computeRating` = Σ skills + maxHealth × `HP_RATING_WEIGHT` (0.5) — HP at HALF weight
+  so tiers track the BUILD (skills), not raw HP pools; monotonic (skills floor at 0, HP only grows →
+  upgrades only add). Thresholds rescaled to the achievable range (max 4-gene+synth @L10 ≈ rating 180;
+  old R650/X999 were unreachable): D0 C75 B95 A115 S135 R150 X175. No birth rarity (V2). Each gene has
+  a sequential `no` = its DNA passport code.
 - V13 — FARM = egg engine + the ONLY farmable egg source (besides starter/tutorial grants). Hatch is
   egg-gated (V5) → farm is the core loop. Fertility-only stat role (`Yield` removed → Intellect).
   Slots fixed 2, buy +1 for coins → MAX 3; a roostr in a slot → `roostrs.status="farming"` (locked

@@ -34,6 +34,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.groups.desc": "Breed families and their style.",
     "pedia.archetypes.title": "Archetypes",
     "pedia.archetypes.desc": "The recommended build for each gene mix.",
+    "pedia.tiers.title": "Tiers",
+    "pedia.tiers.desc": "Overall power class (D–X).",
+    "pedia.tiers.intro":
+      "A rooster's tier is its overall level — a band of its rating. Rating = the sum of all 12 skills plus HALF its HP. No rooster is born rare (everyone hatches Common); you climb the ladder by upgrading genes — both buffs and debuffs grow with level, so smart builds rise fastest.",
+    "pedia.tiers.from": "from {n}",
     "pedia.archetypes.how":
       "An archetype is decided by a rooster's genes: a Work gene plus a combat/utility gene → Hybrid; otherwise the most-represented gene family sets the archetype. It's a hint, not a hard class.",
     "pedia.breeds.title": "Breeds",
@@ -203,6 +208,18 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.select": "Select",
     "lab.noneAvailable": "No roosters available.",
 
+    "farm.production": "Egg production",
+    "farm.eggsPerDay": "{n} eggs/day",
+    "farm.cycleTba": "Next egg — soon",
+    "farm.hint": "Fertility of your farm workers sets the egg rate (exponential).",
+    "farm.workers": "Farm workers",
+    "farm.workersEmpty": "No workers on the farm yet.",
+    "farm.addWorker": "Add",
+    "farm.buySlot": "Buy +1 slot",
+    "farm.pickTitle": "Pick a farm worker",
+    "farm.select": "Assign",
+    "farm.noneAvailable": "No roosters available.",
+
     "profile.fallbackName": "Telegram user",
     "profile.id": "Telegram ID",
     "profile.name": "Name",
@@ -323,6 +340,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.groups.desc": "Семейства пород и их стиль.",
     "pedia.archetypes.title": "Архетипы",
     "pedia.archetypes.desc": "Рекомендованный билд под каждый набор генов.",
+    "pedia.tiers.title": "Классы",
+    "pedia.tiers.desc": "Общий класс силы (D–X).",
+    "pedia.tiers.intro":
+      "Класс (тир) петуха — его общий уровень, полоса рейтинга. Рейтинг = сумма всех 12 скиллов плюс ПОЛОВИНА HP. Никто не рождается редким (все вылупляются Common); по лестнице растёшь прокачкой генов — с уровнем растут и баффы, и дебафы, так что грамотные билды поднимаются быстрее.",
+    "pedia.tiers.from": "от {n}",
     "pedia.archetypes.how":
       "Архетип определяют гены петуха: ген работы + боевой/утилитарный → Гибрид; иначе самое представленное семейство генов задаёт архетип. Это подсказка, не жёсткий класс.",
     "pedia.breeds.title": "Породы",
@@ -490,6 +512,18 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.pickTitle": "Выбор научного работника",
     "lab.select": "Выбрать",
     "lab.noneAvailable": "Нет доступных петухов.",
+
+    "farm.production": "Производство яиц",
+    "farm.eggsPerDay": "{n} яиц/день",
+    "farm.cycleTba": "Следующее яйцо — скоро",
+    "farm.hint": "Fertility работников фермы задаёт скорость яиц (экспонента).",
+    "farm.workers": "Работники фермы",
+    "farm.workersEmpty": "На ферме пока нет работников.",
+    "farm.addWorker": "Добавить",
+    "farm.buySlot": "Купить +1 слот",
+    "farm.pickTitle": "Выбор работника фермы",
+    "farm.select": "Назначить",
+    "farm.noneAvailable": "Нет доступных петухов.",
 
     "profile.fallbackName": "Пользователь Telegram",
     "profile.id": "Telegram ID",

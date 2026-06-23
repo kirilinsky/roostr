@@ -20,7 +20,7 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 
 // Footer readout mode: "kinds" = stat-by-category sums (collection); "intellect"
 // = single Intellect score (lab roster / picker).
-export type CardMetric = "kinds" | "intellect";
+export type CardMetric = "kinds" | "intellect" | "fertility";
 
 // Reusable roster card. Default: links to the rooster page with the per-category
 // stat lean. Pass `onClick` to use it as a button (lab worker / picker), and
@@ -45,6 +45,7 @@ export default function CollectionCard({
   const breedName = roostr.breed.name[locale];
   const name = roostr.nickname || breedName;
   const intellect = roostr.stats.Intellect ?? 0;
+  const fertility = roostr.stats.Fertility ?? 0;
   // "Sergeant" rank insignia: any bought upgrade earns chevrons (1–3 by amount).
   const upgrades = geneUpgradeCount(roostr.geneLevels);
   const rank = upgrades >= 10 ? 3 : upgrades >= 4 ? 2 : 1;
@@ -148,6 +149,16 @@ export default function CollectionCard({
               sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
             >
               🧠 {intellect}
+            </Typography>
+          </Stack>
+        ) : metric === "fertility" ? (
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "tertiary.main" }} />
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
+            >
+              🥚 {fertility}
             </Typography>
           </Stack>
         ) : (
