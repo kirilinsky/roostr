@@ -1,5 +1,15 @@
-import StubPage from "@/components/StubPage";
+import LaunchGate from "@/components/LaunchGate";
+import { countUsers } from "@/db/queries";
 
-export default function RaidsPage() {
-  return <StubPage titleKey="nav.raids" />;
+const LAUNCH_AT_PLAYERS = 15;
+
+export default async function RaidsPage() {
+  const current = await countUsers();
+  return (
+    <LaunchGate
+      titleKey="nav.raids"
+      current={current}
+      target={LAUNCH_AT_PLAYERS}
+    />
+  );
 }

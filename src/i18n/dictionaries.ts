@@ -255,6 +255,8 @@ export const dictionaries: Record<Locale, Dict> = {
 
     "about.title": "About",
     "about.tba": "TBA",
+    "launch.threshold": "Launches once the project reaches {target} players.",
+    "launch.progress": "{current} / {target} players",
     "about.description":
       "Roostr is a game about collecting, breeding and upgrading roosters. The project is in active development.",
     "about.disclaimer":
@@ -274,7 +276,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.productivityHint":
       "Productivity = sum of the attached workers' Intellect.",
     "lab.workers": "Workers",
-    "lab.buySlot": "Buy +1 slot",
+    "lab.buySlot": "+1 slot",
     "lab.workersEmpty": "No workers assigned yet.",
     "lab.addWorkers": "Add",
     "lab.pickTitle": "Pick a worker",
@@ -285,10 +287,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "farm.eggsPerDay": "{n} eggs/day",
     "farm.cycleTba": "Next egg — soon",
     "farm.hint": "Fertility of your farm workers sets the egg rate (exponential).",
-    "farm.workers": "Farm workers",
+    "farm.workers": "Workers",
     "farm.workersEmpty": "No workers on the farm yet.",
     "farm.addWorker": "Add",
-    "farm.buySlot": "Buy +1 slot",
+    "farm.buySlot": "+1 slot",
     "farm.pickTitle": "Pick a farm worker",
     "farm.select": "Assign",
     "farm.noneAvailable": "No roosters available.",
@@ -662,6 +664,8 @@ export const dictionaries: Record<Locale, Dict> = {
 
     "about.title": "О проекте",
     "about.tba": "Скоро",
+    "launch.threshold": "Запуск, когда на проекте наберётся {target} игроков.",
+    "launch.progress": "{current} / {target} игроков",
     "about.description":
       "Roostr — игра про коллекционирование, разведение и прокачку петухов. Проект находится в разработке.",
     "about.disclaimer":
@@ -681,7 +685,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.productivityHint":
       "Производительность = сумма Интеллекта прикреплённых петухов.",
     "lab.workers": "Работники",
-    "lab.buySlot": "Купить +1 слот",
+    "lab.buySlot": "+1 слот",
     "lab.workersEmpty": "Работники ещё не назначены.",
     "lab.addWorkers": "Добавить",
     "lab.pickTitle": "Выбор научного работника",
@@ -692,10 +696,10 @@ export const dictionaries: Record<Locale, Dict> = {
     "farm.eggsPerDay": "{n} яиц/день",
     "farm.cycleTba": "Следующее яйцо — скоро",
     "farm.hint": "Fertility работников фермы задаёт скорость яиц (экспонента).",
-    "farm.workers": "Работники фермы",
+    "farm.workers": "Работники",
     "farm.workersEmpty": "На ферме пока нет работников.",
     "farm.addWorker": "Добавить",
-    "farm.buySlot": "Купить +1 слот",
+    "farm.buySlot": "+1 слот",
     "farm.pickTitle": "Выбор работника фермы",
     "farm.select": "Назначить",
     "farm.noneAvailable": "Нет доступных петухов.",

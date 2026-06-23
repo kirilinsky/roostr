@@ -1017,6 +1017,21 @@ export async function getReferredUsers(
   }
 }
 
+// Total registered players — drives the "launch at N players" progress gates.
+export async function countUsers(): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0;
+  try {
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { sql } = await import("drizzle-orm");
+    const [r] = await db.select({ n: sql<number>`count(*)` }).from(users);
+    return Number(r?.n ?? 0);
+  } catch (e) {
+    console.error("countUsers failed:", e);
+    return 0;
+  }
+}
+
 // Public profile lookup by Telegram id. Returns null if absent / DB unavailable.
 export async function getUserById(id: number) {
   if (!process.env.DATABASE_URL || !Number.isFinite(id)) return null;

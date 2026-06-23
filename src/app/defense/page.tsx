@@ -1,5 +1,15 @@
-import StubPage from "@/components/StubPage";
+import LaunchGate from "@/components/LaunchGate";
+import { countUsers } from "@/db/queries";
 
-export default function DefensePage() {
-  return <StubPage titleKey="nav.defense" />;
+const LAUNCH_AT_PLAYERS = 15;
+
+export default async function DefensePage() {
+  const current = await countUsers();
+  return (
+    <LaunchGate
+      titleKey="nav.defense"
+      current={current}
+      target={LAUNCH_AT_PLAYERS}
+    />
+  );
 }

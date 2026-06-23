@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -198,35 +199,75 @@ export default function StationView({
   };
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={2}>
+      {/* Title + rate above the hero on mobile (off the image), so the card stays
+          the visible artwork. On desktop the title/rate live inside the card. */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        spacing={1}
+        flexWrap="wrap"
+        sx={{ display: { xs: "flex", md: "none" } }}
+      >
+        <Typography variant="h6">{t(ui.titleKey)}</Typography>
+        <Chip
+          color="success"
+          label={t(ui.rateKey, { n: ratePerDay.toFixed(2) })}
+          sx={{ fontWeight: 800 }}
+        />
+      </Stack>
+
       {/* ── Top: live production buffer + claim ── */}
       <Card
         sx={{
           position: "relative",
           overflow: "hidden",
-          minHeight: { xs: 220, md: 300 },
+          minHeight: { xs: 150, md: 300 },
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          px: { xs: "17%", md: "20%" },
-          py: { xs: "12%", md: "13%" },
+          px: { xs: 2, md: "20%" },
+          py: { xs: 2, md: "13%" },
         }}
       >
-        <Image
-          src={ui.bg}
-          alt=""
-          fill
-          priority
-          sizes="(max-width: 900px) 100vw, 720px"
-          style={{ objectFit: "fill", zIndex: 0 }}
+        {/* Decorative bg — stretch-to-fill on desktop (unchanged), cover on mobile
+            so the art isn't squished by the card's shape. */}
+        <Box
+          aria-hidden
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            backgroundImage: `url(${ui.bg})`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: { xs: "cover", md: "100% 100%" },
+          }}
         />
-        <Stack spacing={2} sx={{ position: "relative", zIndex: 1 }}>
+        <Stack
+          spacing={2}
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            // Mobile: a translucent panel behind the text so it stays readable over
+            // the busy artwork. Desktop is unchanged (no panel).
+            bgcolor: {
+              xs: (theme) => alpha(theme.palette.background.paper, 0.78),
+              md: "transparent",
+            },
+            borderRadius: { xs: 2, md: 0 },
+            p: { xs: 1.5, md: 0 },
+          }}
+        >
+          {/* Title + rate — desktop only here; on mobile they're above the card. */}
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
             spacing={1}
             flexWrap="wrap"
+            sx={{ display: { xs: "none", md: "flex" } }}
           >
             <Typography variant="h6">{t(ui.titleKey)}</Typography>
             <Chip
@@ -282,19 +323,34 @@ export default function StationView({
             alignItems="center"
             spacing={1}
           >
-            <Typography variant="caption" color="text.secondary">
+            {/* Hint hidden here on mobile — it's rendered below the card instead. */}
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: { xs: "none", md: "block" } }}
+            >
               {t(ui.hintKey)}
             </Typography>
             <Button
               variant="contained"
               onClick={claim}
               disabled={busy || claimable < 1}
+              sx={{ width: { xs: "100%", md: "auto" } }}
             >
               {t("station.claim")}
             </Button>
           </Stack>
         </Stack>
       </Card>
+
+      {/* Hint moved out of the hero on mobile so the card stays compact + uncrowded. */}
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ display: { xs: "block", md: "none" }, mt: -1.5 }}
+      >
+        {t(ui.hintKey)}
+      </Typography>
 
       {/* ── Bottom: workers ── */}
       <Box>
@@ -304,16 +360,17 @@ export default function StationView({
           alignItems="center"
           sx={{ mb: 1.5 }}
           spacing={1}
-          flexWrap="wrap"
         >
-          <Typography variant="h6">
+          <Typography variant="h6" noWrap sx={{ minWidth: 0 }}>
             {t(ui.workersKey)} ({workers.length}/{slotsOwned})
           </Typography>
           {slotsOwned < MAX_SLOTS && (
             <Button
               variant="outlined"
               color="neutral"
+              size="small"
               disabled
+              sx={{ flexShrink: 0 }}
               endIcon={
                 <Chip label={t("pedia.soon")} size="small" variant="outlined" />
               }
