@@ -19,8 +19,9 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 
 ## §I — Interfaces
 
-- Routes: `/incubator` `/collection` `/roostrdex` `/market` `/arena` `/farm` `/friends` `/bank`
-  `/about` `/debug` `/support` `/settings` `/profile` · `/[telegramid]` (public profile by id).
+- Routes: `/incubator` `/collection` `/roostrdex` `/market` `/arena` `/farm` `/raids` `/friends`
+  `/bank` `/about` `/debug` `/support` `/settings` `/profile` · `/[telegramid]` (public profile by id).
+  `/raids` = Coop & Dagger heist mode (V14).
 - API: `POST /api/auth/telegram` · `POST /api/auth/logout`.
 - Design tokens: `src/theme.ts` (single MUI theme).
 - i18n dicts: `src/i18n/dictionaries.ts` (en+ru).
@@ -32,8 +33,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   `roostr.ts`/`breeds.ts` read these — see V11.
 - Hatch lib: `rollRoostr() → RolledRoostr` in `src/lib/roostr.ts`.
 - Shared UI: `AppShell` · `StubPage` · `RoostrCard`.
-- DB: `src/db/schema.ts` (users, roostrs, breed_discoveries, battles, expeditions, farm_sessions,
-  friendships) +
+- DB: `src/db/schema.ts` (users, roostrs, breed_discoveries, battles, `expeditions` (= raids/вылазки,
+  V14), farm_sessions, friendships) +
   `src/db/index.ts` (Neon+Drizzle client). Scripts `db:generate|migrate|push|studio`. Env `DATABASE_URL`.
 
 ## §V — Invariants
@@ -85,7 +86,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   old R650/X999 were unreachable): D0 C75 B95 A115 S135 R150 X175. No birth rarity (V2). Each gene has
   a sequential `no` = its DNA passport code.
 - V13 — WORK STATIONS = one shared accrual engine (`src/lib/stations.ts`) behind the LAB and the FARM
-  (and any future "assign roosters → earn a resource over time" mode, e.g. thieving/Stealth — T26).
+  (and any future CONTINUOUS-ACCRUAL "assign roosters → earn a resource over time" mode). NOTE: raids
+  (Stealth heist) are NOT here — a raid is a DISCRETE timed mission w/ risk, own system → V14.
   Per-station config in `STATIONS` (resource, driving stat, `ratePerDay` fn, `bufferCap`): farm =
   Fertility→eggs (exponential `2^((ΣFertility−30)/10)`, cap 5), lab = Intellect→science (linear
   ΣIntellect/day, cap 50). ANTI-CHEAT: a station's `pending` buffer accrues by TIME-IN-SERVICE
@@ -100,6 +102,20 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   the ONLY farmable egg source (besides starter/tutorial grants); hatch egg-gated (V5) → farm is the
   core loop; `Yield` removed → Intellect. Design [.notes/FARM-MODE.md]; onboarding carries early
   players [.notes/ONBOARDING.md], NOT a gentler curve.
+- V14 — RAIDS = the Stealth payoff mode. Brand "Coop & Dagger" / «Перо и кинжал», route `/raids`.
+  LORE: at night the sneakiest roosters slip over the fence into a neighbor's coop, grab anything that
+  glints (coins, grain, stray feathers), home by dawn — unless spotted, then they lie low. Lib in
+  `src/lib/raids.ts` (TBD), DB = existing `expeditions` table (rebranded raids/вылазки). FLOW: send N
+  roostrs on a TIMED raid (duration D, server `endsAt`) → each goes `status="raiding"` (locked: off
+  roster + unupgradeable, like `working`/`listed` per V13) → on/after `endsAt` claim the haul. PAYOFF =
+  f(ΣStealth, Luck): Stealth → haul size + caught-avoid chance; Luck → rare-drop quality / jackpot odds.
+  CAUGHT: chance rises as ΣStealth falls — caught ⇒ reduced/zero loot + cooldown ("lying low", roostrs
+  unavailable a while). Reward = coins + occasional rare loot (feather/egg/sci/cosmetic) credited via
+  the ledger (`grantResource`). ANTI-CHEAT: outcome + timing resolved on SERVER timestamps only (no
+  client trust), like V13. DISTINCT from V13: a raid is a DISCRETE timed mission with RISK, NOT
+  continuous accrual — Huge weight (−Stealth, V12/T25) makes heavy birds poor thieves (thematic).
+  Tuning sketch (not binding): `haul ≈ base·(ΣStealth/30)·luckMult`, `caughtChance ≈ clamp(0.5 −
+  ΣStealth·0.01)`. Product detail [.notes/NEXTGEN-SPEC.md].
 
 ## §T — Tasks
 
@@ -128,7 +144,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T22 | x | gene leveling model (stats from levels, cost curve) + debug upgrade lab (GeneLab) | V12 |
 | T24 | x | tier ladder (D..X) from rating + sequential gene `no`; card shows tier not rarity | V12 |
 | T25 | x | Stealth stat: 3 genes + Stealth family + Thief archetype; weight statMods (Huge -Stealth) | V12 |
-| T26 | . | thieving mode (uses Stealth) — reuse the V13 work-station engine | C,V13 |
+| T26 | . | Coop & Dagger raids: timed Stealth+Luck heist (send→wait→loot), caught-risk, server-resolved; reuse `expeditions` table | V14,C |
 | T23 | . | persist gene levels + real coin spend on upgrade (off mock/localStorage) | C,V12 |
 | T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
 | T27 | x | starter egg at signup (upsertUser grants 1 egg via ledger, kind "starter") | V5,C |
