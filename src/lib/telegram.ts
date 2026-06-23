@@ -14,7 +14,7 @@ const telegramJwks = createRemoteJWKSet(
 
 export interface TelegramIdTokenClaims extends JWTPayload {
   sub: string;
-  id?: number;
+  id?: number | string;
   name?: string;
   preferred_username?: string;
   picture?: string;
@@ -72,15 +72,13 @@ export async function verifyTelegramIdToken(
     telegramJwks,
     {
       issuer: TELEGRAM_ISSUER,
-      audience: clientId,
     },
   );
-
-  const id = getTelegramUserId(payload);
-  if (!Number.isSafeInteger(id) || id <= 0) {
-    throw new Error("Telegram id_token is missing a valid user id");
+  if (!hasExpectedAudience(payload.aud, clientId)) {
+    throw new Error(
+      `Telegram id_token audience mismatch: expected ${clientId}, got ${JSON.stringify(payload.aud)}`,
+    );
   }
-
   return payload;
 }
 
@@ -112,10 +110,23 @@ export function timingSafeEqualString(a: string, b: string): boolean {
 }
 
 function getTelegramUserId(claims: TelegramIdTokenClaims): number {
-  if (typeof claims.id === "number") return claims.id;
+  if (typeof claims.id === "number") {
+    if (Number.isSafeInteger(claims.id) && claims.id > 0) return claims.id;
+    throw new Error("Telegram id_token id is not a safe positive number");
+  }
+  if (typeof claims.id === "string") {
+    const id = Number(claims.id);
+    if (Number.isSafeInteger(id) && id > 0) return id;
+    throw new Error("Telegram id_token id is not a safe numeric string");
+  }
   const id = Number(claims.sub);
-  if (Number.isSafeInteger(id)) return id;
-  throw new Error("Telegram id_token subject is not a safe numeric id");
+  if (Number.isSafeInteger(id) && id > 0) return id;
+  throw new Error("Telegram id_token is missing a safe numeric Telegram id");
+}
+
+function hasExpectedAudience(aud: JWTPayload["aud"], clientId: string): boolean {
+  if (Array.isArray(aud)) return aud.some((value) => String(value) === clientId);
+  return aud !== undefined && String(aud) === clientId;
 }
 
 function randomBase64Url(bytes: number): string {
