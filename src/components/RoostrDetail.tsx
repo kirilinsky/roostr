@@ -81,6 +81,8 @@ export default function RoostrDetail({
   // The owner can manage (sell / upgrade) only an ACTIVE bird; a listed/sold one
   // is locked.
   const canManage = isOwner && !locked;
+  // Renaming is a cosmetic, owner-only edit — allowed regardless of lock status.
+  const canRename = isOwner;
   const t = useT();
   const locale = useLocale();
   const [pending, startTransition] = useTransition();
@@ -237,8 +239,8 @@ export default function RoostrDetail({
             size="small"
             variant="outlined"
           />
-          {/* custom nickname — add or edit (owner of an active bird only) */}
-          {canManage && (
+          {/* custom nickname — add or edit (owner only, any status) */}
+          {canRename && (
             <Chip
               label={`✏️ ${roostr.nickname ? t("detail.editNickname") : t("detail.addNickname")}`}
               size="small"

@@ -195,9 +195,6 @@ export default function CollectionCard({
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         {metric === "intellect" ? (
           <Stack direction="row" spacing={0.5} alignItems="center">
-            {!compact && (
-              <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "success.main" }} />
-            )}
             <Typography
               variant="caption"
               sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
@@ -207,9 +204,6 @@ export default function CollectionCard({
           </Stack>
         ) : metric === "fertility" ? (
           <Stack direction="row" spacing={0.5} alignItems="center">
-            {!compact && (
-              <Box sx={{ width: 9, height: 9, borderRadius: "50%", bgcolor: "tertiary.main" }} />
-            )}
             <Typography
               variant="caption"
               sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}

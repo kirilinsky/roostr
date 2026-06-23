@@ -75,12 +75,12 @@ export type RenameResult =
   | { ok: true; nickname: string | null }
   | {
       ok: false;
-      error: "auth" | "notfound" | "owner" | "locked" | "invalid" | "save";
+      error: "auth" | "notfound" | "owner" | "invalid" | "save";
     };
 
-// Set (or clear) a roostr's custom nickname: owner-guarded, active-only, validated
-// server-side via the SHARED rule (NICKNAME_RULE) so the client can't bypass it.
-// Empty input clears the nickname back to the breed-name default.
+// Set (or clear) a roostr's custom nickname: owner-guarded, validated server-side
+// via the SHARED rule (NICKNAME_RULE) so the client can't bypass it. Renaming is a
+// cosmetic edit, allowed at any status. Empty input clears back to the breed name.
 export async function renameRoostrAction(
   roostrId: string,
   raw: string,
@@ -91,8 +91,6 @@ export async function renameRoostrAction(
   const row = await getRoostr(roostrId);
   if (!row) return { ok: false, error: "notfound" };
   if (row.ownerId !== session.id) return { ok: false, error: "owner" };
-  // A listed / sold / recycled bird is locked — no edits while off the roster.
-  if (row.status !== "active") return { ok: false, error: "locked" };
 
   const v = validateText(raw, NICKNAME_RULE);
   if (!v.ok) return { ok: false, error: "invalid" };
@@ -115,7 +113,6 @@ export async function clearNicknameAction(
   const row = await getRoostr(roostrId);
   if (!row) return { ok: false, error: "notfound" };
   if (row.ownerId !== session.id) return { ok: false, error: "owner" };
-  if (row.status !== "active") return { ok: false, error: "locked" };
 
   const saved = await setNickname(roostrId, session.id, null);
   if (!saved) return { ok: false, error: "save" };
