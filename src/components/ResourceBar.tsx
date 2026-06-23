@@ -20,17 +20,27 @@ function Counter({
   value: string;
 }) {
   return (
-    <Box title={label} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+    <Box
+      title={label}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: { xs: 0.25, md: 0.5 },
+      }}
+    >
       <Image
         src={src}
         alt={label}
         width={18}
         height={18}
-        style={{ height: 18, width: "auto" }}
+        style={{ height: 16, width: "auto" }}
       />
       <Typography
-        variant="body2"
-        sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
+        sx={{
+          fontWeight: 800,
+          fontVariantNumeric: "tabular-nums",
+          fontSize: { xs: "0.78rem", md: "0.875rem" },
+        }}
         noWrap
       >
         {value}
@@ -67,20 +77,23 @@ export default function ResourceBar({
     <Box
       sx={{
         position: "fixed",
-        top: { xs: 9, md: 12 },
+        top: { xs: 0, md: 12 },
         right: { xs: 8, md: 16 },
+        // Mobile: a band the height of the top bar so the HUD vertical-centers with
+        // the logo (no more height mismatch). Desktop: natural height at top: 12.
+        height: { xs: 52, md: "auto" },
         zIndex: (theme) => theme.zIndex.drawer + 2,
         display: "flex",
-        alignItems: "stretch",
-        gap: 0.5, // a couple px between the bank pill and the bell
+        alignItems: "center",
       }}
     >
+      <Box sx={{ display: "flex", alignItems: "stretch", gap: 0.5 }}>
       <Card
         component={Link}
         href="/bank"
         sx={{
-          px: 1.5,
-          py: 0.75,
+          px: { xs: 1, md: 1.5 },
+          py: { xs: 0.5, md: 0.75 },
           display: "block",
           textDecoration: "none",
           color: "inherit",
@@ -91,7 +104,7 @@ export default function ResourceBar({
       >
         <Stack
           direction="row"
-          spacing={1.25}
+          spacing={{ xs: 0.75, md: 1.25 }}
           alignItems="center"
           divider={<Divider orientation="vertical" flexItem />}
         >
@@ -139,7 +152,7 @@ export default function ResourceBar({
             title={notificationsLabel}
             aria-label={notificationsLabel}
             sx={{
-              px: 1,
+              px: { xs: 0.75, md: 1 },
               display: "flex",
               alignItems: "center",
               textDecoration: "none",
@@ -153,6 +166,7 @@ export default function ResourceBar({
           </Card>
         </Badge>
       )}
+      </Box>
     </Box>
   );
 }

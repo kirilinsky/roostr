@@ -125,14 +125,22 @@ export default function AppShell({
   );
 
   const drawer = (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Logo */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        // Mobile: clear the fixed top bar (logo block is hidden there).
+        pt: { xs: "52px", md: 0 },
+      }}
+    >
+      {/* Logo — hidden on mobile (the top bar already shows it). */}
       <Box
         component={Link}
         href="/"
         onClick={close}
         sx={{
-          display: "flex",
+          display: { xs: "none", md: "flex" },
           alignItems: "center",
           gap: 1.25,
           minHeight: 72,
@@ -269,7 +277,7 @@ export default function AppShell({
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar sx={{ gap: 1 }}>
+        <Toolbar sx={{ gap: 0.5, minHeight: 52 }}>
           <IconButton
             edge="start"
             onClick={() => setMobileOpen(true)}
@@ -283,7 +291,7 @@ export default function AppShell({
             width={92}
             height={40}
             priority
-            style={{ height: 32, width: "auto" }}
+            style={{ height: 28, width: "auto" }}
           />
         </Toolbar>
       </AppBar>
