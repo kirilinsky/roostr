@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { decodeJwt } from "jose";
 import {
   getTelegramRedirectUri,
   telegramClaimsToSessionUser,
@@ -79,7 +78,6 @@ export async function GET(req: NextRequest) {
     try {
       claims = await verifyTelegramIdToken(idToken, clientId);
     } catch (e) {
-      logUnsafeIdTokenSummary(idToken);
       throw new TelegramAuthFlowError("id_token_invalid", e);
     }
 
@@ -87,15 +85,6 @@ export async function GET(req: NextRequest) {
     try {
       user = telegramClaimsToSessionUser(claims);
     } catch (e) {
-      console.error("Telegram id_token claims summary:", {
-        iss: claims.iss,
-        aud: claims.aud,
-        sub: claims.sub,
-        id: claims.id,
-        hasName: typeof claims.name === "string",
-        hasUsername: typeof claims.preferred_username === "string",
-        hasPicture: typeof claims.picture === "string",
-      });
       throw new TelegramAuthFlowError("user_claims_invalid", e);
     }
 
@@ -193,23 +182,4 @@ function clearOAuthCookies(res: NextResponse): void {
   const options = { path: "/api/auth/telegram", maxAge: 0 };
   res.cookies.set(TELEGRAM_STATE_COOKIE, "", options);
   res.cookies.set(TELEGRAM_VERIFIER_COOKIE, "", options);
-}
-
-function logUnsafeIdTokenSummary(idToken: string): void {
-  try {
-    const payload = decodeJwt(idToken);
-    console.error("Telegram id_token unverified summary:", {
-      iss: payload.iss,
-      aud: payload.aud,
-      sub: payload.sub,
-      id: payload.id,
-      exp: payload.exp,
-      iat: payload.iat,
-      hasName: typeof payload.name === "string",
-      hasUsername: typeof payload.preferred_username === "string",
-      hasPicture: typeof payload.picture === "string",
-    });
-  } catch {
-    console.error("Telegram id_token could not be decoded for summary");
-  }
 }

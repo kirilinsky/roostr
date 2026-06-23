@@ -32,6 +32,7 @@ export default async function OwnProfile({
     firstName: string | null;
     lastName: string | null;
     photoUrl: string | null;
+    createdAt: Date;
   };
 }) {
   const { locale, t } = await getTranslations();
@@ -138,6 +139,10 @@ export default async function OwnProfile({
               <Row
                 label={t("profile.coinsSpent")}
                 value={metrics.coinsSpent.toLocaleString()}
+              />
+              <Row
+                label={t("profile.registered")}
+                value={new Date(user.createdAt).toLocaleDateString(locale)}
               />
             </Stack>
           </CardContent>
