@@ -4,8 +4,11 @@ import { useState } from "react";
 import Button from "@mui/material/Button";
 import { addReferralParam } from "@/lib/referrals";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://roostr-two.vercel.app";
+// Strip any trailing slash so `${BASE_URL}/${id}` never produces a double slash
+// (NEXT_PUBLIC_APP_URL is often set with a trailing "/").
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://roostr-two.vercel.app"
+).replace(/\/+$/, "");
 
 export default function ShareProfileButton({
   telegramId,
