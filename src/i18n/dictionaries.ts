@@ -202,6 +202,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.productivityHint":
       "Productivity = sum of the attached workers' Intellect.",
     "lab.workers": "Workers",
+    "lab.buySlot": "Buy +1 slot",
     "lab.workersEmpty": "No workers assigned yet.",
     "lab.addWorkers": "Add",
     "lab.pickTitle": "Pick a worker",
@@ -507,6 +508,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "lab.productivityHint":
       "Производительность = сумма Интеллекта прикреплённых петухов.",
     "lab.workers": "Работники",
+    "lab.buySlot": "Купить +1 слот",
     "lab.workersEmpty": "Работники ещё не назначены.",
     "lab.addWorkers": "Добавить",
     "lab.pickTitle": "Выбор научного работника",

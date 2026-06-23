@@ -18,6 +18,9 @@ const intel = (r: HydratedRoostr) => r.stats.Intellect ?? 0;
 const rid = (r: HydratedRoostr) => String(r.id ?? r.seed);
 const byIntel = (a: HydratedRoostr, b: HydratedRoostr) => intel(b) - intel(a);
 
+const BASE_SLOTS = 2;
+const MAX_SLOTS = 3;
+
 // Laboratory — VISUAL ONLY (no research logic yet). Top block: research progress
 // + total science/hour = sum of attached workers' Intellect. Bottom: worker
 // roster (Intellect cards) with a + tile opening an Intellect-sorted picker.
@@ -26,6 +29,9 @@ export default function LabView({ roostrs }: { roostrs: HydratedRoostr[] }) {
   const [workerIds, setWorkerIds] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickedId, setPickedId] = useState<string | null>(null);
+
+  // Slots fixed at 2 for now; buying the 3rd is "soon" (no state change yet).
+  const slotsOwned = BASE_SLOTS;
 
   const removeWorker = (r: HydratedRoostr) =>
     setWorkerIds((s) => s.filter((x) => x !== rid(r)));
@@ -36,7 +42,9 @@ export default function LabView({ roostrs }: { roostrs: HydratedRoostr[] }) {
   };
   const confirmPick = () => {
     if (!pickedId) return;
-    setWorkerIds((s) => (s.includes(pickedId) ? s : [...s, pickedId]));
+    setWorkerIds((s) =>
+      s.includes(pickedId) || s.length >= slotsOwned ? s : [...s, pickedId],
+    );
     closePicker();
   };
 
@@ -50,6 +58,7 @@ export default function LabView({ roostrs }: { roostrs: HydratedRoostr[] }) {
     [roostrs, workerIds],
   );
   const productivity = workers.reduce((sum, r) => sum + intel(r), 0);
+  const canAdd = workers.length < slotsOwned;
 
   return (
     <Stack spacing={3}>
@@ -117,9 +126,31 @@ export default function LabView({ roostrs }: { roostrs: HydratedRoostr[] }) {
 
       {/* ── Bottom: workers ── */}
       <Box>
-        <Typography variant="h6" sx={{ mb: 1.5 }}>
-          {t("lab.workers")}
-        </Typography>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 1.5 }}
+          spacing={1}
+          flexWrap="wrap"
+        >
+          <Typography variant="h6">
+            {t("lab.workers")} ({workers.length}/{slotsOwned})
+          </Typography>
+          {/* buy +1 slot up to MAX — soon */}
+          {slotsOwned < MAX_SLOTS && (
+            <Button
+              variant="outlined"
+              color="neutral"
+              disabled
+              endIcon={
+                <Chip label={t("pedia.soon")} size="small" variant="outlined" />
+              }
+            >
+              {t("lab.buySlot")}
+            </Button>
+          )}
+        </Stack>
 
         <Box
           sx={{
@@ -141,30 +172,32 @@ export default function LabView({ roostrs }: { roostrs: HydratedRoostr[] }) {
             />
           ))}
 
-          {/* + tile → picker */}
-          <Card
-            component="button"
-            type="button"
-            onClick={() => setPickerOpen(true)}
-            sx={{
-              minHeight: 180,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 0.5,
-              cursor: "pointer",
-              border: "2px dashed",
-              borderColor: "divider",
-              bgcolor: "transparent",
-              color: "text.secondary",
-              transition: "border-color 0.15s, color 0.15s",
-              "&:hover": { borderColor: "primary.main", color: "primary.main" },
-            }}
-          >
-            <Typography sx={{ fontSize: 40, lineHeight: 1 }}>＋</Typography>
-            <Typography variant="caption">{t("lab.addWorkers")}</Typography>
-          </Card>
+          {/* + tile → picker (only while a slot is free) */}
+          {canAdd && (
+            <Card
+              component="button"
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              sx={{
+                minHeight: 180,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 0.5,
+                cursor: "pointer",
+                border: "2px dashed",
+                borderColor: "divider",
+                bgcolor: "transparent",
+                color: "text.secondary",
+                transition: "border-color 0.15s, color 0.15s",
+                "&:hover": { borderColor: "primary.main", color: "primary.main" },
+              }}
+            >
+              <Typography sx={{ fontSize: 40, lineHeight: 1 }}>＋</Typography>
+              <Typography variant="caption">{t("lab.addWorkers")}</Typography>
+            </Card>
+          )}
         </Box>
 
         {workers.length === 0 && (
