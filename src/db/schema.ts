@@ -2,12 +2,14 @@ import {
   bigint,
   boolean,
   doublePrecision,
+  index,
   integer,
   jsonb,
   pgTable,
   primaryKey,
   text,
   timestamp,
+  type AnyPgColumn,
   uuid,
 } from "drizzle-orm/pg-core";
 import type { RoosterAppearance } from "@/lib/roostr";
@@ -16,29 +18,60 @@ import type { RoosterAppearance } from "@/lib/roostr";
 // Battle / farm / expedition detail is kept in jsonb until those systems are
 // fully designed — tighten once the rules settle.
 
-export const users = pgTable("users", {
-  id: bigint("id", { mode: "number" }).primaryKey(), // Telegram id
-  username: text("username"),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
-  photoUrl: text("photo_url"),
-  languageCode: text("language_code"),
-  coins: integer("coins").notNull().default(0),
-  feathers: integer("feathers").notNull().default(0),
-  eggs: integer("eggs").notNull().default(0),
-  sci: integer("sci").notNull().default(0), // science points (lab research)
-  // Denormalized lifetime battle record (source of truth = the `battles` log).
-  // Bumped on each resolve so profiles read W/L without a COUNT over battles.
-  wins: integer("wins").notNull().default(0),
-  losses: integer("losses").notNull().default(0),
-  draws: integer("draws").notNull().default(0),
-  // Privacy: when false, other users can't see this player's collection.
-  collectionPublic: boolean("collection_public").notNull().default(true),
-  tonAddress: text("ton_address"),
-  lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // legacy/unused: hatching is egg-gated now (no cooldown)
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey(), // Telegram id
+    username: text("username"),
+    firstName: text("first_name"),
+    lastName: text("last_name"),
+    photoUrl: text("photo_url"),
+    languageCode: text("language_code"),
+    coins: integer("coins").notNull().default(0),
+    feathers: integer("feathers").notNull().default(0),
+    eggs: integer("eggs").notNull().default(0),
+    sci: integer("sci").notNull().default(0), // science points (lab research)
+    // Denormalized lifetime battle record (source of truth = the `battles` log).
+    // Bumped on each resolve so profiles read W/L without a COUNT over battles.
+    wins: integer("wins").notNull().default(0),
+    losses: integer("losses").notNull().default(0),
+    draws: integer("draws").notNull().default(0),
+    // Privacy: when false, other users can't see this player's collection.
+    collectionPublic: boolean("collection_public").notNull().default(true),
+    referredById: bigint("referred_by_id", { mode: "number" }).references(
+      (): AnyPgColumn => users.id,
+      { onDelete: "set null" },
+    ),
+    referredAt: timestamp("referred_at", { withTimezone: true }),
+    tonAddress: text("ton_address"),
+    lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // legacy/unused: hatching is egg-gated now (no cooldown)
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("users_referred_by_id_idx").on(t.referredById)],
+);
+
+// Successful referral attribution: one row per invited account after signup.
+// `users.referred_by_id` is the quick denormalized lookup; this table is the
+// inviter-facing list and future reward attribution source.
+export const referrals = pgTable(
+  "referrals",
+  {
+    referrerId: bigint("referrer_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    refereeId: bigint("referee_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    registeredAt: timestamp("registered_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.refereeId] }),
+    index("referrals_referrer_id_idx").on(t.referrerId),
+  ],
+);
 
 export const roostrs = pgTable("roostrs", {
   id: uuid("id").primaryKey().defaultRandom(),

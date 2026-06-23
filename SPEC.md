@@ -34,8 +34,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   `roostr.ts`/`breeds.ts` read these — see V11.
 - Hatch lib: `rollRoostr() → RolledRoostr` in `src/lib/roostr.ts`.
 - Shared UI: `AppShell` · `StubPage` · `RoostrCard`.
-- DB: `src/db/schema.ts` (users, roostrs, breed_discoveries, battles, `expeditions` (= raids/вылазки,
-  V14), farm_sessions, friendships) +
+- DB: `src/db/schema.ts` (users (+ `referredById`), roostrs, breed_discoveries, battles, `expeditions`
+  (= raids/вылазки, V14), farm_sessions, friendships, achievement_unlocks (V-ach), referrals (V17)) +
   `src/db/index.ts` (Neon+Drizzle client). Scripts `db:generate|migrate|push|studio`. Env `DATABASE_URL`.
 
 ## §V — Invariants
@@ -133,6 +133,18 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   shields low balances ("lose some money, not much"). Win defense ⇒ attacker leaves ~empty, victim
   coins safe. ALL server-resolved on server state (no client trust, like V13/V14); coin transfer via
   the ledger. UI lives in the `/raids` area (attack + manage watch). Exact formulas/caps TBD.
+- V17 — REFERRALS. ATTRIBUTION: a share link carries `?ref=<inviterId>` (`addReferralParam`,
+  `ShareProfileButton`); `ReferralCapture` (in layout) stores it (cookie + localStorage, 30d) and strips
+  the param; on Telegram SIGNUP the callback reads the cookie → `upsertUser({referredById})`. A referee
+  is attributed exactly ONCE and only if NEW: sets `users.referredById` + writes a `referrals` row;
+  self-ref rejected, inviter must exist (`parseReferralId` + existence check). REWARDS go through the
+  ledger (`grantResource`, kind `"referral"`), each paid ONCE, SERVER-resolved (no client trust):
+  • DONE — REFEREE signup bonus: +1 egg + `REFERRAL_BONUS_COINS=50` coins (`upsertUser`, new + valid ref).
+  • TODO — REFERRER (inviter) MILESTONES, each credited once per referee: (a) referee registers → +5
+  coins [T33]; (b) referee hatches 3 eggs (lifetime) → +1 egg [T34]; (c) referee's FIRST battle → +75
+  coins [T35]. IDEMPOTENCY: track per-referee milestone flags (extend the `referrals` row, e.g.
+  `rewardedSignup/Hatch3/FirstBattle` booleans) so a milestone never double-pays. UI: a logged-out
+  visitor with `?ref` sees an invite CTA + Telegram login on the profile page (`ReferralBanner`).
 
 ## §T — Tasks
 
@@ -169,6 +181,10 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T29 | . | PvP raid targeting: pre-raid show N RANDOM real players (blind, no stats), attacker picks target | V14,V16 |
 | T30 | . | Defense Watch: assign roosters on guard (2 slots, +1 paid), lowers robbery odds; reuse slot model | V16,V13 |
 | T31 | . | contested raid resolution: ATK Σ(Stealth+Luck) vs DEF Σ(combat+Intellect)+RNG → win/lose, capped coin steal, server-resolved + ledger | V16,V14 |
+| T32 | x | referrals: ?ref capture → signup attribution + referee bonus (+1 egg +50 coins) + guest CTA banner | V17 |
+| T33 | . | referrer reward: +5 coins when an invited user registers (once per referee) | V17 |
+| T34 | . | referrer reward: +1 egg when an invited user hatches 3 eggs (lifetime, once) | V17 |
+| T35 | . | referrer reward: +75 coins when an invited user finishes their FIRST battle (once) | V17 |
 
 ## §B — Bugs
 

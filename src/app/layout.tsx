@@ -6,6 +6,7 @@ import theme from "@/theme";
 import AppShell, { type NavItem, type ShellUser } from "@/components/AppShell";
 import { AdminProvider } from "@/components/AdminProvider";
 import ToastProvider from "@/components/ToastProvider";
+import ReferralCapture from "@/components/ReferralCapture";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
@@ -77,6 +78,7 @@ export default async function RootLayout({
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
+            <ReferralCapture />
             <I18nProvider locale={locale}>
               <AdminProvider isAdmin={admin}>
                 <ToastProvider>

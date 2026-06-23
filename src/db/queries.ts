@@ -1,4 +1,5 @@
 import type { SessionUser } from "@/lib/auth";
+import { parseReferralId } from "@/lib/referrals";
 import { hydrateRoostr, type RolledRoostr } from "@/lib/roostr";
 import {
   STATIONS,
@@ -645,6 +646,43 @@ export async function getFriends(userId: number) {
   }
 }
 
+export interface ReferralSummary {
+  id: number;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  photoUrl: string | null;
+  registeredAt: Date;
+}
+
+// Users who successfully registered through this user's referral link.
+export async function getReferredUsers(
+  referrerId: number,
+): Promise<ReferralSummary[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(referrerId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { referrals, users } = await import("@/db/schema");
+    const { desc, eq } = await import("drizzle-orm");
+    return await db
+      .select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        registeredAt: referrals.registeredAt,
+      })
+      .from(referrals)
+      .innerJoin(users, eq(users.id, referrals.refereeId))
+      .where(eq(referrals.referrerId, referrerId))
+      .orderBy(desc(referrals.registeredAt));
+  } catch (e) {
+    console.error("getReferredUsers failed:", e);
+    return [];
+  }
+}
+
 // Public profile lookup by Telegram id. Returns null if absent / DB unavailable.
 export async function getUserById(id: number) {
   if (!process.env.DATABASE_URL || !Number.isFinite(id)) return null;
@@ -668,29 +706,56 @@ export async function getUserById(id: number) {
 // passes false so logging in as the fake admin (same id 339784494) does NOT
 // clobber the real Telegram name/photo already stored — it only inserts if absent.
 const STARTER_EGGS = 1; // eggs granted once, to a brand-new player at signup
+const REFERRAL_BONUS_EGGS = 1; // extra egg for a newcomer who arrived via a ref link
+const REFERRAL_BONUS_COINS = 50; // starter coins for a referred newcomer
 
 export async function upsertUser(
   u: SessionUser,
-  { overwrite = true }: { overwrite?: boolean } = {},
+  {
+    overwrite = true,
+    referredById,
+  }: { overwrite?: boolean; referredById?: number | null } = {},
 ): Promise<void> {
   if (!process.env.DATABASE_URL) return;
   try {
     const { db } = await import("@/db");
-    const { users } = await import("@/db/schema");
+    const { users, referrals } = await import("@/db/schema");
     const { eq } = await import("drizzle-orm");
+    let validReferrerId = parseReferralId(referredById, u.id);
+    if (validReferrerId) {
+      const referrer = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, validReferrerId))
+        .limit(1);
+      if (referrer.length === 0) validReferrerId = null;
+    }
     const fields = {
       username: u.username ?? null,
       firstName: u.firstName ?? null,
       lastName: u.lastName ?? null,
       photoUrl: u.photoUrl ?? null,
     };
+    const referralFields = validReferrerId
+      ? { referredById: validReferrerId, referredAt: new Date() }
+      : {};
     // Insert-if-absent; `returning` tells us whether this is a brand-new player.
     const inserted = await db
       .insert(users)
-      .values({ id: u.id, ...fields })
+      .values({ id: u.id, ...fields, ...referralFields })
       .onConflictDoNothing()
       .returning({ id: users.id });
     const isNew = inserted.length > 0;
+
+    if (isNew && validReferrerId) {
+      await db
+        .insert(referrals)
+        .values({
+          referrerId: validReferrerId,
+          refereeId: u.id,
+        })
+        .onConflictDoNothing();
+    }
 
     // Existing player + real login → refresh profile fields.
     if (!isNew && overwrite) {
@@ -701,8 +766,13 @@ export async function upsertUser(
     }
 
     // Brand-new player → starter egg (one free hatch), through the audited ledger.
+    // A referred newcomer also gets a bonus egg + starter coins (the invite reward).
     if (isNew) {
       await grantResource(u.id, "egg", STARTER_EGGS, "starter");
+      if (validReferrerId) {
+        await grantResource(u.id, "egg", REFERRAL_BONUS_EGGS, "referral");
+        await grantResource(u.id, "coin", REFERRAL_BONUS_COINS, "referral");
+      }
     }
   } catch (e) {
     console.error("upsertUser failed:", e);

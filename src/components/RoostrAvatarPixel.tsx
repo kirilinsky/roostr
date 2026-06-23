@@ -41,6 +41,8 @@ const EYE_W = 9;
 const EYE_I = 10;
 const EYE_P = 11;
 const LEG = 12;
+const SADDLE = 13;
+const BARE_NECK = 14;
 
 const WEIGHT_PX: Record<string, { rx: number; ry: number }> = {
   tiny: { rx: 12, ry: 11 },
@@ -242,18 +244,6 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     quad(g, tbx - px, tby - py, mx - px, my - py, ex - px, ey - py, 0, -1, 1); // light edge
   }
 
-  // ---- HACKLE neck (skipped for naked-neck) ----
-  if (!tags.has("naked-neck")) {
-    // fuller cape: thick main drape + lower shoulder spread
-    quad(g, bodyCx + rx - 5, bodyCy - ry + 2, bodyCx + rx + 3, headCy + headR + 4, headCx - 3, headCy + headR - 2, 6, HACKLE);
-    quad(g, bodyCx + rx - 3, bodyCy - ry + 7, bodyCx + rx + 4, headCy + headR + 7, headCx - 2, headCy + headR + 1, 4, HACKLE);
-    // individual neck feathers (dark seams, diagonal)
-    for (let k = 0; k < 6; k++) {
-      const sx = bodyCx + rx - 3 + k * 2;
-      quad(g, sx, bodyCy - ry + 4, sx + 2, (bodyCy - ry + headCy) / 2, headCx - 4 + k, headCy + headR - 1, 0, -1, -2);
-    }
-  }
-
   // ---- BODY + breast ----
   ellipse(g, bodyCx, bodyCy, rx, ry, BODY);
   // teardrop: full low breast forward (right) + raised saddle toward the tail (left)
@@ -297,6 +287,67 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
   // covert top highlight (along the leading edge)
   for (let x = bodyCx; x <= bodyCx + rx; x++) addSh(g, x, bodyCy - 2, 1);
 
+  // ---- SADDLE: distinct back feathers between body, hackle and tail ----
+  for (let k = 0; k < 5; k++) {
+    const t = k / 4;
+    const sx = bodyCx - rx * 0.55 + t * rx * 0.95;
+    const sy = bodyCy - ry * 0.54 + Math.sin(t * Math.PI) * 1.2;
+    const ex2 = sx + rx * 0.34;
+    const ey2 = bodyCy - ry * 0.12 + k * 0.55;
+    quad(g, sx, sy, sx + rx * 0.18, sy + 3.6, ex2, ey2, 1.1, SADDLE);
+    quad(g, sx + 0.8, sy + 0.8, sx + rx * 0.2, sy + 3.8, ex2 - 0.6, ey2 + 0.4, 0, -1, -2);
+  }
+  for (let x = bodyCx - rx + 3; x <= bodyCx + rx * 0.35; x++) addSh(g, x, bodyCy - ry + 4, 1);
+
+  // ---- HACKLE / mane: layered neck cape, over body but under the head ----
+  if (tags.has("naked-neck")) {
+    const nx = bodyCx + rx + 1;
+    const ny = bodyCy - ry + 4;
+    // Bare-neck breeds still need a visible narrow neck bridge. Keep it lean and
+    // skin-toned so the missing hackle remains the defining silhouette.
+    quad(g, nx, ny, nx + 4, ny - 6, headCx - 3, headCy + headR - 2, 2.1, BARE_NECK);
+    quad(g, nx + 1, ny + 2, nx + 5, ny - 3, headCx - 1, headCy + headR + 1, 1.2, BARE_NECK);
+    quad(g, nx + 2, ny, nx + 5, ny - 5, headCx - 1, headCy + headR - 1, 0, -1, -2);
+    quad(g, nx - 1, ny - 1, nx + 2, ny - 6, headCx - 5, headCy + headR - 3, 0, -1, 1);
+  } else {
+    const neckTopX = headCx - 5.5;
+    const neckTopY = headCy + headR - 3;
+    const shoulderX = bodyCx + rx - 6;
+    const shoulderY = bodyCy - ry + 5;
+    const throatX = headCx + 0.5;
+    const throatY = headCy + headR + 1;
+
+    // Broad cape mass, then a front throat lock so the neck reads as layered.
+    quad(g, shoulderX, shoulderY, bodyCx + rx + 1, bodyCy - ry - 4, neckTopX, neckTopY, 5.2, HACKLE);
+    quad(g, shoulderX + 2, shoulderY + 5, bodyCx + rx + 4, bodyCy - ry + 2, throatX, throatY, 3.4, HACKLE);
+    ellipse(g, shoulderX - 1, shoulderY + 5, 4.5, 5.5, HACKLE);
+
+    // Serrated lower tips, like overlapping hackle feathers over the shoulder.
+    for (let k = 0; k < 7; k++) {
+      const t = k / 6;
+      const sx = shoulderX - 4 + t * 13;
+      const sy = shoulderY + 4 + Math.sin(t * Math.PI) * 2;
+      quad(g, sx, sy, sx + 1.4, sy + 3.4, sx - 0.8, sy + 7.2, 0.8, HACKLE);
+      quad(g, sx + 0.8, sy + 1.2, sx + 1.8, sy + 4, sx, sy + 6.8, 0, -1, -2);
+    }
+
+    // Directional feather seams and highlights following the neck curve.
+    for (let k = 0; k < 8; k++) {
+      const t = k / 7;
+      const sx = neckTopX - 0.5 + t * 9.5;
+      const sy = neckTopY + t * 7.5;
+      const cx3 = sx - 1.8 + Math.sin(t * Math.PI) * 2.2;
+      const ex3 = shoulderX - 4 + t * 13;
+      const ey3 = shoulderY + 7 + Math.cos(t * Math.PI) * 1.3;
+      quad(g, sx, sy, cx3, sy + 4, ex3, ey3, 0, -1, -2);
+      quad(g, sx - 1, sy - 0.5, cx3 - 1, sy + 3, ex3 - 1.2, ey3 - 0.6, 0, -1, 1);
+    }
+
+    // Soft shadow where the cape tucks under the beak/head and onto the shoulder.
+    quad(g, throatX, throatY - 1, throatX + 1.5, throatY + 3, shoulderX + 4, shoulderY + 7, 0, -1, -2);
+    for (let x = shoulderX - 3; x <= shoulderX + 9; x++) addSh(g, x, shoulderY + 8, -1);
+  }
+
   // ---- HEAD ----
   ellipse(g, headCx, headCy, headR, headR - 1, BODY);
   for (let y = Math.round((headCy - headR) * S); y <= Math.round((headCy + headR) * S); y++)
@@ -313,15 +364,30 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     ellipse(g, headCx + 4, headCy - headR + 1, 3, 4, HACKLE);
   }
 
-  // ---- COMB: serrated teeth + base shade ----
-  const combY = headCy - headR + 1;
-  for (let i = 0; i < 5; i++) {
-    const cx2 = headCx - 6 + i * 2;
-    const h = 3 + (i % 2 === 0 ? 1 : 0) + (i === 2 ? 1 : 0);
-    line(g, cx2, combY, cx2, combY - h, 0, COMB);
+  // ---- COMB: fleshy serrated crown with front lobe + shaded base ----
+  const combBaseY = headCy - headR + 1;
+  const combStartX = headCx - 7;
+  const toothHeights = [3.6, 5.4, 6.4, 5.1, 3.7];
+  // base ridge follows the top of the skull instead of sitting like a flat line
+  quad(g, combStartX - 1, combBaseY + 0.4, headCx - 4, combBaseY - 1.1, headCx + 4, combBaseY + 0.8, 1.4, COMB);
+  ellipse(g, combStartX - 1.5, combBaseY + 1.1, 1.8, 2.2, COMB); // rear/base lobe
+  for (let i = 0; i < toothHeights.length; i++) {
+    const cx2 = combStartX + i * 2.7;
+    const h = toothHeights[i];
+    // each tooth is a tapered mini-lobe, wider at the skull and pinched at top
+    ellipse(g, cx2, combBaseY - h * 0.45, 1.45, h * 0.55, COMB);
+    quad(g, cx2 - 0.6, combBaseY - 0.3, cx2 - 0.2, combBaseY - h * 0.72, cx2 + 0.2, combBaseY - h, 0.75, COMB);
+    addSh(g, cx2 - 0.8, combBaseY - h + 0.6, 2); // top-left catch light
+    addSh(g, cx2 + 0.8, combBaseY - 1, -1); // right/base depth
   }
-  line(g, headCx - 6, combY, headCx + 3, combY, 0, COMB);
-  for (let x = headCx - 6; x <= headCx + 3; x++) addSh(g, x, combY, -1);
+  // forward small fold falling toward the beak
+  quad(g, headCx + 3.4, combBaseY + 0.2, headCx + 5.4, combBaseY + 1.6, headCx + 4.8, combBaseY + 3.2, 1.05, COMB);
+  // crease shadows between teeth
+  for (let i = 1; i < toothHeights.length; i++) {
+    const cx2 = combStartX - 1.3 + i * 2.7;
+    line(g, cx2, combBaseY - 0.6, cx2 + 0.2, combBaseY - toothHeights[i] * 0.58, 0, OUT);
+  }
+  for (let x = headCx - 8; x <= headCx + 6; x++) addSh(g, x, combBaseY + 1, -1);
 
   // ---- WATTLE / BEARD ----
   if (tags.has("beard") || tags.has("bearded")) {
@@ -461,6 +527,8 @@ export default function RoostrAvatarPixel({
           return hex.tail;
         case HACKLE:
           return hex.hackle;
+        case SADDLE:
+          return hex.saddle;
         case COMB:
         case WATTLE:
           return hex.comb;
@@ -474,6 +542,8 @@ export default function RoostrAvatarPixel({
           return PUPIL;
         case LEG:
           return hex.leg;
+        case BARE_NECK:
+          return lerpHex(hex.leg, hex.beak, 0.28);
         default:
           return hex.body;
       }

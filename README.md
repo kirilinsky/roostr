@@ -56,6 +56,13 @@ In BotFather, open `Bot Settings > Web Login` and set the `Redirect URL` to
 Use the same `/api/auth/telegram/callback` path for any custom domain.
 `Native Login` is only for native iOS/Android SDKs and is not needed here.
 
+### Referrals
+
+Profile share links include `?ref=<telegramId>`. The client stores that ref in
+localStorage and a short-lived cookie; Telegram OAuth callback reads the cookie
+and writes `users.referred_by_id` / `users.referred_at` plus one `referrals`
+row only for brand-new users. Self-referrals and unknown referrers are ignored.
+
 ## Scripts
 
 | Command | Does |

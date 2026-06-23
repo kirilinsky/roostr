@@ -7,10 +7,12 @@ import Typography from "@mui/material/Typography";
 import FriendButton from "@/components/FriendButton";
 import CollectionCard from "@/components/CollectionCard";
 import OwnProfile from "@/components/OwnProfile";
+import ReferralBanner from "@/components/ReferralBanner";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import { getUserById, getFriendship, getRoostrs } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
+import { parseReferralId } from "@/lib/referrals";
 
 // Public profile reachable via the shared link: /<telegramId>. Single-segment
 // dynamic route — static routes (/market, /collection, …) win, so it only catches
@@ -18,14 +20,27 @@ import { hydrateRoostr } from "@/lib/roostr";
 // + (public) catalog.
 export default async function PublicProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ telegramid: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { telegramid } = await params;
+  const sp = await searchParams;
   const { locale, t } = await getTranslations();
   const session = await getSession();
   const id = Number(telegramid);
   const user = Number.isFinite(id) ? await getUserById(id) : null;
+
+  // Logged-out visitor arriving via a referral link → pitch the invite reward with
+  // a Telegram login button. The bonus is granted server-side on signup.
+  const refId = parseReferralId(Array.isArray(sp.ref) ? sp.ref[0] : sp.ref);
+  const showReferralBanner = !session && refId !== null;
+  const telegramLoginConfigured =
+    !!(
+      process.env.TELEGRAM_CLIENT_ID ??
+      process.env.NEXT_PUBLIC_TELEGRAM_CLIENT_ID
+    ) && !!process.env.TELEGRAM_CLIENT_SECRET;
 
   if (!user) {
     return (
@@ -62,6 +77,14 @@ export default async function PublicProfilePage({
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
+      {showReferralBanner && (
+        <ReferralBanner
+          configured={telegramLoginConfigured}
+          title={t("referral.bonusTitle")}
+          text={t("referral.bonusCta")}
+        />
+      )}
+
       {isOwnProfile ? (
         <OwnProfile user={user} />
       ) : (

@@ -123,6 +123,9 @@ export const dictionaries: Record<Locale, Dict> = {
     "txn.admin_grant": "Admin grant",
     "txn.lab": "Lab",
     "txn.starter": "Welcome gift",
+    "txn.referral": "Referral bonus",
+    "referral.bonusTitle": "You've been invited!",
+    "referral.bonusCta": "Sign up and get a bonus egg + 50 starter coins.",
 
     "home.guest": "Sign in via the Telegram button in the sidebar.",
     "home.signedInAs": "Signed in as {name}.",
@@ -453,6 +456,9 @@ export const dictionaries: Record<Locale, Dict> = {
     "txn.admin_grant": "Начисление",
     "txn.lab": "Лаборатория",
     "txn.starter": "Стартовый бонус",
+    "txn.referral": "Реферальный бонус",
+    "referral.bonusTitle": "Тебя пригласили!",
+    "referral.bonusCta": "Зарегистрируйся и получи бонусное яйцо + 50 стартовых монет.",
 
     "home.guest": "Войди через кнопку Telegram в меню слева.",
     "home.signedInAs": "Вошёл как {name}.",

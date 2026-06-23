@@ -10,6 +10,7 @@ import {
 } from "@/lib/telegram";
 import { signSession, SESSION_COOKIE } from "@/lib/auth";
 import { upsertUser } from "@/db/queries";
+import { getReferralIdForUser, REFERRER_COOKIE } from "@/lib/referrals";
 
 export const runtime = "nodejs";
 
@@ -58,11 +59,18 @@ export async function GET(req: NextRequest) {
     });
     const claims = await verifyTelegramIdToken(idToken, clientId);
     const user = telegramClaimsToSessionUser(claims);
+    const referrerId = getReferralIdForUser(
+      req.cookies.get(REFERRER_COOKIE)?.value,
+      user.id,
+    );
     const token = await signSession(user);
-    await upsertUser(user);
+    await upsertUser(user, { referredById: referrerId });
 
-    const res = NextResponse.redirect(new URL(`/${user.id}`, req.url));
+    const res = NextResponse.redirect(
+      new URL(`/${user.id}?ref_registered=1`, req.url),
+    );
     clearOAuthCookies(res);
+    res.cookies.set(REFERRER_COOKIE, "", { path: "/", maxAge: 0 });
     res.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

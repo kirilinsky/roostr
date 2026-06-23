@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Button from "@mui/material/Button";
+import { addReferralParam } from "@/lib/referrals";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://roostr-two.vercel.app";
@@ -16,7 +17,7 @@ export default function ShareProfileButton({
   copiedLabel: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const url = `${BASE_URL}/${telegramId}`;
+  const url = addReferralParam(`${BASE_URL}/${telegramId}`, telegramId);
 
   async function copy() {
     try {
