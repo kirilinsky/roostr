@@ -19,9 +19,10 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 
 ## §I — Interfaces
 
-- Routes: `/incubator` `/collection` `/roostrdex` `/market` `/arena` `/farm` `/raids` `/friends`
-  `/bank` `/about` `/debug` `/support` `/settings` `/profile` · `/[telegramid]` (public profile by id).
-  `/raids` = Coop & Dagger heist mode (V14).
+- Routes: `/incubator` `/collection` `/roostrdex` `/market` `/arena` `/farm` `/raids` `/bank`
+  `/about` `/debug` `/support` `/settings` `/profile` · `/[telegramid]` (public profile by id) ·
+  `/[telegramid]/achievements` · `/[telegramid]/friends`. `/raids` = Coop & Dagger heist mode (V14).
+  Friends moved off the sidebar into the profile (3-up block + "all friends" → `/[telegramid]/friends`).
 - API: `POST /api/auth/telegram` · `POST /api/auth/logout`.
 - Design tokens: `src/theme.ts` (single MUI theme).
 - i18n dicts: `src/i18n/dictionaries.ts` (en+ru).
@@ -154,7 +155,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T15 | x | server hatch: spend 1 egg + persist roostr + dex discovery (off localStorage) | C,V5 |
 | T16 | . | roostrdex + collection read from DB | C |
 | T17 | x | friends page + share-profile link (clipboard) + public profile /[telegramid] | C |
-| T18 | x | friendships: add/remove on profile, since date, friends list on /friends | C |
+| T18 | x | friendships: add/remove on profile, since date, friends list on /[telegramid]/friends | C |
 | T20 | x | extract game data to JSON: SKILLS, GENES, RELATIONS, COSMETICS (source of truth) | V11 |
 | T21 | x | genes to 3/family (21); fill stat gaps (Luck/Accuracy native), buff+debuff mix | C |
 | T22 | x | gene leveling model (stats from levels, cost curve) + debug upgrade lab (GeneLab) | V12 |

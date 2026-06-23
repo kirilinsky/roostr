@@ -3,8 +3,9 @@ import Image from "next/image";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import Container from "@mui/material/Container";
-import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import FriendButton from "@/components/FriendButton";
@@ -18,6 +19,7 @@ import { getSession } from "@/lib/auth";
 import {
   getUserById,
   getFriendship,
+  getFriends,
   getRoostrs,
   getProfileMetrics,
   getAchievementUnlocks,
@@ -26,7 +28,7 @@ import {
 import { hydrateRoostr } from "@/lib/roostr";
 
 // Public profile reachable via the shared link: /<telegramId>. Single-segment
-// dynamic route — static routes (/friends, /market, …) win, so it only catches
+// dynamic route — static routes (/market, /collection, …) win, so it only catches
 // leftover ids.
 export default async function PublicProfilePage({
   params,
@@ -99,6 +101,9 @@ export default async function PublicProfilePage({
     earned.length ? earned : [...statuses].sort((a, b) => b.progress - a.progress)
   ).slice(0, 3);
 
+  // Friends block (own profile only) — first 3, "all friends" → /[id]/friends.
+  const friends = isOwnProfile ? await getFriends(user.id) : [];
+
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
       <Stack spacing={3} alignItems="center" textAlign="center">
@@ -153,71 +158,147 @@ export default async function PublicProfilePage({
           </Stack>
         )}
 
-        {/* Own profile: economy + achievements + logout */}
+        {/* Own profile: stats + achievements + friends in a wide grid (desktop:
+            multi-column, not a single narrow stack), logout below. */}
         {isOwnProfile && metrics && (
-          <Stack spacing={2.5} sx={{ width: "100%", maxWidth: 380 }}>
+          <Box sx={{ width: "100%", textAlign: "left" }}>
             <AchievementToaster
               unlocked={newlyAchievements}
-              locale={locale}
               href={`/${user.id}/achievements`}
             />
-            <Divider flexItem />
-            <Stack spacing={1}>
-              <Row
-                label={t("profile.eggsHatched")}
-                value={String(metrics.eggsHatched)}
-              />
-              <Row
-                label={t("profile.coinsEarned")}
-                value={metrics.coinsEarned.toLocaleString()}
-              />
-              <Row
-                label={t("profile.coinsSpent")}
-                value={metrics.coinsSpent.toLocaleString()}
-              />
-            </Stack>
+            <Box
+              sx={{
+                display: "grid",
+                gap: 2.5,
+                gridTemplateColumns: {
+                  xs: "minmax(0, 1fr)",
+                  md: "repeat(2, minmax(0, 1fr))",
+                },
+                alignItems: "start",
+              }}
+            >
+              {/* Stats */}
+              <Card>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {t("profile.stats")}
+                  </Typography>
+                  <Stack spacing={1} sx={{ mt: 1.5 }}>
+                    <Row
+                      label={t("profile.eggsHatched")}
+                      value={String(metrics.eggsHatched)}
+                    />
+                    <Row
+                      label={t("profile.coinsEarned")}
+                      value={metrics.coinsEarned.toLocaleString()}
+                    />
+                    <Row
+                      label={t("profile.coinsSpent")}
+                      value={metrics.coinsSpent.toLocaleString()}
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
 
-            <Divider flexItem />
+              {/* Achievements — 3 most recent + view all */}
+              <Card>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {t("profile.achievements")}
+                  </Typography>
+                  <Stack spacing={1} sx={{ mt: 1.5 }}>
+                    {recentAchievements.map((s) => {
+                      const at = unlockedAt.get(s.def.id);
+                      return (
+                        <AchievementBadge
+                          key={s.def.id}
+                          achievement={s.def}
+                          unlocked={!!at}
+                          unlockedNote={
+                            at
+                              ? t("achievements.unlockedOn", {
+                                  date: new Date(at).toLocaleDateString(locale),
+                                })
+                              : undefined
+                          }
+                          locale={locale}
+                        />
+                      );
+                    })}
+                    <Button
+                      component={Link}
+                      href={`/${user.id}/achievements`}
+                      variant="outlined"
+                      color="neutral"
+                      fullWidth
+                    >
+                      {t("profile.allAchievements")}
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
 
-            <Stack spacing={1}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 700 }}
-                textAlign="left"
-              >
-                {t("profile.achievements")}
-              </Typography>
-              {recentAchievements.map((s) => {
-                const at = unlockedAt.get(s.def.id);
-                return (
-                  <AchievementBadge
-                    key={s.def.id}
-                    achievement={s.def}
-                    unlocked={!!at}
-                    unlockedNote={
-                      at
-                        ? t("achievements.unlockedOn", {
-                            date: new Date(at).toLocaleDateString(locale),
-                          })
-                        : undefined
-                    }
-                    locale={locale}
-                  />
-                );
-              })}
-              <Button
-                component={Link}
-                href={`/${user.id}/achievements`}
-                variant="outlined"
-                color="neutral"
-                fullWidth
-              >
-                {t("profile.allAchievements")}
-              </Button>
-            </Stack>
+              {/* Friends — first 3 + all friends → /[id]/friends */}
+              <Card>
+                <CardContent>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {t("profile.friends")}
+                  </Typography>
+                  <Stack spacing={1} sx={{ mt: 1.5 }}>
+                    {friends.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary">
+                        {t("friends.empty")}
+                      </Typography>
+                    ) : (
+                      friends.slice(0, 3).map((f) => {
+                        const name =
+                          [f.firstName, f.lastName].filter(Boolean).join(" ") ||
+                          (f.username ? `@${f.username}` : String(f.id));
+                        return (
+                          <Button
+                            key={f.id}
+                            component={Link}
+                            href={`/${f.id}`}
+                            color="neutral"
+                            sx={{
+                              justifyContent: "flex-start",
+                              textTransform: "none",
+                              gap: 1,
+                              px: 1,
+                            }}
+                          >
+                            <Avatar
+                              src={f.photoUrl ?? undefined}
+                              alt={name}
+                              sx={{ width: 28, height: 28 }}
+                            >
+                              {name.charAt(0)}
+                            </Avatar>
+                            <Typography variant="body2" noWrap>
+                              {name}
+                            </Typography>
+                          </Button>
+                        );
+                      })
+                    )}
+                    <Button
+                      component={Link}
+                      href={`/${user.id}/friends`}
+                      variant="outlined"
+                      color="neutral"
+                      fullWidth
+                    >
+                      {t("profile.allFriends")}
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Box>
 
-            <LogoutButton />
-          </Stack>
+            <Box sx={{ mt: 2.5, maxWidth: { md: 320 } }}>
+              <LogoutButton />
+            </Box>
+          </Box>
         )}
       </Stack>
 

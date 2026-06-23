@@ -25,6 +25,8 @@ import {
   removeWorkerAction,
   claimStationAction,
 } from "@/app/stations/actions";
+import { syncProfileAchievementsAction } from "@/app/achievements/actions";
+import { useAchievementToasts } from "@/components/useAchievementToasts";
 import { useT } from "@/i18n/I18nProvider";
 
 const rid = (r: HydratedRoostr) => String(r.id ?? r.seed);
@@ -159,7 +161,19 @@ export default function StationView({
     });
   }
   const remove = (id: string) => act(() => removeWorkerAction(kind, id));
-  const claim = () => act(() => claimStationAction(kind));
+  // Claim, then immediately sync profile achievements so an unlock (e.g. first
+  // science point → "first-sci") toasts right here at claim time, not only when
+  // the player next opens their profile.
+  const toastAchievements = useAchievementToasts();
+  const claim = () =>
+    startBusy(async () => {
+      const res = await claimStationAction(kind);
+      router.refresh();
+      if (res.ok) {
+        const newlyUnlocked = await syncProfileAchievementsAction();
+        toastAchievements(newlyUnlocked);
+      }
+    });
 
   const closePicker = () => {
     setPickerOpen(false);

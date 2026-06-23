@@ -52,7 +52,6 @@ export default async function RootLayout({
         { href: "/arena", label: t("nav.arena"), icon: "⚔️" },
         { href: "/farm", label: t("nav.farm"), icon: "🌾" },
         { href: "/lab", label: t("nav.lab"), icon: "🧪" },
-        { href: "/friends", label: t("nav.friends"), icon: "👥" },
       ]
     : [];
 

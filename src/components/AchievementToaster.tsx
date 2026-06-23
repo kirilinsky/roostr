@@ -1,50 +1,29 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useToast } from "@/components/ToastProvider";
-import {
-  achievementName,
-  achievementDesc,
-  type Achievement,
-} from "@/lib/achievements";
-import type { Locale } from "@/i18n/config";
+import { useEffect } from "react";
+import { useAchievementToasts } from "@/components/useAchievementToasts";
+import type { Achievement } from "@/lib/achievements";
 
-// Fires an "achievement" toast for each newly-unlocked achievement, exactly once
-// per mount. The server decides what's NEW (rows just inserted into
-// achievement_unlocks) and passes them here; this only surfaces them. Capped so a
-// first-ever sync that unlocks many at once doesn't bury the screen — the rest are
-// still visible on the achievements page.
+// Fires an "achievement" toast for each newly-unlocked achievement the server
+// computed for this render (profile / bird pages). Dedupe + locale live in
+// useAchievementToasts (module-level guard → no double-pop under StrictMode or on
+// refresh). Capped so a first-ever sync that unlocks many at once doesn't bury the
+// screen — the rest are still visible on the achievements page.
 const MAX_TOASTS = 3;
 
 export default function AchievementToaster({
   unlocked,
-  locale,
   href,
 }: {
   unlocked: Achievement[];
-  locale: Locale;
   href?: string;
 }) {
-  const toast = useToast();
-  const fired = useRef(false);
-
+  const toastAchievements = useAchievementToasts();
   useEffect(() => {
-    if (fired.current || unlocked.length === 0) return;
-    fired.current = true; // guard against double-fire (StrictMode / re-render)
-    unlocked.slice(0, MAX_TOASTS).forEach((a, i) => {
-      // Stagger slightly so multiple unlocks animate in sequence, not on top.
-      window.setTimeout(() => {
-        toast.show({
-          variant: "achievement",
-          icon: a.icon,
-          title: achievementName(a, locale),
-          message: achievementDesc(a, locale),
-          href,
-          durationMs: 6000,
-        });
-      }, i * 600);
-    });
-  }, [unlocked, locale, href, toast]);
+    if (unlocked.length) {
+      toastAchievements(unlocked.slice(0, MAX_TOASTS).map((a) => a.id), href);
+    }
+  }, [unlocked, href, toastAchievements]);
 
   return null;
 }

@@ -60,7 +60,6 @@ export default async function RoostrDetailPage({
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
       <AchievementToaster
         unlocked={newlyAchievements}
-        locale={locale}
         href={session ? `/${session.id}/achievements` : undefined}
       />
       <RoostrDetail
