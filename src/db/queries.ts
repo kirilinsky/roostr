@@ -853,7 +853,7 @@ export async function settleStation(
   try {
     const { db } = await import("@/db");
     const { workStations } = await import("@/db/schema");
-    const { and, eq } = await import("drizzle-orm");
+    const { and, eq, sql } = await import("drizzle-orm");
     const [row] = await db
       .select()
       .from(workStations)
@@ -877,7 +877,14 @@ export async function settleStation(
         and(
           eq(workStations.userId, userId),
           eq(workStations.kind, kind),
-          eq(workStations.lastSettleAt, row.lastSettleAt),
+          // Optimistic lock (compare-and-swap on the prior settle time). Postgres
+          // stores `timestamptz` at microsecond precision but Drizzle round-trips
+          // `row.lastSettleAt` as a millisecond JS Date — a plain `eq` NEVER matches
+          // a row first stamped by defaultNow()/now(), so the settle silently
+          // no-ops and `pending` never persists (claim always sees 0). Compare at
+          // millisecond precision so the CAS actually matches while still guarding
+          // against a concurrent settle that already advanced lastSettleAt.
+          sql`date_trunc('milliseconds', ${workStations.lastSettleAt}) = ${row.lastSettleAt}`,
         ),
       );
   } catch (e) {
