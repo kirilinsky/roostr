@@ -49,6 +49,13 @@ const ARTICLES = [
     live: false,
   },
   {
+    href: "/pedia/mechanics",
+    icon: "🗓️",
+    titleKey: "pedia.mech.seasons.title",
+    descKey: "pedia.mech.seasons.desc",
+    live: false,
+  },
+  {
     href: "/pedia/mechanics/farm",
     icon: "🌾",
     titleKey: "pedia.mech.farm.title",
@@ -60,6 +67,20 @@ const ARTICLES = [
     icon: "🧪",
     titleKey: "pedia.mech.lab.title",
     descKey: "pedia.mech.lab.desc",
+    live: true,
+  },
+  {
+    href: "/pedia/mechanics/roostrdex",
+    icon: "📕",
+    titleKey: "pedia.mech.dex.title",
+    descKey: "pedia.mech.dex.desc",
+    live: true,
+  },
+  {
+    href: "/pedia/mechanics/bank",
+    icon: "🏦",
+    titleKey: "pedia.mech.bank.title",
+    descKey: "pedia.mech.bank.desc",
     live: true,
   },
   {

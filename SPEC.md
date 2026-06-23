@@ -145,6 +145,18 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   coins [T35]. IDEMPOTENCY: track per-referee milestone flags (extend the `referrals` row, e.g.
   `rewardedSignup/Hatch3/FirstBattle` booleans) so a milestone never double-pays. UI: a logged-out
   visitor with `?ref` sees an invite CTA + Telegram login on the profile page (`ReferralBanner`).
+- V18 — RARITIES (theoretical next step; numbers/odds TBD). Collectible "rarity" items — discrete
+  COLLECTIBLES, NOT a currency — that occasionally DROP from RAIDS (V14/V16) and the ARENA (battles).
+  Held in the Bank (`/bank` has a "Rarities" block, currently "soon"); a player can STORE them or SELL
+  them for coins (and later trade). Low drop odds, possibly Luck-influenced; ALL drops server-resolved
+  (no client trust), credited via a dedicated `rarities`/inventory table (TBD). Exact items/odds/values TBD.
+- V19 — SEASONS (theoretical next step; dates/data TBD). Time-limited EVENTS whose core draw is EXOTIC
+  birds obtainable ONLY during the season — each seasonal breed has its OWN genes + stats (a data set
+  distinct from / flagged within the base `BREEDS.json`/`GENES.json`). When the season ends the breed
+  is no longer obtainable, but already-owned birds PERSIST → collectible scarcity. Still obeys V2 (a
+  seasonal bird hatches COMMON; "exotic" = a rare BREED identity available only in the window, not a
+  birth-rarity tier). Season window = server start/end timestamps (server-gated, no client trust).
+  Distribution TBD (event hatch / drops). Exact breeds/genes/stats/dates TBD.
 
 ## §T — Tasks
 
@@ -185,6 +197,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T33 | . | referrer reward: +5 coins when an invited user registers (once per referee) | V17 |
 | T34 | . | referrer reward: +1 egg when an invited user hatches 3 eggs (lifetime, once) | V17 |
 | T35 | . | referrer reward: +75 coins when an invited user finishes their FIRST battle (once) | V17 |
+| T36 | . | rarities: rare collectible drops from raids/arena, stored in Bank, store/sell (later trade) | V18 |
+| T37 | . | seasons: time-limited event with exotic season-only breeds (own genes/stats), server-gated window | V19 |
 
 ## §B — Bugs
 

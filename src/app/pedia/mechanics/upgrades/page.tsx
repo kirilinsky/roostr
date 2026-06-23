@@ -19,7 +19,17 @@ function contrastText(hex: string): string {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#1c1c1f" : "#ffffff";
 }
 
-function Section({ title, body }: { title: string; body: string }) {
+function Section({
+  title,
+  body,
+  linkHref,
+  linkLabel,
+}: {
+  title: string;
+  body: string;
+  linkHref?: string;
+  linkLabel?: string;
+}) {
   return (
     <Card sx={{ p: 2 }}>
       <Typography variant="h6" sx={{ mb: 0.5 }}>
@@ -28,6 +38,18 @@ function Section({ title, body }: { title: string; body: string }) {
       <Typography variant="body2" color="text.secondary">
         {body}
       </Typography>
+      {linkHref && linkLabel && (
+        <Button
+          component={Link}
+          href={linkHref}
+          size="small"
+          variant="outlined"
+          color="neutral"
+          sx={{ mt: 1.5 }}
+        >
+          {linkLabel}
+        </Button>
+      )}
     </Card>
   );
 }
@@ -68,6 +90,8 @@ export default async function PediaUpgradesPage() {
         <Section
           title={t("pedia.mech.upgrade.overviewTitle")}
           body={t("pedia.mech.upgrade.overview")}
+          linkHref="/pedia/genes"
+          linkLabel={t("pedia.genes.title")}
         />
 
         <Card sx={{ p: 2 }}>
@@ -87,11 +111,23 @@ export default async function PediaUpgradesPage() {
               />
             ))}
           </Stack>
+          <Button
+            component={Link}
+            href="/pedia/mechanics/bank"
+            size="small"
+            variant="outlined"
+            color="neutral"
+            sx={{ mt: 1.5 }}
+          >
+            {t("pedia.mech.bank.title")}
+          </Button>
         </Card>
 
         <Section
           title={t("pedia.mech.upgrade.statsTitle")}
           body={t("pedia.mech.upgrade.stats")}
+          linkHref="/pedia/skills"
+          linkLabel={t("pedia.skills.title")}
         />
 
         <Card sx={{ p: 2 }}>
@@ -115,12 +151,42 @@ export default async function PediaUpgradesPage() {
               />
             ))}
           </Stack>
+          <Button
+            component={Link}
+            href="/pedia/tiers"
+            size="small"
+            variant="outlined"
+            color="neutral"
+            sx={{ mt: 1.5 }}
+          >
+            {t("pedia.tiers.title")}
+          </Button>
         </Card>
 
         <Section
           title={t("pedia.mech.upgrade.whereTitle")}
           body={t("pedia.mech.upgrade.where")}
+          linkHref="/collection"
+          linkLabel={t("nav.collection")}
         />
+
+        <Card sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
+            {t("pedia.mech.upgrade.synthTitle")}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {t("pedia.mech.upgrade.synth")}
+          </Typography>
+          <Button
+            component={Link}
+            href="/pedia/synth-genes"
+            size="small"
+            variant="outlined"
+            color="neutral"
+          >
+            {t("pedia.synthGenes.title")}
+          </Button>
+        </Card>
       </Stack>
     </Container>
   );

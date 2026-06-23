@@ -75,6 +75,36 @@ export default async function OwnProfile({
         unlocked={newlyAchievements}
         href={`/${user.id}/achievements`}
       />
+
+      {/* Brand-new player (no roosters yet) → nudge to the first-steps guide. */}
+      {metrics.roostrsOwned === 0 && (
+        <Card
+          sx={{
+            mb: 2.5,
+            borderColor: "secondary.main",
+            borderWidth: 1,
+            borderStyle: "solid",
+          }}
+        >
+          <CardContent>
+            <Stack spacing={1.5}>
+              <Typography variant="h6">🚀 {t("profile.startTitle")}</Typography>
+              <Typography color="text.secondary">
+                {t("profile.startHint")}
+              </Typography>
+              <Button
+                component={Link}
+                href="/pedia/first-steps"
+                variant="contained"
+                sx={{ alignSelf: "flex-start" }}
+              >
+                {t("pedia.firstSteps.title")}
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
       <Box
         sx={{
           display: "grid",

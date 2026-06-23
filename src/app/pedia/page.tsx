@@ -11,6 +11,7 @@ import { getTranslations } from "@/i18n/server";
 // Roostrpedia — wiki-style index of articles (mechanics, breeds, genes).
 // Scaffold: only the Genes article is live; the rest are placeholders.
 const ARTICLES = [
+  { href: "/pedia/first-steps", icon: "🚀", titleKey: "pedia.firstSteps.title", descKey: "pedia.firstSteps.desc", live: true },
   { href: "/pedia/genes", icon: "🧬", titleKey: "pedia.genes.title", descKey: "pedia.genes.desc", live: true },
   { href: "/pedia/synth-genes", icon: "⚗️", titleKey: "pedia.synthGenes.title", descKey: "pedia.synthGenes.desc", live: true },
   { href: "/pedia/breeds", icon: "🐔", titleKey: "pedia.breeds.title", descKey: "pedia.breeds.desc", live: true },
