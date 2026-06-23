@@ -731,6 +731,34 @@ export async function getIncomingFriendRequests(
   }
 }
 
+// Outgoing requests the user SENT (pending), newest first — the recipient's card.
+export async function getOutgoingFriendRequests(
+  userId: number,
+): Promise<FriendRequestSummary[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { friendRequests, users } = await import("@/db/schema");
+    const { desc, eq } = await import("drizzle-orm");
+    return await db
+      .select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        createdAt: friendRequests.createdAt,
+      })
+      .from(friendRequests)
+      .innerJoin(users, eq(users.id, friendRequests.toUserId))
+      .where(eq(friendRequests.fromUserId, userId))
+      .orderBy(desc(friendRequests.createdAt));
+  } catch (e) {
+    console.error("getOutgoingFriendRequests failed:", e);
+    return [];
+  }
+}
+
 // Accept (fromId asked toId): delete the request + befriend. False if no request.
 export async function acceptFriendRequest(
   toId: number,
@@ -789,7 +817,9 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
     const { db } = await import("@/db");
-    const { friendRequests, users } = await import("@/db/schema");
+    const { friendRequests, breedDiscoveries, users } = await import(
+      "@/db/schema"
+    );
     const { and, eq, gt, sql } = await import("drizzle-orm");
     const [u] = await db
       .select({ seen: users.notificationsSeenAt })
@@ -797,7 +827,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       .where(eq(users.id, userId))
       .limit(1);
     const seen = u?.seen ?? null;
-    const filter = seen
+    const reqFilter = seen
       ? and(
           eq(friendRequests.toUserId, userId),
           gt(friendRequests.createdAt, seen),
@@ -806,11 +836,101 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
     const [row] = await db
       .select({ n: sql<number>`count(*)` })
       .from(friendRequests)
-      .where(filter);
-    return Number(row?.n ?? 0);
+      .where(reqFilter);
+    // Roostrdex discoveries newer than the read-cursor ("new entry").
+    const dexFilter = seen
+      ? and(
+          eq(breedDiscoveries.userId, userId),
+          gt(breedDiscoveries.discoveredAt, seen),
+        )
+      : eq(breedDiscoveries.userId, userId);
+    const [dex] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(breedDiscoveries)
+      .where(dexFilter);
+    // Plus: stations that filled up AFTER the read-cursor ("come claim it").
+    const seenMs = seen ? seen.getTime() : 0;
+    const stationUnread = (await getStationAlerts(userId)).filter(
+      (a) => a.fullAt > seenMs,
+    ).length;
+    return Number(row?.n ?? 0) + Number(dex?.n ?? 0) + stationUnread;
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);
     return 0;
+  }
+}
+
+export interface StationAlert {
+  kind: StationKind;
+  fullAt: number; // ms timestamp the buffer reached its cap
+}
+
+const STATION_ALERT_DAY_MS = 86_400_000;
+
+// Stations whose buffer is FULL right now (production paused → claim it). Derived
+// live from the station state (no stored rows). `fullAt` = when it hit the cap, so
+// the bell badge can treat it as unread until the player next opens notifications.
+export async function getStationAlerts(
+  userId: number,
+): Promise<StationAlert[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  const out: StationAlert[] = [];
+  try {
+    const now = Date.now();
+    for (const kind of ["farm", "lab"] as StationKind[]) {
+      const view = await getStationView(userId, kind);
+      if (view.workers.length === 0) continue; // no workers → never fills
+      const def = STATIONS[kind];
+      const rate = def.ratePerDay(totalStat(view.workers, kind), view.workers.length);
+      let fullAt: number;
+      if (view.pending >= def.bufferCap) {
+        fullAt = view.lastSettleAtMs; // already at/over cap
+      } else if (rate > 0) {
+        fullAt =
+          view.lastSettleAtMs +
+          ((def.bufferCap - view.pending) / rate) * STATION_ALERT_DAY_MS;
+      } else {
+        continue; // rate 0 → never fills
+      }
+      if (now >= fullAt) out.push({ kind, fullAt });
+    }
+  } catch (e) {
+    console.error("getStationAlerts failed:", e);
+  }
+  return out;
+}
+
+export interface DiscoverySummary {
+  breedId: string;
+  discoveredAt: string;
+}
+
+// A user's Roostrdex discoveries, newest first — surfaced as "new entry" notifs.
+export async function getRecentDiscoveries(
+  userId: number,
+  limit = 50,
+): Promise<DiscoverySummary[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { breedDiscoveries } = await import("@/db/schema");
+    const { desc, eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({
+        breedId: breedDiscoveries.breedId,
+        discoveredAt: breedDiscoveries.discoveredAt,
+      })
+      .from(breedDiscoveries)
+      .where(eq(breedDiscoveries.userId, userId))
+      .orderBy(desc(breedDiscoveries.discoveredAt))
+      .limit(limit);
+    return rows.map((r) => ({
+      breedId: r.breedId,
+      discoveredAt: r.discoveredAt.toISOString(),
+    }));
+  } catch (e) {
+    console.error("getRecentDiscoveries failed:", e);
+    return [];
   }
 }
 
@@ -922,6 +1042,11 @@ export async function getUserById(id: number) {
 const STARTER_EGGS = 1; // eggs granted once, to a brand-new player at signup
 const REFERRAL_BONUS_EGGS = 1; // extra egg for a newcomer who arrived via a ref link
 const REFERRAL_BONUS_COINS = 50; // starter coins for a referred newcomer
+// Milestone rewards paid to the REFERRER (inviter), once per referee (V17).
+const REFERRER_SIGNUP_COINS = 5; // referee registered
+const REFERRER_HATCH3_THRESHOLD = 3; // referee hatched this many eggs →
+const REFERRER_HATCH3_EGGS = 1; //   referrer gets an egg
+// (T35 — referee's first battle → referrer +75 coins — lands with the battle system.)
 
 export async function upsertUser(
   u: SessionUser,
@@ -984,12 +1109,68 @@ export async function upsertUser(
     if (isNew) {
       await grantResource(u.id, "egg", STARTER_EGGS, "starter");
       if (validReferrerId) {
+        // Referee bonus.
         await grantResource(u.id, "egg", REFERRAL_BONUS_EGGS, "referral");
         await grantResource(u.id, "coin", REFERRAL_BONUS_COINS, "referral");
+        // Referrer signup milestone — fires once (isNew), no flag needed (V17/T33).
+        await grantResource(
+          validReferrerId,
+          "coin",
+          REFERRER_SIGNUP_COINS,
+          "referral",
+        );
       }
     }
   } catch (e) {
     console.error("upsertUser failed:", e);
+  }
+}
+
+// V17/T34: when a REFERRED user reaches the hatch milestone (3 eggs), reward the
+// REFERRER with an egg — once per referee, guarded by `referrals.rewardedHatch3`
+// (compare-and-set so it never double-pays). Call after a successful hatch.
+export async function maybeRewardReferrerOnHatch(userId: number): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { users, roostrs, referrals } = await import("@/db/schema");
+    const { and, eq, sql } = await import("drizzle-orm");
+    // Who referred this user?
+    const [u] = await db
+      .select({ ref: users.referredById })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const referrerId = u?.ref ?? null;
+    if (!referrerId) return;
+    // Not yet rewarded for this referee?
+    const [r] = await db
+      .select({ done: referrals.rewardedHatch3 })
+      .from(referrals)
+      .where(eq(referrals.refereeId, userId))
+      .limit(1);
+    if (!r || r.done) return;
+    // Has the referee hatched the threshold count?
+    const [eggs] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(roostrs)
+      .where(and(eq(roostrs.ownerId, userId), eq(roostrs.origin, "hatch")));
+    if (Number(eggs?.n ?? 0) < REFERRER_HATCH3_THRESHOLD) return;
+    // Flip the flag FIRST (CAS on rewardedHatch3=false) — only the winner pays.
+    const flipped = await db
+      .update(referrals)
+      .set({ rewardedHatch3: true })
+      .where(
+        and(
+          eq(referrals.refereeId, userId),
+          eq(referrals.rewardedHatch3, false),
+        ),
+      )
+      .returning({ id: referrals.refereeId });
+    if (flipped.length === 0) return;
+    await grantResource(referrerId, "egg", REFERRER_HATCH3_EGGS, "referral");
+  } catch (e) {
+    console.error("maybeRewardReferrerOnHatch failed:", e);
   }
 }
 

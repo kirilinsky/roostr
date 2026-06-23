@@ -67,13 +67,20 @@ export const referrals = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     refereeId: bigint("referee_id", { mode: "number" })
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" })
+      .primaryKey(),
     registeredAt: timestamp("registered_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    // Per-referee milestone reward flags (paid to the REFERRER once each, V17).
+    // Signup reward fires at insert time (no flag needed). hatch-3 + first-battle
+    // are gated by these so a milestone never double-pays.
+    rewardedHatch3: boolean("rewarded_hatch3").notNull().default(false),
+    rewardedFirstBattle: boolean("rewarded_first_battle")
+      .notNull()
+      .default(false),
   },
   (t) => [
-    primaryKey({ columns: [t.refereeId] }),
     index("referrals_referrer_id_idx").on(t.referrerId),
   ],
 );

@@ -6,6 +6,8 @@ import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import Pagination from "@mui/material/Pagination";
@@ -18,7 +20,11 @@ import {
   acceptFriendRequestAction,
   declineFriendRequestAction,
 } from "@/app/[telegramid]/actions";
-import type { FriendRequestSummary } from "@/db/queries";
+import { BREEDS_CATALOG } from "@/lib/breeds";
+import type { FriendRequestSummary, DiscoverySummary } from "@/db/queries";
+
+const BREED_NAME: Record<string, { en: string; ru: string }> =
+  Object.fromEntries(BREEDS_CATALOG.map((b) => [b.id, b.name]));
 
 // Filter categories. Only "friends" carries data today (incoming requests);
 // the rest are placeholders for future notification types.
@@ -36,8 +42,12 @@ const PAGE_SIZE = 10; // max notifications per page
 
 export default function NotificationsView({
   requests,
+  fullStations = [],
+  discoveries = [],
 }: {
   requests: FriendRequestSummary[];
+  fullStations?: ("farm" | "lab")[]; // stations whose buffer is full → claim it
+  discoveries?: DiscoverySummary[]; // new Roostrdex entries
 }) {
   const t = useT();
   const locale = useLocale();
@@ -57,12 +67,38 @@ export default function NotificationsView({
     });
   }
 
-  // Friends is the only populated category for now.
-  const rows = tab === "friends" ? requests : [];
-  const pageCount = Math.ceil(rows.length / PAGE_SIZE);
-  const paged = useMemo(
-    () => rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [rows, page],
+  // friends → request list · roostrdex → discovery list · farm/lab → "buffer full".
+  const activeCount =
+    tab === "friends"
+      ? requests.length
+      : tab === "roostrdex"
+        ? discoveries.length
+        : 0;
+  const pageCount = Math.ceil(activeCount / PAGE_SIZE);
+  const slice = <T,>(arr: T[]) =>
+    arr.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pagedFriends = useMemo(
+    () => (tab === "friends" ? slice(requests) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [requests, page, tab],
+  );
+  const pagedDex = useMemo(
+    () => (tab === "roostrdex" ? slice(discoveries) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [discoveries, page, tab],
+  );
+  const stationFull =
+    (tab === "farm" || tab === "lab") && fullStations.includes(tab);
+  const pager = pageCount > 1 && (
+    <Stack alignItems="center">
+      <Pagination
+        count={pageCount}
+        page={page}
+        onChange={(_, p) => setPage(p)}
+        size="small"
+        color="primary"
+      />
+    </Stack>
   );
 
   return (
@@ -79,14 +115,10 @@ export default function NotificationsView({
         ))}
       </Tabs>
 
-      {paged.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-          {t("notifications.empty")}
-        </Typography>
-      ) : (
+      {tab === "friends" && pagedFriends.length > 0 ? (
         <>
           <List disablePadding>
-            {paged.map((r) => {
+            {pagedFriends.map((r) => {
               const name =
                 [r.firstName, r.lastName].filter(Boolean).join(" ") ||
                 (r.username ? `@${r.username}` : String(r.id));
@@ -135,18 +167,69 @@ export default function NotificationsView({
               );
             })}
           </List>
-          {pageCount > 1 && (
-            <Stack alignItems="center">
-              <Pagination
-                count={pageCount}
-                page={page}
-                onChange={(_, p) => setPage(p)}
-                size="small"
-                color="primary"
-              />
-            </Stack>
-          )}
+          {pager}
         </>
+      ) : tab === "roostrdex" && pagedDex.length > 0 ? (
+        <>
+          <List disablePadding>
+            {pagedDex.map((d) => {
+              const breed =
+                BREED_NAME[d.breedId]?.[locale] ?? d.breedId;
+              return (
+                <ListItem
+                  key={d.breedId}
+                  divider
+                  sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
+                >
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      📕 {t("notifications.newDexEntry", { breed })}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(d.discoveredAt).toLocaleDateString(locale)}
+                    </Typography>
+                  </Box>
+                  <Button
+                    component={Link}
+                    href="/roostrdex"
+                    size="small"
+                    variant="outlined"
+                  >
+                    {t("nav.roostrdex")}
+                  </Button>
+                </ListItem>
+              );
+            })}
+          </List>
+          {pager}
+        </>
+      ) : stationFull ? (
+        <Card>
+          <CardContent>
+            <Stack spacing={1.5}>
+              <Typography variant="body1">
+                🔔{" "}
+                {t(
+                  tab === "farm"
+                    ? "notifications.farmFull"
+                    : "notifications.labFull",
+                )}
+              </Typography>
+              <Button
+                component={Link}
+                href={`/${tab}`}
+                variant="contained"
+                sx={{ alignSelf: "flex-start" }}
+              >
+                {t("station.claim")}
+              </Button>
+            </Stack>
+          </CardContent>
+        </Card>
+      ) : (
+        <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+          {t("notifications.empty")}
+        </Typography>
       )}
     </Stack>
   );

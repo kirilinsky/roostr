@@ -140,10 +140,11 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   self-ref rejected, inviter must exist (`parseReferralId` + existence check). REWARDS go through the
   ledger (`grantResource`, kind `"referral"`), each paid ONCE, SERVER-resolved (no client trust):
   • DONE — REFEREE signup bonus: +1 egg + `REFERRAL_BONUS_COINS=50` coins (`upsertUser`, new + valid ref).
-  • TODO — REFERRER (inviter) MILESTONES, each credited once per referee: (a) referee registers → +5
-  coins [T33]; (b) referee hatches 3 eggs (lifetime) → +1 egg [T34]; (c) referee's FIRST battle → +75
-  coins [T35]. IDEMPOTENCY: track per-referee milestone flags (extend the `referrals` row, e.g.
-  `rewardedSignup/Hatch3/FirstBattle` booleans) so a milestone never double-pays. UI: a logged-out
+  • REFERRER (inviter) MILESTONES, each credited once per referee: (a) DONE — referee registers → +5
+  coins (in `upsertUser`, fires at insert) [T33]; (b) DONE — referee hatches 3 eggs → +1 egg
+  (`maybeRewardReferrerOnHatch`, CAS on `referrals.rewardedHatch3`) [T34]; (c) TODO — referee's FIRST
+  battle → +75 coins (`referrals.rewardedFirstBattle`, lands with the battle system) [T35]. IDEMPOTENCY:
+  per-referee milestone flags on the `referrals` row so a milestone never double-pays. UI: a logged-out
   visitor with `?ref` sees an invite CTA + Telegram login on the profile page (`ReferralBanner`).
 - V18 — RARITIES (theoretical next step; numbers/odds TBD). Collectible "rarity" items — discrete
   COLLECTIBLES, NOT a currency — that occasionally DROP from RAIDS (V14/V16) and the ARENA (battles).
@@ -194,8 +195,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T30 | . | Defense Watch: assign roosters on guard (2 slots, +1 paid), lowers robbery odds; reuse slot model | V16,V13 |
 | T31 | . | contested raid resolution: ATK Σ(Stealth+Luck) vs DEF Σ(combat+Intellect)+RNG → win/lose, capped coin steal, server-resolved + ledger | V16,V14 |
 | T32 | x | referrals: ?ref capture → signup attribution + referee bonus (+1 egg +50 coins) + guest CTA banner | V17 |
-| T33 | . | referrer reward: +5 coins when an invited user registers (once per referee) | V17 |
-| T34 | . | referrer reward: +1 egg when an invited user hatches 3 eggs (lifetime, once) | V17 |
+| T33 | x | referrer reward: +5 coins when an invited user registers (once, in upsertUser) | V17 |
+| T34 | x | referrer reward: +1 egg when an invited user hatches 3 eggs (once, CAS `referrals.rewardedHatch3`) | V17 |
 | T35 | . | referrer reward: +75 coins when an invited user finishes their FIRST battle (once) | V17 |
 | T36 | . | rarities: rare collectible drops from raids/arena, stored in Bank, store/sell (later trade) | V18 |
 | T37 | . | seasons: time-limited event with exotic season-only breeds (own genes/stats), server-gated window | V19 |

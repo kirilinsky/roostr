@@ -8,6 +8,7 @@ import {
   recordDiscovery,
   spendResource,
   grantResource,
+  maybeRewardReferrerOnHatch,
 } from "@/db/queries";
 
 // Hatch costs exactly ONE egg — no money hatch, no daily cooldown. New players
@@ -42,6 +43,8 @@ export async function hatchAction(): Promise<HatchResult> {
   const id = await createRoostr(session.id, roostr);
   if (id) {
     await recordDiscovery(session.id, roostr.breed.id);
+    // Referrer milestone: reward the inviter once when this player hits 3 hatches.
+    await maybeRewardReferrerOnHatch(session.id);
   } else if (enforce) {
     // Persistence failed after we charged → refund the egg so it isn't lost.
     eggsLeft = await grantResource(session.id, "egg", 1, "refund");

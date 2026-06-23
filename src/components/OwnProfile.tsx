@@ -10,6 +10,7 @@ import AchievementBadge from "@/components/AchievementBadge";
 import AchievementToaster from "@/components/AchievementToaster";
 import LogoutButton from "@/components/LogoutButton";
 import ShareProfileButton from "@/components/ShareProfileButton";
+import ProfileFriendRequests from "@/components/ProfileFriendRequests";
 import { PROFILE_ACHIEVEMENTS, evaluate } from "@/lib/achievements";
 import { getTranslations } from "@/i18n/server";
 import {
@@ -17,6 +18,9 @@ import {
   getAchievementUnlocks,
   recordAchievementUnlocks,
   getFriends,
+  getIncomingFriendRequests,
+  getOutgoingFriendRequests,
+  getReferredUsers,
 } from "@/db/queries";
 
 // The signed-in player's OWN profile body: identity + stats + achievements +
@@ -68,6 +72,10 @@ export default async function OwnProfile({
   ).slice(0, 3);
 
   const friends = await getFriends(user.id);
+  const incoming = await getIncomingFriendRequests(user.id);
+  const outgoing = await getOutgoingFriendRequests(user.id);
+  const referrals = await getReferredUsers(user.id);
+  const hasRequests = incoming.length > 0 || outgoing.length > 0;
 
   return (
     <Box sx={{ textAlign: "left" }}>
@@ -216,6 +224,20 @@ export default async function OwnProfile({
           </CardContent>
         </Card>
 
+        {/* Friend requests (incoming accept/decline + outgoing cancel) — above friends */}
+        {hasRequests && (
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                {t("profile.friendRequests")}
+              </Typography>
+              <Box sx={{ mt: 1.5 }}>
+                <ProfileFriendRequests incoming={incoming} outgoing={outgoing} />
+              </Box>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Friends — first 3 + all friends → /[id]/friends */}
         <Card>
           <CardContent>
@@ -271,6 +293,49 @@ export default async function OwnProfile({
             </Stack>
           </CardContent>
         </Card>
+
+        {/* Referrals — players who registered via this user's invite link */}
+        {referrals.length > 0 && (
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                {t("profile.referrals")}
+              </Typography>
+              <Stack spacing={1} sx={{ mt: 1.5 }}>
+                {referrals.map((r) => {
+                  const rname =
+                    [r.firstName, r.lastName].filter(Boolean).join(" ") ||
+                    (r.username ? `@${r.username}` : String(r.id));
+                  return (
+                    <Button
+                      key={r.id}
+                      component={Link}
+                      href={`/${r.id}`}
+                      color="neutral"
+                      sx={{
+                        justifyContent: "flex-start",
+                        textTransform: "none",
+                        gap: 1,
+                        px: 1,
+                      }}
+                    >
+                      <Avatar
+                        src={r.photoUrl ?? undefined}
+                        alt={rname}
+                        sx={{ width: 28, height: 28 }}
+                      >
+                        {rname.charAt(0)}
+                      </Avatar>
+                      <Typography variant="body2" noWrap>
+                        {rname}
+                      </Typography>
+                    </Button>
+                  );
+                })}
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
       </Box>
     </Box>
   );

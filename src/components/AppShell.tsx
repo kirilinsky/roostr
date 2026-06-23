@@ -134,21 +134,53 @@ export default function AppShell({
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          px: 2,
-          py: 0,
+          gap: 1.25,
+          minHeight: 72,
+          px: 1.75,
+          py: 1,
+          textDecoration: "none",
+          color: "inherit",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          "&:hover": {
+            bgcolor: "action.hover",
+          },
         }}
       >
         <Image
           src="/roostr_logo.png"
           alt="Roostr"
-          width={138}
-          height={60}
+          width={92}
+          height={40}
           priority
-          style={{ height: 156, width: "auto", display: "block" }}
+          style={{ height: 48, width: "auto", display: "block", flexShrink: 0 }}
         />
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              fontFamily: "var(--font-headline), system-ui, sans-serif",
+              fontWeight: 800,
+              fontSize: "1rem",
+              lineHeight: 1,
+              textTransform: "uppercase",
+            }}
+          >
+            Roostr
+          </Typography>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              display: "block",
+              mt: 0.25,
+              lineHeight: 1.1,
+              textTransform: "uppercase",
+            }}
+          >
+            Hatch / Fight / Trade
+          </Typography>
+        </Box>
       </Box>
-      <Divider />
 
       {/* Mini profile / login */}
       <Box sx={{ p: 2 }}>

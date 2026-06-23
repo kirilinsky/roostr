@@ -6,6 +6,8 @@ import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import {
   getIncomingFriendRequests,
+  getStationAlerts,
+  getRecentDiscoveries,
   markNotificationsSeen,
 } from "@/db/queries";
 
@@ -17,6 +19,8 @@ export default async function NotificationsPage() {
   const { t } = await getTranslations();
   const session = await getSession();
   const requests = session ? await getIncomingFriendRequests(session.id) : [];
+  const stationAlerts = session ? await getStationAlerts(session.id) : [];
+  const discoveries = session ? await getRecentDiscoveries(session.id) : [];
   if (session) await markNotificationsSeen(session.id);
 
   return (
@@ -25,7 +29,11 @@ export default async function NotificationsPage() {
         <Typography variant="h4" component="h1">
           {t("notifications.title")}
         </Typography>
-        <NotificationsView requests={requests} />
+        <NotificationsView
+          requests={requests}
+          fullStations={stationAlerts.map((a) => a.kind)}
+          discoveries={discoveries}
+        />
       </Stack>
     </Container>
   );
