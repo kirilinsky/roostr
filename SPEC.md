@@ -115,7 +115,23 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   client trust), like V13. DISTINCT from V13: a raid is a DISCRETE timed mission with RISK, NOT
   continuous accrual — Huge weight (−Stealth, V12/T25) makes heavy birds poor thieves (thematic).
   Tuning sketch (not binding): `haul ≈ base·(ΣStealth/30)·luckMult`, `caughtChance ≈ clamp(0.5 −
-  ΣStealth·0.01)`. Product detail [.notes/NEXTGEN-SPEC.md].
+  ΣStealth·0.01)`. Product detail [.notes/NEXTGEN-SPEC.md]. PvP (next): the "neighbor" becomes a REAL
+  player picked BLIND (T29); the victim's Defense Watch contests the raid → V16.
+- V15 — NEVER compare a Postgres `timestamptz` by exact equality against a JS `Date` — Postgres stores
+  MICROSECONDS (`defaultNow()`/`now()`), Drizzle round-trips a MILLISECOND `Date`, so a plain
+  `eq(col, jsDate)` SILENTLY never matches and the guarded write no-ops. For an optimistic-lock / CAS
+  on a timestamp (e.g. V13 station settle on `lastSettleAt`) compare at MS precision
+  (`sql\`date_trunc('milliseconds', col) = ${jsDate}\``) or use a monotonic version column. Test
+  `V15_*` greps the settle CAS. Root cause of B1.
+- V16 — RAID PvP = CONTESTED + LOSS-CAPPED (theoretical next step; numbers TBD). A raid targets a REAL
+  player chosen BLIND from N random candidates (no stats shown pre-raid, T29). DEFENSE WATCH = roosters
+  a player puts on guard duty (2 slots, +1 paid — same slot model as V13/V14 raids, T30); more/stronger
+  defenders lower robbery odds. RESOLUTION (T31) = ONE server-resolved contested roll: ATTACK =
+  Σ(raiders' Stealth + Luck) vs DEFENSE = Σ(victim watch's combat skills + Intellect) + bounded RNG.
+  Win attack ⇒ steal a SMALL CAPPED slice of the victim's COIN balance — NEVER a full drain, a floor
+  shields low balances ("lose some money, not much"). Win defense ⇒ attacker leaves ~empty, victim
+  coins safe. ALL server-resolved on server state (no client trust, like V13/V14); coin transfer via
+  the ledger. UI lives in the `/raids` area (attack + manage watch). Exact formulas/caps TBD.
 
 ## §T — Tasks
 
@@ -149,8 +165,12 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T19 | x | middleware: server-side guest gate for logged-in-only routes | V10 |
 | T27 | x | starter egg at signup (upsertUser grants 1 egg via ledger, kind "starter") | V5,C |
 | T28 | x | work stations: shared accrual engine (lab+farm), server settle/claim + daily cron, status=working | V13,C |
+| T29 | . | PvP raid targeting: pre-raid show N RANDOM real players (blind, no stats), attacker picks target | V14,V16 |
+| T30 | . | Defense Watch: assign roosters on guard (2 slots, +1 paid), lowers robbery odds; reuse slot model | V16,V13 |
+| T31 | . | contested raid resolution: ATK Σ(Stealth+Luck) vs DEF Σ(combat+Intellect)+RNG → win/lose, capped coin steal, server-resolved + ledger | V16,V14 |
 
 ## §B — Bugs
 
 | id | date | cause | fix |
 |----|------|-------|-----|
+| B1 | 2026-06-23 | station claim did nothing (lab+farm): `settleStation` CAS `eq(lastSettleAt, jsDate)` compared Postgres micros vs Drizzle ms `Date` → never matched → settle no-op → `pending` never persisted (stayed 0) → claim granted 0 | V15 |

@@ -8,8 +8,7 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
+import BankHistory from "@/components/BankHistory";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import {
@@ -33,11 +32,11 @@ const RESOURCE_META: Record<ResourceKind, { icon: string; labelKey: string }> =
 const WALLET: ResourceKind[] = ["coin", "sci", "egg"];
 
 export default async function BankPage() {
-  const { locale, t } = await getTranslations();
+  const { t } = await getTranslations();
   const session = await getSession();
   const dbUser = session ? await getUserById(session.id) : null;
   const txns: ResourceTxn[] = session
-    ? await getResourceTxns(session.id, { limit: 50 })
+    ? await getResourceTxns(session.id, { limit: 100 })
     : [];
 
   const balances: Record<ResourceKind, number> = {
@@ -47,15 +46,8 @@ export default async function BankPage() {
     feather: dbUser?.feathers ?? 0,
   };
 
-  const dateFmt = new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       <Stack spacing={2.5}>
         <Typography variant="h4" component="h1">
           {t("bank.title")}
@@ -160,68 +152,8 @@ export default async function BankPage() {
             </Card>
           </Stack>
 
-          {/* right column — transaction history */}
-          {/* Block 3 — ledger: income (+) / expense (−) across currencies, newest first */}
-          <Card>
-            <CardContent>
-              <Typography variant="overline" color="text.secondary">
-                {t("bank.history")}
-              </Typography>
-              {txns.length === 0 ? (
-                <Stack spacing={1} alignItems="center" sx={{ py: 4 }}>
-                  <Typography color="text.secondary">
-                    {t("bank.empty")}
-                  </Typography>
-                </Stack>
-              ) : (
-                <List disablePadding sx={{ mt: 0.5 }}>
-                  {txns.map((tx) => {
-                    const meta = RESOURCE_META[tx.resource];
-                    const income = tx.amount >= 0;
-                    return (
-                      <ListItem
-                        key={tx.id}
-                        divider
-                        sx={{ px: 0, gap: 1.5 }}
-                        secondaryAction={
-                          <Typography
-                            sx={{
-                              fontWeight: 700,
-                              fontVariantNumeric: "tabular-nums",
-                              color: income ? "success.main" : "error.main",
-                            }}
-                          >
-                            {income ? "+" : "−"}
-                            {Math.abs(tx.amount).toLocaleString()}
-                          </Typography>
-                        }
-                      >
-                        <Image
-                          src={meta.icon}
-                          alt={t(meta.labelKey)}
-                          width={22}
-                          height={22}
-                          style={{ height: 22, width: "auto" }}
-                        />
-                        <Stack sx={{ minWidth: 0 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{ fontWeight: 600 }}
-                            noWrap
-                          >
-                            {t(`txn.${tx.kind}`)}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {dateFmt.format(new Date(tx.at))}
-                          </Typography>
-                        </Stack>
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              )}
-            </CardContent>
-          </Card>
+          {/* right column — ledger, tabbed by currency + paginated (client island) */}
+          <BankHistory txns={txns} />
         </Box>
       </Stack>
     </Container>
