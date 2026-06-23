@@ -8,26 +8,59 @@
       "id": "first-hatch",
       "icon": "🥚",
       "tier": "common",
-      "name": { "en": "Out of the Shell", "ru": "Из яйца" },
-      "desc": { "en": "Hatch your first rooster.", "ru": "Вылупи первого петуха." },
+      "name": {
+        "en": "Out of the Shell",
+        "ru": "Из яйца"
+      },
+      "desc": {
+        "en": "Hatch your first rooster.",
+        "ru": "Вылупи первого петуха."
+      },
       "metric": "eggsHatched",
       "value": 1
     },
     {
       "id": "hatchery",
       "icon": "🐣",
-      "tier": "rare",
-      "name": { "en": "Hatchery Boss", "ru": "Инкубаторщик" },
-      "desc": { "en": "Hatch 10 roosters.", "ru": "Вылупи 10 петухов." },
+      "tier": "medium",
+      "name": {
+        "en": "Hatchery Boss",
+        "ru": "Инкубаторщик"
+      },
+      "desc": {
+        "en": "Hatch 10 roosters.",
+        "ru": "Вылупи 10 петухов."
+      },
       "metric": "eggsHatched",
       "value": 10
+    },
+    {
+      "id": "mega-hatchery",
+      "icon": "🐣",
+      "tier": "collectible",
+      "name": {
+        "en": "Hatchery God",
+        "ru": "Бог вылупа"
+      },
+      "desc": {
+        "en": "Hatch 500 roosters.",
+        "ru": "Вылупи 500 петухов."
+      },
+      "metric": "eggsHatched",
+      "value": 500
     },
     {
       "id": "pocket-corn",
       "icon": "🌽",
       "tier": "common",
-      "name": { "en": "Pocket Corn", "ru": "Корн в кармане" },
-      "desc": { "en": "Earn 1,000 Corn Coins.", "ru": "Заработай 1 000 монет." },
+      "name": {
+        "en": "Pocket Corn",
+        "ru": "Корн в кармане"
+      },
+      "desc": {
+        "en": "Earn 1,000 Corn Coins.",
+        "ru": "Заработай 1 000 монет."
+      },
       "metric": "coinsEarned",
       "value": 1000
     },
@@ -35,8 +68,14 @@
       "id": "corn-baron",
       "icon": "💰",
       "tier": "rare",
-      "name": { "en": "Corn Baron", "ru": "Корн-барон" },
-      "desc": { "en": "Earn 10,000 Corn Coins.", "ru": "Заработай 10 000 монет." },
+      "name": {
+        "en": "Corn Baron",
+        "ru": "Корн-барон"
+      },
+      "desc": {
+        "en": "Earn 10,000 Corn Coins.",
+        "ru": "Заработай 10 000 монет."
+      },
       "metric": "coinsEarned",
       "value": 10000
     },
@@ -44,26 +83,74 @@
       "id": "big-spender",
       "icon": "🛒",
       "tier": "rare",
-      "name": { "en": "Big Spender", "ru": "Транжира" },
-      "desc": { "en": "Spend 10,000 Corn Coins.", "ru": "Потрать 10 000 монет." },
+      "name": {
+        "en": "Big Spender",
+        "ru": "Транжира"
+      },
+      "desc": {
+        "en": "Spend 10,000 Corn Coins.",
+        "ru": "Потрать 10 000 монет."
+      },
       "metric": "coinsSpent",
       "value": 10000
+    },
+    {
+      "id": "first-sci",
+      "icon": "💡",
+      "tier": "common",
+      "name": {
+        "en": "First Spark",
+        "ru": "Первая искра"
+      },
+      "desc": {
+        "en": "Earn your first science point.",
+        "ru": "Заработай первое очко науки."
+      },
+      "metric": "sciEarned",
+      "value": 1
     },
     {
       "id": "sci-rooster",
       "icon": "🔬",
       "tier": "rare",
-      "name": { "en": "Egghead", "ru": "Учёный петух" },
-      "desc": { "en": "Earn 150 science points.", "ru": "Заработай 150 очков науки." },
+      "name": {
+        "en": "Egghead",
+        "ru": "Учёный петух"
+      },
+      "desc": {
+        "en": "Earn 150 science points.",
+        "ru": "Заработай 150 очков науки."
+      },
       "metric": "sciEarned",
       "value": 150
+    },
+    {
+      "id": "sci-elite",
+      "icon": "⚛️",
+      "tier": "collectible",
+      "name": {
+        "en": "Lab Legend",
+        "ru": "Легенда лаборатории"
+      },
+      "desc": {
+        "en": "Earn 1,000 science points.",
+        "ru": "Заработай 1 000 очков науки."
+      },
+      "metric": "sciEarned",
+      "value": 1000
     },
     {
       "id": "tier-r",
       "icon": "🔥",
       "tier": "rare",
-      "name": { "en": "R-Rated", "ru": "До R" },
-      "desc": { "en": "Raise a rooster to tier R.", "ru": "Подними петуха до тира R." },
+      "name": {
+        "en": "R-Rated",
+        "ru": "До R"
+      },
+      "desc": {
+        "en": "Raise a rooster to tier R.",
+        "ru": "Подними петуха до тира R."
+      },
       "metric": "highestTier",
       "value": 5
     },
@@ -71,17 +158,29 @@
       "id": "tier-x",
       "icon": "👑",
       "tier": "collectible",
-      "name": { "en": "X Marks the Spot", "ru": "До X" },
-      "desc": { "en": "Raise a rooster to tier X.", "ru": "Подними петуха до тира X." },
+      "name": {
+        "en": "X Marks the Spot",
+        "ru": "До X"
+      },
+      "desc": {
+        "en": "Raise a rooster to tier X.",
+        "ru": "Подними петуха до тира X."
+      },
       "metric": "highestTier",
       "value": 6
     },
     {
       "id": "collector",
       "icon": "📚",
-      "tier": "rare",
-      "name": { "en": "Collector", "ru": "Коллекционер" },
-      "desc": { "en": "Own 10 roosters at once.", "ru": "Имей 10 петухов разом." },
+      "tier": "medium",
+      "name": {
+        "en": "Collector",
+        "ru": "Коллекционер"
+      },
+      "desc": {
+        "en": "Own 10 roosters at once.",
+        "ru": "Имей 10 петухов разом."
+      },
       "metric": "roostrsOwned",
       "value": 10
     },
@@ -89,8 +188,14 @@
       "id": "own-50",
       "icon": "🐓",
       "tier": "rare",
-      "name": { "en": "Flock Leader", "ru": "Вожак стаи" },
-      "desc": { "en": "Own 50 roosters at once.", "ru": "Имей 50 петухов разом." },
+      "name": {
+        "en": "Flock Leader",
+        "ru": "Вожак стаи"
+      },
+      "desc": {
+        "en": "Own 50 roosters at once.",
+        "ru": "Имей 50 петухов разом."
+      },
       "metric": "roostrsOwned",
       "value": 50
     },
@@ -98,8 +203,14 @@
       "id": "own-100",
       "icon": "🏡",
       "tier": "collectible",
-      "name": { "en": "Poultry Tycoon", "ru": "Птицемагнат" },
-      "desc": { "en": "Own 100 roosters at once.", "ru": "Имей 100 петухов разом." },
+      "name": {
+        "en": "Poultry Tycoon",
+        "ru": "Птицемагнат"
+      },
+      "desc": {
+        "en": "Own 100 roosters at once.",
+        "ru": "Имей 100 петухов разом."
+      },
       "metric": "roostrsOwned",
       "value": 100
     },
@@ -107,8 +218,14 @@
       "id": "own-500",
       "icon": "🏰",
       "tier": "collectible",
-      "name": { "en": "Coop Emperor", "ru": "Император курятника" },
-      "desc": { "en": "Own 500 roosters at once.", "ru": "Имей 500 петухов разом." },
+      "name": {
+        "en": "Coop Emperor",
+        "ru": "Император курятника"
+      },
+      "desc": {
+        "en": "Own 500 roosters at once.",
+        "ru": "Имей 500 петухов разом."
+      },
       "metric": "roostrsOwned",
       "value": 500
     },
@@ -116,17 +233,29 @@
       "id": "first-sale",
       "icon": "🏷️",
       "tier": "common",
-      "name": { "en": "First Sale", "ru": "Первая продажа" },
-      "desc": { "en": "Sell your first rooster.", "ru": "Продай первого петуха." },
+      "name": {
+        "en": "First Sale",
+        "ru": "Первая продажа"
+      },
+      "desc": {
+        "en": "Sell your first rooster.",
+        "ru": "Продай первого петуха."
+      },
       "metric": "roostrsSold",
       "value": 1
     },
     {
       "id": "sales-50",
       "icon": "📦",
-      "tier": "rare",
-      "name": { "en": "Seasoned Trader", "ru": "Опытный торговец" },
-      "desc": { "en": "Sell 50 roosters.", "ru": "Продай 50 петухов." },
+      "tier": "medium",
+      "name": {
+        "en": "Seasoned Trader",
+        "ru": "Опытный торговец"
+      },
+      "desc": {
+        "en": "Sell 50 roosters.",
+        "ru": "Продай 50 петухов."
+      },
       "metric": "roostrsSold",
       "value": 50
     },
@@ -134,7 +263,10 @@
       "id": "sale-1k",
       "icon": "💸",
       "tier": "rare",
-      "name": { "en": "Market Mogul", "ru": "Рыночный делец" },
+      "name": {
+        "en": "Market Mogul",
+        "ru": "Рыночный делец"
+      },
       "desc": {
         "en": "Earn 1,000 Corn Coins from sales.",
         "ru": "Заработай 1 000 монет на продажах."
@@ -146,8 +278,14 @@
       "id": "popular",
       "icon": "👥",
       "tier": "collectible",
-      "name": { "en": "Popular Rooster", "ru": "Свой парень" },
-      "desc": { "en": "Have 25 friends.", "ru": "Имей 25 друзей." },
+      "name": {
+        "en": "Popular Rooster",
+        "ru": "Свой парень"
+      },
+      "desc": {
+        "en": "Have 25 friends.",
+        "ru": "Имей 25 друзей."
+      },
       "metric": "friends",
       "value": 25
     },
@@ -155,8 +293,14 @@
       "id": "recruiter",
       "icon": "✉️",
       "tier": "rare",
-      "name": { "en": "Recruiter", "ru": "Вербовщик" },
-      "desc": { "en": "Invite 10 friends.", "ru": "Пригласи 10 друзей." },
+      "name": {
+        "en": "Recruiter",
+        "ru": "Вербовщик"
+      },
+      "desc": {
+        "en": "Invite 10 friends.",
+        "ru": "Пригласи 10 друзей."
+      },
       "metric": "invites",
       "value": 10
     },
@@ -164,8 +308,14 @@
       "id": "first-blood",
       "icon": "⚔️",
       "tier": "common",
-      "name": { "en": "First Blood", "ru": "Боевое крещение" },
-      "desc": { "en": "Finish your first battle.", "ru": "Заверши первый бой." },
+      "name": {
+        "en": "First Blood",
+        "ru": "Боевое крещение"
+      },
+      "desc": {
+        "en": "Finish your first battle.",
+        "ru": "Заверши первый бой."
+      },
       "metric": "battles",
       "value": 1
     },
@@ -173,8 +323,14 @@
       "id": "battles-won-10",
       "icon": "🎖️",
       "tier": "rare",
-      "name": { "en": "War Veteran", "ru": "Ветеран войн" },
-      "desc": { "en": "Win 10 battles.", "ru": "Выиграй 10 боёв." },
+      "name": {
+        "en": "War Veteran",
+        "ru": "Ветеран войн"
+      },
+      "desc": {
+        "en": "Win 10 battles.",
+        "ru": "Выиграй 10 боёв."
+      },
       "metric": "wins",
       "value": 10
     },
@@ -182,8 +338,14 @@
       "id": "battles-lost-10",
       "icon": "🤕",
       "tier": "common",
-      "name": { "en": "Glutton for Punishment", "ru": "Любитель люлей" },
-      "desc": { "en": "Lose 10 battles.", "ru": "Проиграй 10 боёв." },
+      "name": {
+        "en": "Glutton for Punishment",
+        "ru": "Любитель люлей"
+      },
+      "desc": {
+        "en": "Lose 10 battles.",
+        "ru": "Проиграй 10 боёв."
+      },
       "metric": "losses",
       "value": 10
     },
@@ -191,8 +353,14 @@
       "id": "win-streak-3",
       "icon": "⚡",
       "tier": "rare",
-      "name": { "en": "Hat-Trick", "ru": "Хет-трик" },
-      "desc": { "en": "Win 3 battles in a row.", "ru": "Выиграй 3 боя подряд." },
+      "name": {
+        "en": "Hat-Trick",
+        "ru": "Хет-трик"
+      },
+      "desc": {
+        "en": "Win 3 battles in a row.",
+        "ru": "Выиграй 3 боя подряд."
+      },
       "metric": "winStreak",
       "value": 3
     },
@@ -200,7 +368,10 @@
       "id": "one-each-tier",
       "icon": "🌈",
       "tier": "collectible",
-      "name": { "en": "Full Spectrum", "ru": "Полный спектр" },
+      "name": {
+        "en": "Full Spectrum",
+        "ru": "Полный спектр"
+      },
       "desc": {
         "en": "Own one rooster of each tier (D–X).",
         "ru": "Владей петухом каждого тира (D–X)."
@@ -212,7 +383,10 @@
       "id": "full-dex",
       "icon": "📕",
       "tier": "collectible",
-      "name": { "en": "Gotta Hatch 'Em All", "ru": "Собрал всех" },
+      "name": {
+        "en": "Gotta Hatch 'Em All",
+        "ru": "Собрал всех"
+      },
       "desc": {
         "en": "Discover every breed in the Roostrdex.",
         "ru": "Открой все породы в Рустрдексе."
@@ -224,7 +398,10 @@
       "id": "first-synth",
       "icon": "⚗️",
       "tier": "common",
-      "name": { "en": "Biohacker", "ru": "Биохакер" },
+      "name": {
+        "en": "Biohacker",
+        "ru": "Биохакер"
+      },
       "desc": {
         "en": "Buy your first synthetic gene.",
         "ru": "Купи первый синтетический ген."
@@ -236,7 +413,10 @@
       "id": "all-synth",
       "icon": "🧪",
       "tier": "collectible",
-      "name": { "en": "Mad Geneticist", "ru": "Безумный генетик" },
+      "name": {
+        "en": "Mad Geneticist",
+        "ru": "Безумный генетик"
+      },
       "desc": {
         "en": "Buy every kind of synthetic gene.",
         "ru": "Купи каждый вид синтетического гена."
@@ -248,7 +428,10 @@
       "id": "all-genes",
       "icon": "🧬",
       "tier": "collectible",
-      "name": { "en": "Gene Codex", "ru": "Кодекс генов" },
+      "name": {
+        "en": "Gene Codex",
+        "ru": "Кодекс генов"
+      },
       "desc": {
         "en": "Discover every (normal) gene.",
         "ru": "Открой все обычные гены."
@@ -260,8 +443,14 @@
       "id": "rename",
       "icon": "✏️",
       "tier": "common",
-      "name": { "en": "Name Giver", "ru": "Имядатель" },
-      "desc": { "en": "Rename a rooster.", "ru": "Переименуй петуха." },
+      "name": {
+        "en": "Name Giver",
+        "ru": "Имядатель"
+      },
+      "desc": {
+        "en": "Rename a rooster.",
+        "ru": "Переименуй петуха."
+      },
       "metric": "renames",
       "value": 1
     },
@@ -269,17 +458,29 @@
       "id": "release-1",
       "icon": "🕊️",
       "tier": "common",
-      "name": { "en": "Free Bird", "ru": "Вольная птица" },
-      "desc": { "en": "Release a rooster.", "ru": "Отпусти петуха на волю." },
+      "name": {
+        "en": "Free Bird",
+        "ru": "Вольная птица"
+      },
+      "desc": {
+        "en": "Release a rooster.",
+        "ru": "Отпусти петуха на волю."
+      },
       "metric": "released",
       "value": 1
     },
     {
       "id": "release-13",
       "icon": "🕊️",
-      "tier": "rare",
-      "name": { "en": "Letting Go", "ru": "Отпускаю" },
-      "desc": { "en": "Release 13 roosters.", "ru": "Отпусти 13 петухов." },
+      "tier": "medium",
+      "name": {
+        "en": "Letting Go",
+        "ru": "Отпускаю"
+      },
+      "desc": {
+        "en": "Release 13 roosters.",
+        "ru": "Отпусти 13 петухов."
+      },
       "metric": "released",
       "value": 13
     },
@@ -287,8 +488,14 @@
       "id": "release-100",
       "icon": "🕊️",
       "tier": "collectible",
-      "name": { "en": "Liberator", "ru": "Освободитель" },
-      "desc": { "en": "Release 100 roosters.", "ru": "Отпусти 100 петухов." },
+      "name": {
+        "en": "Liberator",
+        "ru": "Освободитель"
+      },
+      "desc": {
+        "en": "Release 100 roosters.",
+        "ru": "Отпусти 100 петухов."
+      },
       "metric": "released",
       "value": 100
     },
@@ -296,26 +503,44 @@
       "id": "gift-1",
       "icon": "🎁",
       "tier": "common",
-      "name": { "en": "Generous", "ru": "Щедрый" },
-      "desc": { "en": "Gift a rooster to a friend.", "ru": "Подари петуха другу." },
+      "name": {
+        "en": "Generous",
+        "ru": "Щедрый"
+      },
+      "desc": {
+        "en": "Gift a rooster to a friend.",
+        "ru": "Подари петуха другу."
+      },
       "metric": "roostrsGifted",
       "value": 1
     },
     {
       "id": "gift-25",
       "icon": "🎁",
-      "tier": "rare",
-      "name": { "en": "Big Heart", "ru": "Большое сердце" },
-      "desc": { "en": "Gift 25 roosters.", "ru": "Подари 25 петухов." },
+      "tier": "medium",
+      "name": {
+        "en": "Big Heart",
+        "ru": "Большое сердце"
+      },
+      "desc": {
+        "en": "Gift 25 roosters.",
+        "ru": "Подари 25 петухов."
+      },
       "metric": "roostrsGifted",
       "value": 25
     },
     {
       "id": "gift-100",
       "icon": "🎁",
-      "tier": "collectible",
-      "name": { "en": "Philanthropist", "ru": "Меценат" },
-      "desc": { "en": "Gift 100 roosters.", "ru": "Подари 100 петухов." },
+      "tier": "rare",
+      "name": {
+        "en": "Philanthropist",
+        "ru": "Меценат"
+      },
+      "desc": {
+        "en": "Gift 100 roosters.",
+        "ru": "Подари 100 петухов."
+      },
       "metric": "roostrsGifted",
       "value": 100
     },
@@ -323,7 +548,10 @@
       "id": "gift-received",
       "icon": "📥",
       "tier": "common",
-      "name": { "en": "Lucky You", "ru": "Везунчик" },
+      "name": {
+        "en": "Lucky You",
+        "ru": "Везунчик"
+      },
       "desc": {
         "en": "Receive a gifted rooster.",
         "ru": "Получи петуха в подарок."
@@ -335,7 +563,10 @@
       "id": "send-coins",
       "icon": "🤝",
       "tier": "common",
-      "name": { "en": "Money Mover", "ru": "Спонсор" },
+      "name": {
+        "en": "Money Mover",
+        "ru": "Спонсор"
+      },
       "desc": {
         "en": "Send coins to a friend.",
         "ru": "Отправь другу денег."
@@ -347,7 +578,10 @@
       "id": "send-coins-1k",
       "icon": "🏦",
       "tier": "rare",
-      "name": { "en": "Patron", "ru": "Покровитель" },
+      "name": {
+        "en": "Patron",
+        "ru": "Покровитель"
+      },
       "desc": {
         "en": "Send 1,000 coins to friends in total.",
         "ru": "Отправь друзьям суммарно 1 000 монет."
@@ -359,7 +593,10 @@
       "id": "farm-1egg",
       "icon": "🌾",
       "tier": "common",
-      "name": { "en": "Farmhand", "ru": "Фермер" },
+      "name": {
+        "en": "Farmhand",
+        "ru": "Фермер"
+      },
       "desc": {
         "en": "Reach a farm income of 1 egg/day.",
         "ru": "Доведи доход фермы до 1 яйца в день."
@@ -371,7 +608,10 @@
       "id": "farm-3egg",
       "icon": "🥚",
       "tier": "rare",
-      "name": { "en": "Egg Baron", "ru": "Яичный барон" },
+      "name": {
+        "en": "Egg Baron",
+        "ru": "Яичный барон"
+      },
       "desc": {
         "en": "Reach a farm income of 3 eggs/day.",
         "ru": "Доведи доход фермы до 3 яиц в день."
@@ -385,8 +625,14 @@
       "id": "four-genes",
       "icon": "🧬",
       "tier": "collectible",
-      "name": { "en": "Quad Helix", "ru": "Четырёхген" },
-      "desc": { "en": "Carry 4 key genes.", "ru": "Носит 4 ключевых гена." },
+      "name": {
+        "en": "Quad Helix",
+        "ru": "Четырёхген"
+      },
+      "desc": {
+        "en": "Carry 4 key genes.",
+        "ru": "Носит 4 ключевых гена."
+      },
       "metric": "geneCount",
       "value": 4
     },
@@ -394,17 +640,44 @@
       "id": "maxed-gene",
       "icon": "⭐",
       "tier": "rare",
-      "name": { "en": "Maxed Out", "ru": "На максималке" },
-      "desc": { "en": "Max a gene to level 10.", "ru": "Прокачай ген до 10 уровня." },
+      "name": {
+        "en": "Maxed Out",
+        "ru": "На максималке"
+      },
+      "desc": {
+        "en": "Max a gene to level 10.",
+        "ru": "Прокачай ген до 10 уровня."
+      },
       "metric": "maxGeneLevel",
       "value": 10
+    },
+    {
+      "id": "full-synth",
+      "icon": "🧪",
+      "tier": "rare",
+      "name": {
+        "en": "Fully Augmented",
+        "ru": "Полная аугментация"
+      },
+      "desc": {
+        "en": "Fill both synthetic gene slots on a rooster.",
+        "ru": "Заполни оба слота синтетических генов у петуха."
+      },
+      "metric": "synthSlotsFilled",
+      "value": 2
     },
     {
       "id": "wins-10",
       "icon": "🥇",
       "tier": "common",
-      "name": { "en": "Contender", "ru": "Боец" },
-      "desc": { "en": "Win 10 battles.", "ru": "Выиграй 10 боёв." },
+      "name": {
+        "en": "Contender",
+        "ru": "Боец"
+      },
+      "desc": {
+        "en": "Win 10 battles.",
+        "ru": "Выиграй 10 боёв."
+      },
       "metric": "wins",
       "value": 10
     },
@@ -412,8 +685,14 @@
       "id": "wins-50",
       "icon": "🏆",
       "tier": "rare",
-      "name": { "en": "Champion", "ru": "Чемпион" },
-      "desc": { "en": "Win 50 battles.", "ru": "Выиграй 50 боёв." },
+      "name": {
+        "en": "Champion",
+        "ru": "Чемпион"
+      },
+      "desc": {
+        "en": "Win 50 battles.",
+        "ru": "Выиграй 50 боёв."
+      },
       "metric": "wins",
       "value": 50
     },
@@ -421,8 +700,14 @@
       "id": "wins-100",
       "icon": "👑",
       "tier": "collectible",
-      "name": { "en": "Living Legend", "ru": "Живая легенда" },
-      "desc": { "en": "Win 100 battles.", "ru": "Выиграй 100 боёв." },
+      "name": {
+        "en": "Living Legend",
+        "ru": "Живая легенда"
+      },
+      "desc": {
+        "en": "Win 100 battles.",
+        "ru": "Выиграй 100 боёв."
+      },
       "metric": "wins",
       "value": 100
     },
@@ -430,8 +715,14 @@
       "id": "losses-10",
       "icon": "💔",
       "tier": "common",
-      "name": { "en": "Punching Bag", "ru": "Боксёрская груша" },
-      "desc": { "en": "Lose 10 battles.", "ru": "Проиграй 10 боёв." },
+      "name": {
+        "en": "Punching Bag",
+        "ru": "Боксёрская груша"
+      },
+      "desc": {
+        "en": "Lose 10 battles.",
+        "ru": "Проиграй 10 боёв."
+      },
       "metric": "losses",
       "value": 10
     },
@@ -439,8 +730,14 @@
       "id": "rooster-x",
       "icon": "🌟",
       "tier": "collectible",
-      "name": { "en": "Apex Bird", "ru": "Вершина" },
-      "desc": { "en": "Reach tier X.", "ru": "Достигни тира X." },
+      "name": {
+        "en": "Apex Bird",
+        "ru": "Вершина"
+      },
+      "desc": {
+        "en": "Reach tier X.",
+        "ru": "Достигни тира X."
+      },
       "metric": "tierRank",
       "value": 6
     },
@@ -448,7 +745,10 @@
       "id": "solo-gene",
       "icon": "🎲",
       "tier": "collectible",
-      "name": { "en": "Lone Helix", "ru": "Одиночка" },
+      "name": {
+        "en": "Lone Helix",
+        "ru": "Одиночка"
+      },
       "desc": {
         "en": "Hatch a rooster with just 1 gene (anti-luck).",
         "ru": "Вылупи петуха всего с 1 геном (анти-удача)."
@@ -460,8 +760,14 @@
       "id": "tri-gene",
       "icon": "🧬",
       "tier": "rare",
-      "name": { "en": "Triple Helix", "ru": "Тройная спираль" },
-      "desc": { "en": "Carry 3 key genes.", "ru": "Носит 3 ключевых гена." },
+      "name": {
+        "en": "Triple Helix",
+        "ru": "Тройная спираль"
+      },
+      "desc": {
+        "en": "Carry 3 key genes.",
+        "ru": "Носит 3 ключевых гена."
+      },
       "metric": "geneCount",
       "value": 3
     },
@@ -469,7 +775,10 @@
       "id": "all-stats-10",
       "icon": "💪",
       "tier": "collectible",
-      "name": { "en": "Perfectly Balanced", "ru": "Идеальный баланс" },
+      "name": {
+        "en": "Perfectly Balanced",
+        "ru": "Идеальный баланс"
+      },
       "desc": {
         "en": "Raise every stat of a rooster to 10+.",
         "ru": "Прокачай все статы петуха до 10 и выше."

@@ -255,6 +255,27 @@ export const workStations = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.kind] })],
 );
 
+// Persisted achievement unlocks — presence = unlocked, permanently (an unlock
+// outlives a metric dropping back below its threshold). One row per
+// (user, achievement); `unlockedAt` stamps when it was first earned. The unlock
+// sync inserts with onConflictDoNothing, so it's safe to re-run every page load
+// and `returning()` yields exactly the newly-earned ones (→ fire a toast once).
+// `scope` future-proofs per-rooster achievements (profile only for now).
+export const achievementUnlocks = pgTable(
+  "achievement_unlocks",
+  {
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    achievementId: text("achievement_id").notNull(),
+    scope: text("scope").notNull().default("profile"), // profile | rooster
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.achievementId] })],
+);
+
 export const farmSessions = pgTable("farm_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: bigint("user_id", { mode: "number" })

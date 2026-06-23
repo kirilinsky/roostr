@@ -10,8 +10,13 @@ import Typography from "@mui/material/Typography";
 import FriendButton from "@/components/FriendButton";
 import CollectionCard from "@/components/CollectionCard";
 import AchievementBadge from "@/components/AchievementBadge";
+import AchievementToaster from "@/components/AchievementToaster";
 import LogoutButton from "@/components/LogoutButton";
-import { PROFILE_ACHIEVEMENTS } from "@/lib/achievements";
+import {
+  PROFILE_ACHIEVEMENTS,
+  evaluate,
+  profileMetricsFrom,
+} from "@/lib/achievements";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import {
@@ -19,6 +24,8 @@ import {
   getFriendship,
   getRoostrs,
   getUserStats,
+  getAchievementUnlocks,
+  recordAchievementUnlocks,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 
@@ -68,10 +75,34 @@ export default async function PublicProfilePage({
     ? (await getRoostrs(user.id)).map(hydrateRoostr)
     : [];
 
-  // Own-profile extras (economy + achievements + logout). Achievement unlocks
-  // aren't tracked yet — show one dummy unlocked.
+  // Own-profile extras (economy + achievements + logout). Evaluate live, persist
+  // anything now satisfied (idempotent), then read the permanent set + unlock
+  // dates. recordAchievementUnlocks returns only the NEWLY earned ids → toasted.
   const stats = isOwnProfile ? await getUserStats(user.id) : null;
-  const recentAchievements = PROFILE_ACHIEVEMENTS.slice(0, 1);
+  const statuses = stats
+    ? evaluate(PROFILE_ACHIEVEMENTS, profileMetricsFrom(stats))
+    : [];
+  const satisfiedIds = statuses.filter((s) => s.unlocked).map((s) => s.def.id);
+  const newlyIds =
+    isOwnProfile && satisfiedIds.length
+      ? await recordAchievementUnlocks(user.id, satisfiedIds)
+      : [];
+  const unlocks = isOwnProfile ? await getAchievementUnlocks(user.id) : [];
+  const unlockedAt = new Map(unlocks.map((u) => [u.achievementId, u.unlockedAt]));
+  const newlyAchievements = PROFILE_ACHIEVEMENTS.filter((a) =>
+    newlyIds.includes(a.id),
+  );
+  // Recent = earned ones (newest unlock first), else the three closest to unlock.
+  const earned = statuses
+    .filter((s) => unlockedAt.has(s.def.id))
+    .sort((a, b) =>
+      (unlockedAt.get(b.def.id) ?? "").localeCompare(
+        unlockedAt.get(a.def.id) ?? "",
+      ),
+    );
+  const recentAchievements = (
+    earned.length ? earned : [...statuses].sort((a, b) => b.progress - a.progress)
+  ).slice(0, 3);
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -130,6 +161,11 @@ export default async function PublicProfilePage({
         {/* Own profile: economy + achievements + logout */}
         {isOwnProfile && stats && (
           <Stack spacing={2.5} sx={{ width: "100%", maxWidth: 380 }}>
+            <AchievementToaster
+              unlocked={newlyAchievements}
+              locale={locale}
+              href={`/${user.id}/achievements`}
+            />
             <Divider flexItem />
             <Stack spacing={1}>
               <Row
@@ -156,14 +192,24 @@ export default async function PublicProfilePage({
               >
                 {t("profile.achievements")}
               </Typography>
-              {recentAchievements.map((a) => (
-                <AchievementBadge
-                  key={a.id}
-                  achievement={a}
-                  unlocked
-                  locale={locale}
-                />
-              ))}
+              {recentAchievements.map((s) => {
+                const at = unlockedAt.get(s.def.id);
+                return (
+                  <AchievementBadge
+                    key={s.def.id}
+                    achievement={s.def}
+                    unlocked={!!at}
+                    unlockedNote={
+                      at
+                        ? t("achievements.unlockedOn", {
+                            date: new Date(at).toLocaleDateString(locale),
+                          })
+                        : undefined
+                    }
+                    locale={locale}
+                  />
+                );
+              })}
               <Button
                 component={Link}
                 href={`/${user.id}/achievements`}

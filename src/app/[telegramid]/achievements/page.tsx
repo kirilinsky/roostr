@@ -5,11 +5,17 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AchievementBadge from "@/components/AchievementBadge";
-import { PROFILE_ACHIEVEMENTS } from "@/lib/achievements";
+import {
+  PROFILE_ACHIEVEMENTS,
+  evaluate,
+  profileMetricsFrom,
+} from "@/lib/achievements";
+import { getUserStats, getAchievementUnlocks } from "@/db/queries";
 import { getTranslations } from "@/i18n/server";
 
-// Full achievements list for a user (by Telegram id). Unlock tracking isn't
-// wired yet — everything is dummy (first one unlocked, the rest locked).
+// Full achievements list for a user (by Telegram id). Unlock state is derived
+// live from that player's metrics; achievements for not-yet-wired metrics stay
+// locked. (Persisted unlocks + toast-on-unlock are tracked in the roadmap.)
 export default async function AchievementsPage({
   params,
 }: {
@@ -18,9 +24,19 @@ export default async function AchievementsPage({
   const { telegramid } = await params;
   const { t, locale } = await getTranslations();
 
-  const items = PROFILE_ACHIEVEMENTS.map((a, i) => ({
-    def: a,
-    unlocked: i === 0,
+  const id = Number(telegramid);
+  const stats = Number.isFinite(id) ? await getUserStats(id) : null;
+  const statuses = evaluate(
+    PROFILE_ACHIEVEMENTS,
+    stats ? profileMetricsFrom(stats) : {},
+  );
+  const unlocks = Number.isFinite(id) ? await getAchievementUnlocks(id) : [];
+  const unlockedAt = new Map(unlocks.map((u) => [u.achievementId, u.unlockedAt]));
+  // Earned = persisted unlock OR currently satisfied (a view before the next sync).
+  const items = statuses.map((s) => ({
+    def: s.def,
+    unlocked: unlockedAt.has(s.def.id) || s.unlocked,
+    at: unlockedAt.get(s.def.id),
   }));
 
   return (
@@ -49,11 +65,18 @@ export default async function AchievementsPage({
             },
           }}
         >
-          {items.map(({ def, unlocked }) => (
+          {items.map(({ def, unlocked, at }) => (
             <AchievementBadge
               key={def.id}
               achievement={def}
               unlocked={unlocked}
+              unlockedNote={
+                at
+                  ? t("achievements.unlockedOn", {
+                      date: new Date(at).toLocaleDateString(locale),
+                    })
+                  : undefined
+              }
               locale={locale}
             />
           ))}

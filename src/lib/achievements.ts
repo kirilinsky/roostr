@@ -10,10 +10,12 @@ import type { Locale } from "@/i18n/config";
 
 export type AchievementScope = "profile" | "rooster";
 
-// Rarity/prestige band. Drives badge styling (and later the art per tier).
-export type AchievementTier = "common" | "rare" | "collectible";
+// Rarity/prestige band, ascending. Drives badge styling (and later the art per
+// tier).
+export type AchievementTier = "common" | "medium" | "rare" | "collectible";
 export const ACHIEVEMENT_TIERS: AchievementTier[] = [
   "common",
+  "medium",
   "rare",
   "collectible",
 ];
@@ -83,6 +85,22 @@ export function evaluate(
       progress: def.value > 0 ? Math.min(1, current / def.value) : 1,
     };
   });
+}
+
+// Build the profile metrics map from the data we currently compute (getUserStats).
+// Metrics for not-yet-built systems are simply absent → evaluate() treats them as
+// 0, so those achievements stay locked. As new metrics get wired, extend this map
+// (single source of the profile wiring) — see .notes/ACHIEVEMENTS-ROADMAP.md.
+export function profileMetricsFrom(stats: {
+  eggsHatched: number;
+  coinsEarned: number;
+  coinsSpent: number;
+}): Record<string, number> {
+  return {
+    eggsHatched: stats.eggsHatched,
+    coinsEarned: stats.coinsEarned,
+    coinsSpent: stats.coinsSpent,
+  };
 }
 
 export function achievementName(a: Achievement, locale: Locale): string {

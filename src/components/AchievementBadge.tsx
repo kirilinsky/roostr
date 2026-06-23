@@ -11,10 +11,12 @@ export default function AchievementBadge({
   achievement,
   unlocked,
   locale,
+  unlockedNote,
 }: {
   achievement: Achievement;
   unlocked: boolean;
   locale: Locale;
+  unlockedNote?: string; // e.g. "Unlocked 23.06.2026" — shown when earned
 }) {
   return (
     <Card
@@ -39,6 +41,15 @@ export default function AchievementBadge({
         <Typography variant="caption" color="text.secondary" component="div">
           {achievement.desc[locale]}
         </Typography>
+        {unlocked && unlockedNote && (
+          <Typography
+            variant="caption"
+            sx={{ color: "tertiary.main", fontWeight: 700 }}
+            component="div"
+          >
+            {unlockedNote}
+          </Typography>
+        )}
       </Box>
     </Card>
   );

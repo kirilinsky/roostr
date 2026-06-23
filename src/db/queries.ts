@@ -254,6 +254,56 @@ export async function getUserStats(userId: number): Promise<{
   }
 }
 
+// Persisted achievement unlocks for a user: id → ISO unlock date. The presence
+// of a row means earned (permanent); the date is when it first unlocked.
+export async function getAchievementUnlocks(
+  userId: number,
+): Promise<{ achievementId: string; unlockedAt: string }[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { achievementUnlocks } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({
+        achievementId: achievementUnlocks.achievementId,
+        unlockedAt: achievementUnlocks.unlockedAt,
+      })
+      .from(achievementUnlocks)
+      .where(eq(achievementUnlocks.userId, userId));
+    return rows.map((r) => ({
+      achievementId: r.achievementId,
+      unlockedAt: r.unlockedAt.toISOString(),
+    }));
+  } catch (e) {
+    console.error("getAchievementUnlocks failed:", e);
+    return [];
+  }
+}
+
+// Persist currently-satisfied achievements. Idempotent (onConflictDoNothing on the
+// (user, achievement) PK), so it's safe to call on every load. Returns the ids that
+// were NEWLY inserted — i.e. just unlocked — so the caller can toast exactly those.
+export async function recordAchievementUnlocks(
+  userId: number,
+  achievementIds: string[],
+): Promise<string[]> {
+  if (!achievementIds.length || !process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { achievementUnlocks } = await import("@/db/schema");
+    const rows = await db
+      .insert(achievementUnlocks)
+      .values(achievementIds.map((id) => ({ userId, achievementId: id })))
+      .onConflictDoNothing()
+      .returning({ achievementId: achievementUnlocks.achievementId });
+    return rows.map((r) => r.achievementId);
+  } catch (e) {
+    console.error("recordAchievementUnlocks failed:", e);
+    return [];
+  }
+}
+
 // Full ownership history for a rooster, oldest first (genesis → current owner).
 export async function getRoostrHistory(roostrId: string) {
   if (!process.env.DATABASE_URL) return [];
