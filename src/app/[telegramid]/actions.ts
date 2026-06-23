@@ -7,6 +7,7 @@ import {
   sendFriendRequest,
   acceptFriendRequest,
   declineFriendRequest,
+  markNotificationsSeen,
 } from "@/db/queries";
 
 // Send a friend request to the target (no instant friendship). If the target had
@@ -30,6 +31,10 @@ export async function acceptFriendRequestAction(fromId: number): Promise<void> {
   const session = await getSession();
   if (!session || session.id === fromId) return;
   await acceptFriendRequest(session.id, fromId);
+  // The accepter already "saw" this — bump their cursor so the new friendship
+  // doesn't show up as an unread "new friend" notification for them. The other
+  // side (the requester) keeps an older cursor → they DO get notified.
+  await markNotificationsSeen(session.id);
   revalidatePath("/notifications");
   revalidatePath(`/${fromId}`);
 }

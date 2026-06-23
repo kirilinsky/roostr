@@ -200,6 +200,7 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T35 | . | referrer reward: +75 coins when an invited user finishes their FIRST battle (once) | V17 |
 | T36 | . | rarities: rare collectible drops from raids/arena, stored in Bank, store/sell (later trade) | V18 |
 | T37 | . | seasons: time-limited event with exotic season-only breeds (own genes/stats), server-gated window | V19 |
+| T38 | . | settings: TON wallet field — persist a player's TON address to `users.tonAddress` (already in schema), toward the §G "mint TON NFT later" goal | C,G |
 
 ## §B — Bugs
 

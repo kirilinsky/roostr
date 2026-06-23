@@ -42,10 +42,12 @@ const PAGE_SIZE = 10; // max notifications per page
 
 export default function NotificationsView({
   requests,
+  newFriends = [],
   fullStations = [],
   discoveries = [],
 }: {
   requests: FriendRequestSummary[];
+  newFriends?: FriendRequestSummary[]; // accepted → "you're now friends with X"
   fullStations?: ("farm" | "lab")[]; // stations whose buffer is full → claim it
   discoveries?: DiscoverySummary[]; // new Roostrdex entries
 }) {
@@ -115,10 +117,58 @@ export default function NotificationsView({
         ))}
       </Tabs>
 
-      {tab === "friends" && pagedFriends.length > 0 ? (
-        <>
-          <List disablePadding>
-            {pagedFriends.map((r) => {
+      {tab === "friends" ? (
+        newFriends.length === 0 && requests.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            {t("notifications.empty")}
+          </Typography>
+        ) : (
+          <Stack spacing={2}>
+            {newFriends.length > 0 && (
+              <List disablePadding>
+                {newFriends.map((f) => {
+                  const name =
+                    [f.firstName, f.lastName].filter(Boolean).join(" ") ||
+                    (f.username ? `@${f.username}` : String(f.id));
+                  return (
+                    <ListItem
+                      key={`nf-${f.id}`}
+                      divider
+                      sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
+                    >
+                      <Avatar
+                        component={Link}
+                        href={`/${f.id}`}
+                        src={f.photoUrl ?? undefined}
+                        alt={name}
+                      >
+                        {name.charAt(0)}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          🎉 {t("notifications.newFriend", { name })}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(f.createdAt).toLocaleDateString(locale)}
+                        </Typography>
+                      </Box>
+                      <Button
+                        component={Link}
+                        href={`/${f.id}`}
+                        size="small"
+                        variant="outlined"
+                      >
+                        {t("friends.profile")}
+                      </Button>
+                    </ListItem>
+                  );
+                })}
+              </List>
+            )}
+            {requests.length > 0 && (
+              <>
+                <List disablePadding>
+                  {pagedFriends.map((r) => {
               const name =
                 [r.firstName, r.lastName].filter(Boolean).join(" ") ||
                 (r.username ? `@${r.username}` : String(r.id));
@@ -166,9 +216,12 @@ export default function NotificationsView({
                 </ListItem>
               );
             })}
-          </List>
-          {pager}
-        </>
+                </List>
+                {pager}
+              </>
+            )}
+          </Stack>
+        )
       ) : tab === "roostrdex" && pagedDex.length > 0 ? (
         <>
           <List disablePadding>

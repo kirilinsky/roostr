@@ -817,10 +817,9 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
     const { db } = await import("@/db");
-    const { friendRequests, breedDiscoveries, users } = await import(
-      "@/db/schema"
-    );
-    const { and, eq, gt, sql } = await import("drizzle-orm");
+    const { friendRequests, friendships, breedDiscoveries, users } =
+      await import("@/db/schema");
+    const { and, eq, gt, or, sql } = await import("drizzle-orm");
     const [u] = await db
       .select({ seen: users.notificationsSeenAt })
       .from(users)
@@ -848,12 +847,29 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       .select({ n: sql<number>`count(*)` })
       .from(breedDiscoveries)
       .where(dexFilter);
+    // New friendships newer than the cursor ("you're now friends with X").
+    const mine = or(
+      eq(friendships.userAId, userId),
+      eq(friendships.userBId, userId),
+    );
+    const friendFilter = seen
+      ? and(mine, gt(friendships.createdAt, seen))
+      : mine;
+    const [nf] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(friendships)
+      .where(friendFilter);
     // Plus: stations that filled up AFTER the read-cursor ("come claim it").
     const seenMs = seen ? seen.getTime() : 0;
     const stationUnread = (await getStationAlerts(userId)).filter(
       (a) => a.fullAt > seenMs,
     ).length;
-    return Number(row?.n ?? 0) + Number(dex?.n ?? 0) + stationUnread;
+    return (
+      Number(row?.n ?? 0) +
+      Number(dex?.n ?? 0) +
+      Number(nf?.n ?? 0) +
+      stationUnread
+    );
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);
     return 0;
@@ -930,6 +946,50 @@ export async function getRecentDiscoveries(
     }));
   } catch (e) {
     console.error("getRecentDiscoveries failed:", e);
+    return [];
+  }
+}
+
+// Friendships newer than the read-cursor → "you're now friends with X" notifs.
+// This is how a REQUESTER learns their request was accepted (the accepter bumps
+// their own cursor on accept, so they don't get a redundant self-notification).
+export async function getNewFriends(
+  userId: number,
+): Promise<FriendRequestSummary[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { friendships, users } = await import("@/db/schema");
+    const { and, desc, eq, gt, or, sql } = await import("drizzle-orm");
+    const [u] = await db
+      .select({ seen: users.notificationsSeenAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const seen = u?.seen ?? null;
+    const mine = or(
+      eq(friendships.userAId, userId),
+      eq(friendships.userBId, userId),
+    );
+    const filter = seen ? and(mine, gt(friendships.createdAt, seen)) : mine;
+    return await db
+      .select({
+        id: users.id,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        createdAt: friendships.createdAt,
+      })
+      .from(friendships)
+      .innerJoin(
+        users,
+        sql`${users.id} = case when ${friendships.userAId} = ${userId} then ${friendships.userBId} else ${friendships.userAId} end`,
+      )
+      .where(filter)
+      .orderBy(desc(friendships.createdAt));
+  } catch (e) {
+    console.error("getNewFriends failed:", e);
     return [];
   }
 }
