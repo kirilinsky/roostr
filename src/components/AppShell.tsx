@@ -153,8 +153,16 @@ export default function AppShell({
             </Box>
           </Box>
         ) : (
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1.5,
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
               {loginLabel}
             </Typography>
             <TelegramLoginButton configured={telegramLoginConfigured} />
