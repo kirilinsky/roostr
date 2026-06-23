@@ -28,11 +28,11 @@
         "ru": "Инкубаторщик"
       },
       "desc": {
-        "en": "Hatch 10 roosters.",
-        "ru": "Вылупи 10 петухов."
+        "en": "Hatch 15 roosters.",
+        "ru": "Вылупи 15 петухов."
       },
       "metric": "eggsHatched",
-      "value": 10
+      "value": 150
     },
     {
       "id": "mega-hatchery",

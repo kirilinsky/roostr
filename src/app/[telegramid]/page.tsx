@@ -64,10 +64,11 @@ export default async function PublicProfilePage({
     ? new Date(friendship.createdAt).toLocaleDateString(locale)
     : null;
 
-  // Catalog visibility: owner always sees it; others only if the player keeps
-  // their collection public (settings privacy toggle). Skip the query when hidden.
-  const canSeeCollection = isOwnProfile || user.collectionPublic;
-  const roostrs = canSeeCollection
+  // Catalog is for VISITORS only — on your own profile you don't need to see your
+  // own collection (it lives in /collection). Others see it only if the player keeps
+  // it public (privacy toggle); private → a lock notice. Skip the query otherwise.
+  const showCatalog = !isOwnProfile && user.collectionPublic;
+  const roostrs = showCatalog
     ? (await getRoostrs(user.id)).map(hydrateRoostr)
     : [];
 
@@ -220,8 +221,8 @@ export default async function PublicProfilePage({
         )}
       </Stack>
 
-      {/* Read-only catalog of this user's roosters — open each, no upgrades. */}
-      {!canSeeCollection && (
+      {/* Read-only catalog of this user's roosters — visitors only, no upgrades. */}
+      {!isOwnProfile && !user.collectionPublic && (
         <Stack spacing={1} alignItems="center" sx={{ mt: 5, py: 4 }}>
           <Typography color="text.secondary">
             🔒 {t("publicProfile.private")}
@@ -229,7 +230,7 @@ export default async function PublicProfilePage({
         </Stack>
       )}
 
-      {canSeeCollection && roostrs.length > 0 && (
+      {showCatalog && roostrs.length > 0 && (
         <Stack spacing={2} sx={{ mt: 5 }}>
           <Typography variant="overline" color="text.secondary">
             {t("publicProfile.catalog")} ({roostrs.length})
