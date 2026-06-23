@@ -421,17 +421,20 @@ export default function RoostrAvatarPixel({
 
   const hex = useMemo(
     () => ({
-      body: COLOR_HEX.body[colors.body] ?? "#b9722e",
-      wing: COLOR_HEX.wing[colors.wing] ?? "#7b3f2e",
-      tail: COLOR_HEX.tail[colors.tail] ?? "#222222",
-      hackle: COLOR_HEX.hackle[colors.hackle] ?? "#c9962f",
-      comb: COLOR_HEX.comb[colors.comb] ?? "#c1352b",
-      leg: COLOR_HEX.leg[colors.leg] ?? "#e3b94e",
-      eye: COLOR_HEX.eye[colors.eye] ?? "#c8861f",
-      beak: COLOR_HEX.beak?.[colors.beak] ?? BEAK_HEX,
+      body: COLOR_HEX.body[colors.body.color] ?? "#b9722e",
+      wing: COLOR_HEX.wing[colors.wing.color] ?? "#7b3f2e",
+      tail: COLOR_HEX.tail[colors.tail.color] ?? "#222222",
+      hackle: COLOR_HEX.hackle[colors.hackle.color] ?? "#c9962f",
+      saddle: COLOR_HEX.saddle?.[colors.saddle.color] ?? "#c9962f",
+      comb: COLOR_HEX.comb[colors.comb.color] ?? "#c1352b",
+      leg: COLOR_HEX.leg[colors.leg.color] ?? "#e3b94e",
+      eye: COLOR_HEX.eye[colors.eye.color] ?? "#c8861f",
+      beak: COLOR_HEX.beak?.[colors.beak.color] ?? BEAK_HEX,
     }),
     [colors],
   );
+  // Tail material effect (e.g. "Iridescent"/"Aurora") drives the feather sheen.
+  const tailSheen = colors.tail.effect != null && colors.tail.effect !== "None";
 
   useEffect(() => {
     const cv = ref.current;
@@ -490,8 +493,9 @@ export default function RoostrAvatarPixel({
           const t = (x + y) / (2 * GRID);
           const amt = 0.16 - t * 0.36 + sh[p] * 0.085;
           fill = shade(baseHex(id), Math.max(-0.55, Math.min(0.45, amt)));
-          // iridescent green/blue sheen banding on tail feathers (design-space)
-          if (id === TAIL) {
+          // iridescent green/blue sheen banding on tail feathers — only when the
+          // tail's material effect calls for it (design-space).
+          if (id === TAIL && tailSheen) {
             const band = Math.round((x / S) * 3 + (y / S) * 2) % 9;
             if (band < 2) fill = lerpHex(fill, "#1f8a5a", 0.5);
             else if (band < 3) fill = lerpHex(fill, "#2f74a6", 0.45);
@@ -513,7 +517,7 @@ export default function RoostrAvatarPixel({
     ctx.filter = "blur(0.4px)";
     ctx.drawImage(off, 0, 0);
     ctx.filter = "none";
-  }, [grid, hex]);
+  }, [grid, hex, tailSheen]);
 
   return (
     <canvas

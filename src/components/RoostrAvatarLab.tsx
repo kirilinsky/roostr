@@ -14,12 +14,11 @@ import {
   BREEDS,
   COLORS,
   COLOR_HEX,
-  PATTERNS,
+  PATTERNS_BY_PART,
   WEIGHT_CLASSES,
   colorLabel,
   patternLabel,
   rollRoostr,
-  type ColorSet,
   type CosmeticLayer,
 } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -33,6 +32,7 @@ const LAYER_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
   { key: "wing", labelKey: "card.wing" },
   { key: "tail", labelKey: "card.tail" },
   { key: "hackle", labelKey: "card.hackle" },
+  { key: "saddle", labelKey: "card.saddle" },
   { key: "comb", labelKey: "card.comb" },
   { key: "beak", labelKey: "card.beak" },
   { key: "leg", labelKey: "card.leg" },
@@ -60,7 +60,23 @@ export default function RoostrAvatarLab() {
     WEIGHT_CLASSES.find((w) => w.id === state.weightId) ?? WEIGHT_CLASSES[2];
 
   function setColor(layer: CosmeticLayer, id: string) {
-    setState((s) => ({ ...s, colors: { ...s.colors, [layer]: id } as ColorSet }));
+    setState((s) => ({
+      ...s,
+      colors: { ...s.colors, [layer]: { ...s.colors[layer], color: id } },
+    }));
+  }
+
+  // Pattern is per-part now; the lab's single picker drives body + wing together.
+  function setPattern(id: string) {
+    setState((s) => ({
+      ...s,
+      pattern: id,
+      colors: {
+        ...s.colors,
+        body: { ...s.colors.body, pattern: id },
+        wing: { ...s.colors.wing, pattern: id },
+      },
+    }));
   }
 
   function randomize() {
@@ -170,13 +186,13 @@ export default function RoostrAvatarLab() {
               {t("card.marbleTraits")}
             </Typography>
             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
-              {PATTERNS.map((p) => (
+              {PATTERNS_BY_PART.body.map((p) => (
                 <Chip
                   key={p}
                   label={patternLabel(p, locale)}
                   size="small"
-                  color={state.pattern === p ? "secondary" : "default"}
-                  onClick={() => setState((s) => ({ ...s, pattern: p }))}
+                  color={state.colors.body.pattern === p ? "secondary" : "default"}
+                  onClick={() => setPattern(p)}
                 />
               ))}
             </Stack>
@@ -186,11 +202,11 @@ export default function RoostrAvatarLab() {
           {LAYER_ROWS.map(({ key, labelKey }) => (
             <Box key={key}>
               <Typography variant="caption" color="text.secondary">
-                {t(labelKey)}: {colorLabel(key, state.colors[key], locale)}
+                {t(labelKey)}: {colorLabel(key, state.colors[key].color, locale)}
               </Typography>
               <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
                 {COLORS[key].map((id) => {
-                  const selected = state.colors[key] === id;
+                  const selected = state.colors[key].color === id;
                   return (
                     <Box
                       key={id}

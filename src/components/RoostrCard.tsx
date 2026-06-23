@@ -39,6 +39,7 @@ const COLOR_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
   { key: "body", labelKey: "card.body" },
   { key: "tail", labelKey: "card.tail" },
   { key: "hackle", labelKey: "card.hackle" },
+  { key: "saddle", labelKey: "card.saddle" },
   { key: "wing", labelKey: "card.wing" },
   { key: "comb", labelKey: "card.comb" },
   { key: "beak", labelKey: "card.beak" },
@@ -51,7 +52,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
   const locale = useLocale();
   const { breed, weightClass, genes, maxHealth, stats, colors, pattern, role, seed } =
     roostr;
-  const bodyHex = BODY_COLOR_HEX[colors.body] ?? "#888";
+  const bodyHex = BODY_COLOR_HEX[colors.body.color] ?? "#888";
   const seedId = `#${seed.toString(16).padStart(6, "0").toUpperCase()}`;
   const rating = computeRating(stats, maxHealth);
   const tier = tierFor(rating);
@@ -164,13 +165,13 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                     height: 12,
                     borderRadius: "50%",
                     flexShrink: 0,
-                    bgcolor: COLOR_HEX[key]?.[colors[key]] ?? "#888",
+                    bgcolor: COLOR_HEX[key]?.[colors[key].color] ?? "#888",
                     border: "1px solid",
                     borderColor: "divider",
                   }}
                 />
               }
-              label={`${t(labelKey)}: ${colorLabel(key, colors[key], locale)}`}
+              label={`${t(labelKey)}: ${colorLabel(key, colors[key].color, locale)}`}
               sx={{ bgcolor: "background.paper" }}
             />
           ))}

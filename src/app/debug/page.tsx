@@ -30,7 +30,7 @@ function craft(n: number): BatchStats {
     const r = rollRoostr();
     s.genes[r.genes.length] = (s.genes[r.genes.length] ?? 0) + 1;
     s.roles[r.role] = (s.roles[r.role] ?? 0) + 1;
-    s.body[r.colors.body] = (s.body[r.colors.body] ?? 0) + 1;
+    s.body[r.colors.body.color] = (s.body[r.colors.body.color] ?? 0) + 1;
   }
   return s;
 }

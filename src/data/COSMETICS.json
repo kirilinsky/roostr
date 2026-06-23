@@ -1,763 +1,1089 @@
 {
-  "version": 5,
+  "version": 6,
   "description": {
-    "en": "Cosmetic-only colors + patterns (no battle effect). Source of truth: name {en,ru} (name.en = canonical id), hex fixed. weight = drop frequency (exotics rare).",
-    "ru": "Только косметика: цвета + паттерны (на бой не влияют). Источник правды: name {en,ru} (name.en — канон-id), hex фиксирован. weight — частота выпадения (экзотика редкая)."
+    "en": "Per-part appearance catalog (no battle effect). `parts.<part>` = { colors[], patterns?[], effects?[] }. Each entry: name{en,ru} (name.en = canonical id) + weight (drop frequency; exotics rare). Source of truth for what each part can wear; a rooster's chosen look (RoosterAppearance) picks one color/pattern/effect per part.",
+    "ru": "Каталог внешности по частям (на бой не влияет). `parts.<part>` = { colors[], patterns?[], effects?[] }. У каждого: name{en,ru} (name.en — канон-id) + weight (частота выпадения; экзотика редкая). Источник правды что часть может носить; выбранный вид петуха (RoosterAppearance) берёт по одному цвету/паттерну/эффекту на часть."
   },
-  "layers": {
-    "body": [
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#2b2b2b",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "White",
-          "ru": "Белый"
-        },
-        "hex": "#e9e9ec",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "Red",
-          "ru": "Красный"
-        },
-        "hex": "#b23a2e",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "Brown",
-          "ru": "Коричневый"
-        },
-        "hex": "#6b4423",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "Buff",
-          "ru": "Палевый"
-        },
-        "hex": "#e3c992",
-        "weight": 90
-      },
-      {
-        "name": {
-          "en": "Cream",
-          "ru": "Кремовый"
-        },
-        "hex": "#f1e6c8",
-        "weight": 80
-      },
-      {
-        "name": {
-          "en": "Wheaten",
-          "ru": "Пшеничный"
-        },
-        "hex": "#d8b46a",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Slate",
-          "ru": "Сланцевый"
-        },
-        "hex": "#4a5568",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Blue Gray",
-          "ru": "Сине-серый"
-        },
-        "hex": "#6e7f8d",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Chocolate",
-          "ru": "Шоколадный"
-        },
-        "hex": "#4e342e",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Partridge",
-          "ru": "Куропатчатый"
-        },
-        "hex": "#7a5230",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Mahogany",
-          "ru": "Махагон"
-        },
-        "hex": "#5e2c20",
-        "weight": 40
-      },
-      {
-        "name": {
-          "en": "Silver",
-          "ru": "Серебристый"
-        },
-        "hex": "#c8ccd0",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Lavender",
-          "ru": "Лавандовый"
-        },
-        "hex": "#b9b3c7",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Gold",
-          "ru": "Золотой"
-        },
-        "hex": "#c9962f",
-        "weight": 30
-      },
-      {
-        "name": {
-          "en": "Splash",
-          "ru": "Брызги"
-        },
-        "hex": "#cdd6e0",
-        "weight": 25
-      },
-      {
-        "name": {
-          "en": "Rose Gold",
-          "ru": "Розовое золото"
-        },
-        "hex": "#b76e79",
-        "weight": 6
-      },
-      {
-        "name": {
-          "en": "Galaxy",
-          "ru": "Галактика"
-        },
-        "hex": "#2a1a4a",
-        "weight": 4
-      },
-      {
-        "name": {
-          "en": "Neon",
-          "ru": "Неон"
-        },
-        "hex": "#39ff14",
-        "weight": 3
-      }
-    ],
-    "wing": [
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#2b2b2b",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "White",
-          "ru": "Белый"
-        },
-        "hex": "#e9e9ec",
-        "weight": 90
-      },
-      {
-        "name": {
-          "en": "Speckled",
-          "ru": "Крапчатый"
-        },
-        "hex": "#6b5d4f",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Barred",
-          "ru": "Полосатый"
-        },
-        "hex": "#4a4a4a",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Copper",
-          "ru": "Медный"
-        },
-        "hex": "#b56a2e",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Chestnut",
-          "ru": "Каштановый"
-        },
-        "hex": "#7b3f2e",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Bronze",
-          "ru": "Бронзовый"
-        },
-        "hex": "#8c6a3b",
-        "weight": 45
-      },
-      {
-        "name": {
-          "en": "Blue",
-          "ru": "Синий"
-        },
-        "hex": "#5b6b86",
-        "weight": 40
-      },
-      {
-        "name": {
-          "en": "Silver",
-          "ru": "Серебристый"
-        },
-        "hex": "#c8ccd0",
-        "weight": 40
-      },
-      {
-        "name": {
-          "en": "Gold",
-          "ru": "Золотой"
-        },
-        "hex": "#c9962f",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Laced",
-          "ru": "Окаймлённый"
-        },
-        "hex": "#3a3a3a",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Iridescent",
-          "ru": "Переливчатый"
-        },
-        "hex": "#2f6f5f",
-        "weight": 18
-      }
-    ],
-    "tail": [
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#222222",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "White",
-          "ru": "Белый"
-        },
-        "hex": "#e9e9ec",
-        "weight": 80
-      },
-      {
-        "name": {
-          "en": "Blue Black",
-          "ru": "Сине-чёрный"
-        },
-        "hex": "#1a2230",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Smoke",
-          "ru": "Дымчатый"
-        },
-        "hex": "#6b6b6b",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Copper",
-          "ru": "Медный"
-        },
-        "hex": "#b56a2e",
-        "weight": 55
-      },
-      {
-        "name": {
-          "en": "Bronze",
-          "ru": "Бронзовый"
-        },
-        "hex": "#8c6a3b",
-        "weight": 45
-      },
-      {
-        "name": {
-          "en": "Gold",
-          "ru": "Золотой"
-        },
-        "hex": "#c9962f",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Emerald",
-          "ru": "Изумрудный"
-        },
-        "hex": "#1f7a5a",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Sickle Green",
-          "ru": "Зелёный серп"
-        },
-        "hex": "#2e6b4f",
-        "weight": 30
-      },
-      {
-        "name": {
-          "en": "Iridescent",
-          "ru": "Переливчатый"
-        },
-        "hex": "#2f6f5f",
-        "weight": 22
-      },
-      {
-        "name": {
-          "en": "Aurora",
-          "ru": "Аврора"
-        },
-        "hex": "#4be0c0",
-        "weight": 4
-      }
-    ],
-    "hackle": [
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#2b2b2b",
-        "weight": 90
-      },
-      {
-        "name": {
-          "en": "Red",
-          "ru": "Красный"
-        },
-        "hex": "#b23a2e",
-        "weight": 80
-      },
-      {
-        "name": {
-          "en": "Gold",
-          "ru": "Золотой"
-        },
-        "hex": "#c9962f",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Cream",
-          "ru": "Кремовый"
-        },
-        "hex": "#f1e6c8",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "White",
-          "ru": "Белый"
-        },
-        "hex": "#e9e9ec",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Copper",
-          "ru": "Медный"
-        },
-        "hex": "#b56a2e",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Silver",
-          "ru": "Серебристый"
-        },
-        "hex": "#c8ccd0",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Orange",
-          "ru": "Оранжевый"
-        },
-        "hex": "#d2792a",
-        "weight": 40
-      },
-      {
-        "name": {
-          "en": "Mahogany",
-          "ru": "Махагон"
-        },
-        "hex": "#5e2c20",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Lemon",
-          "ru": "Лимонный"
-        },
-        "hex": "#e6cf6a",
-        "weight": 30
-      }
-    ],
-    "comb": [
-      {
-        "name": {
-          "en": "Red",
-          "ru": "Красный"
-        },
-        "hex": "#c1352b",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "Bright Red",
-          "ru": "Ярко-красный"
-        },
-        "hex": "#e23b2e",
-        "weight": 80
-      },
-      {
-        "name": {
-          "en": "Dark Red",
-          "ru": "Тёмно-красный"
-        },
-        "hex": "#8e1f1a",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Pink",
-          "ru": "Розовый"
-        },
-        "hex": "#d98a9a",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#2b2b2b",
-        "weight": 50
-      },
-      {
-        "name": {
-          "en": "Pale",
-          "ru": "Бледный"
-        },
-        "hex": "#d8a0a0",
-        "weight": 50
-      },
-      {
-        "name": {
-          "en": "Mulberry",
-          "ru": "Шелковичный"
-        },
-        "hex": "#5a2342",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Purple",
-          "ru": "Пурпурный"
-        },
-        "hex": "#6a2e5a",
-        "weight": 30
-      }
-    ],
-    "leg": [
-      {
-        "name": {
-          "en": "Yellow",
-          "ru": "Жёлтый"
-        },
-        "hex": "#e3b94e",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "Slate",
-          "ru": "Сланцевый"
-        },
-        "hex": "#5a6470",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#2b2b2b",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "White",
-          "ru": "Белый"
-        },
-        "hex": "#e9e9ec",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Pink",
-          "ru": "Розовый"
-        },
-        "hex": "#d9a7a0",
-        "weight": 45
-      },
-      {
-        "name": {
-          "en": "Greenish",
-          "ru": "Зеленоватый"
-        },
-        "hex": "#7c8a4a",
-        "weight": 40
-      },
-      {
-        "name": {
-          "en": "Blue",
-          "ru": "Синий"
-        },
-        "hex": "#6e7f8d",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Willow",
-          "ru": "Ивовый"
-        },
-        "hex": "#6f7a3f",
-        "weight": 30
-      }
-    ],
-    "eye": [
-      {
-        "name": {
-          "en": "Amber",
-          "ru": "Янтарный"
-        },
-        "hex": "#c8861f",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#1c1c1c",
-        "weight": 90
-      },
-      {
-        "name": {
-          "en": "Brown",
-          "ru": "Коричневый"
-        },
-        "hex": "#6b4423",
-        "weight": 80
-      },
-      {
-        "name": {
-          "en": "Red",
-          "ru": "Красный"
-        },
-        "hex": "#a52a2a",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Pale",
-          "ru": "Бледный"
-        },
-        "hex": "#d9c9a0",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Orange",
-          "ru": "Оранжевый"
-        },
-        "hex": "#d2792a",
-        "weight": 45
-      },
-      {
-        "name": {
-          "en": "Emerald",
-          "ru": "Изумрудный"
-        },
-        "hex": "#1f7a5a",
-        "weight": 40
-      },
-      {
-        "name": {
-          "en": "Pearl",
-          "ru": "Жемчужный"
-        },
-        "hex": "#d6d2c4",
-        "weight": 35
-      },
-      {
-        "name": {
-          "en": "Sapphire",
-          "ru": "Сапфировый"
-        },
-        "hex": "#2f5fa0",
-        "weight": 25
-      },
-      {
-        "name": {
-          "en": "Void",
-          "ru": "Пустота"
-        },
-        "hex": "#0a0a12",
-        "weight": 5
-      },
-      {
-        "name": {
-          "en": "Laser",
-          "ru": "Лазер"
-        },
-        "hex": "#ff2d55",
-        "weight": 3
-      }
-    ],
-    "beak": [
-      {
-        "name": {
-          "en": "Yellow",
-          "ru": "Жёлтый"
-        },
-        "hex": "#e3b94e",
-        "weight": 100
-      },
-      {
-        "name": {
-          "en": "Horn",
-          "ru": "Роговой"
-        },
-        "hex": "#c9a86a",
-        "weight": 90
-      },
-      {
-        "name": {
-          "en": "Black",
-          "ru": "Чёрный"
-        },
-        "hex": "#2b2b2b",
-        "weight": 70
-      },
-      {
-        "name": {
-          "en": "Ivory",
-          "ru": "Слоновая кость"
-        },
-        "hex": "#ece4cf",
-        "weight": 60
-      },
-      {
-        "name": {
-          "en": "Slate",
-          "ru": "Сланцевый"
-        },
-        "hex": "#6b7079",
-        "weight": 50
-      },
-      {
-        "name": {
-          "en": "Pink",
-          "ru": "Розовый"
-        },
-        "hex": "#d9a7a0",
-        "weight": 40
-      },
-      {
-        "name": {
-          "en": "Willow",
-          "ru": "Ивовый"
-        },
-        "hex": "#8a8a4a",
-        "weight": 30
-      }
-    ]
-  },
-  "patterns": [
-    {
-      "en": "Solid",
-      "ru": "Однотонный"
+  "parts": {
+    "body": {
+      "colors": [
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#2b2b2b",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "White",
+            "ru": "Белый"
+          },
+          "hex": "#e9e9ec",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Red",
+            "ru": "Красный"
+          },
+          "hex": "#b23a2e",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Brown",
+            "ru": "Коричневый"
+          },
+          "hex": "#6b4423",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Buff",
+            "ru": "Палевый"
+          },
+          "hex": "#e3c992",
+          "weight": 90
+        },
+        {
+          "name": {
+            "en": "Cream",
+            "ru": "Кремовый"
+          },
+          "hex": "#f1e6c8",
+          "weight": 80
+        },
+        {
+          "name": {
+            "en": "Wheaten",
+            "ru": "Пшеничный"
+          },
+          "hex": "#d8b46a",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Slate",
+            "ru": "Сланцевый"
+          },
+          "hex": "#4a5568",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Blue Gray",
+            "ru": "Сине-серый"
+          },
+          "hex": "#6e7f8d",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Chocolate",
+            "ru": "Шоколадный"
+          },
+          "hex": "#4e342e",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Partridge",
+            "ru": "Куропатчатый"
+          },
+          "hex": "#7a5230",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Mahogany",
+            "ru": "Махагон"
+          },
+          "hex": "#5e2c20",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Silver",
+            "ru": "Серебристый"
+          },
+          "hex": "#c8ccd0",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Lavender",
+            "ru": "Лавандовый"
+          },
+          "hex": "#b9b3c7",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Gold",
+            "ru": "Золотой"
+          },
+          "hex": "#c9962f",
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Splash",
+            "ru": "Брызги"
+          },
+          "hex": "#cdd6e0",
+          "weight": 25
+        },
+        {
+          "name": {
+            "en": "Rose Gold",
+            "ru": "Розовое золото"
+          },
+          "hex": "#b76e79",
+          "weight": 6
+        },
+        {
+          "name": {
+            "en": "Galaxy",
+            "ru": "Галактика"
+          },
+          "hex": "#2a1a4a",
+          "weight": 4
+        },
+        {
+          "name": {
+            "en": "Neon",
+            "ru": "Неон"
+          },
+          "hex": "#39ff14",
+          "weight": 3
+        }
+      ],
+      "patterns": [
+        {
+          "name": {
+            "en": "Solid",
+            "ru": "Однотонный"
+          },
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Speckled",
+            "ru": "Крапчатый"
+          },
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Barred",
+            "ru": "Полосатый"
+          },
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Laced",
+            "ru": "Окаймлённый"
+          },
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Mottled",
+            "ru": "Мраморный"
+          },
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Splash",
+            "ru": "Брызги"
+          },
+          "weight": 25
+        },
+        {
+          "name": {
+            "en": "Iridescent",
+            "ru": "Переливчатый"
+          },
+          "weight": 18
+        },
+        {
+          "name": {
+            "en": "Penciled",
+            "ru": "Карандашный"
+          },
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Spangled",
+            "ru": "Блёстчатый"
+          },
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Cuckoo",
+            "ru": "Кукушечный"
+          },
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Columbian",
+            "ru": "Колумбийский"
+          },
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Birchen",
+            "ru": "Берёзовый"
+          },
+          "weight": 25
+        }
+      ]
     },
-    {
-      "en": "Speckled",
-      "ru": "Крапчатый"
+    "wing": {
+      "colors": [
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#2b2b2b",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "White",
+            "ru": "Белый"
+          },
+          "hex": "#e9e9ec",
+          "weight": 90
+        },
+        {
+          "name": {
+            "en": "Speckled",
+            "ru": "Крапчатый"
+          },
+          "hex": "#6b5d4f",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Barred",
+            "ru": "Полосатый"
+          },
+          "hex": "#4a4a4a",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Copper",
+            "ru": "Медный"
+          },
+          "hex": "#b56a2e",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Chestnut",
+            "ru": "Каштановый"
+          },
+          "hex": "#7b3f2e",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Bronze",
+            "ru": "Бронзовый"
+          },
+          "hex": "#8c6a3b",
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Blue",
+            "ru": "Синий"
+          },
+          "hex": "#5b6b86",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Silver",
+            "ru": "Серебристый"
+          },
+          "hex": "#c8ccd0",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Gold",
+            "ru": "Золотой"
+          },
+          "hex": "#c9962f",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Laced",
+            "ru": "Окаймлённый"
+          },
+          "hex": "#3a3a3a",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Iridescent",
+            "ru": "Переливчатый"
+          },
+          "hex": "#2f6f5f",
+          "weight": 18
+        }
+      ],
+      "patterns": [
+        {
+          "name": {
+            "en": "Solid",
+            "ru": "Однотонный"
+          },
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Speckled",
+            "ru": "Крапчатый"
+          },
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Barred",
+            "ru": "Полосатый"
+          },
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Laced",
+            "ru": "Окаймлённый"
+          },
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Mottled",
+            "ru": "Мраморный"
+          },
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Splash",
+            "ru": "Брызги"
+          },
+          "weight": 25
+        },
+        {
+          "name": {
+            "en": "Iridescent",
+            "ru": "Переливчатый"
+          },
+          "weight": 18
+        },
+        {
+          "name": {
+            "en": "Penciled",
+            "ru": "Карандашный"
+          },
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Spangled",
+            "ru": "Блёстчатый"
+          },
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Cuckoo",
+            "ru": "Кукушечный"
+          },
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Columbian",
+            "ru": "Колумбийский"
+          },
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Birchen",
+            "ru": "Берёзовый"
+          },
+          "weight": 25
+        }
+      ]
     },
-    {
-      "en": "Barred",
-      "ru": "Полосатый"
+    "tail": {
+      "colors": [
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#222222",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "White",
+            "ru": "Белый"
+          },
+          "hex": "#e9e9ec",
+          "weight": 80
+        },
+        {
+          "name": {
+            "en": "Blue Black",
+            "ru": "Сине-чёрный"
+          },
+          "hex": "#1a2230",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Smoke",
+            "ru": "Дымчатый"
+          },
+          "hex": "#6b6b6b",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Copper",
+            "ru": "Медный"
+          },
+          "hex": "#b56a2e",
+          "weight": 55
+        },
+        {
+          "name": {
+            "en": "Bronze",
+            "ru": "Бронзовый"
+          },
+          "hex": "#8c6a3b",
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Gold",
+            "ru": "Золотой"
+          },
+          "hex": "#c9962f",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Emerald",
+            "ru": "Изумрудный"
+          },
+          "hex": "#1f7a5a",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Sickle Green",
+            "ru": "Зелёный серп"
+          },
+          "hex": "#2e6b4f",
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Iridescent",
+            "ru": "Переливчатый"
+          },
+          "hex": "#2f6f5f",
+          "weight": 22
+        },
+        {
+          "name": {
+            "en": "Aurora",
+            "ru": "Аврора"
+          },
+          "hex": "#4be0c0",
+          "weight": 4
+        }
+      ],
+      "effects": [
+        {
+          "name": {
+            "en": "None",
+            "ru": "Нет"
+          },
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Iridescent",
+            "ru": "Переливчатый"
+          },
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Metallic",
+            "ru": "Металлик"
+          },
+          "weight": 18
+        },
+        {
+          "name": {
+            "en": "Aurora",
+            "ru": "Аврора"
+          },
+          "weight": 4
+        }
+      ]
     },
-    {
-      "en": "Laced",
-      "ru": "Окаймлённый"
+    "hackle": {
+      "colors": [
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#2b2b2b",
+          "weight": 90
+        },
+        {
+          "name": {
+            "en": "Red",
+            "ru": "Красный"
+          },
+          "hex": "#b23a2e",
+          "weight": 80
+        },
+        {
+          "name": {
+            "en": "Gold",
+            "ru": "Золотой"
+          },
+          "hex": "#c9962f",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Cream",
+            "ru": "Кремовый"
+          },
+          "hex": "#f1e6c8",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "White",
+            "ru": "Белый"
+          },
+          "hex": "#e9e9ec",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Copper",
+            "ru": "Медный"
+          },
+          "hex": "#b56a2e",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Silver",
+            "ru": "Серебристый"
+          },
+          "hex": "#c8ccd0",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Orange",
+            "ru": "Оранжевый"
+          },
+          "hex": "#d2792a",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Mahogany",
+            "ru": "Махагон"
+          },
+          "hex": "#5e2c20",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Lemon",
+            "ru": "Лимонный"
+          },
+          "hex": "#e6cf6a",
+          "weight": 30
+        }
+      ],
+      "patterns": [
+        {
+          "name": {
+            "en": "Solid",
+            "ru": "Однотонный"
+          },
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Laced",
+            "ru": "Окаймлённый"
+          },
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Spangled",
+            "ru": "Блёстчатый"
+          },
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Penciled",
+            "ru": "Карандашный"
+          },
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Barred",
+            "ru": "Полосатый"
+          },
+          "weight": 60
+        }
+      ]
     },
-    {
-      "en": "Mottled",
-      "ru": "Мраморный"
+    "saddle": {
+      "colors": [
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#2b2b2b",
+          "weight": 90
+        },
+        {
+          "name": {
+            "en": "Red",
+            "ru": "Красный"
+          },
+          "hex": "#b23a2e",
+          "weight": 80
+        },
+        {
+          "name": {
+            "en": "Gold",
+            "ru": "Золотой"
+          },
+          "hex": "#c9962f",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Cream",
+            "ru": "Кремовый"
+          },
+          "hex": "#f1e6c8",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "White",
+            "ru": "Белый"
+          },
+          "hex": "#e9e9ec",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Copper",
+            "ru": "Медный"
+          },
+          "hex": "#b56a2e",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Silver",
+            "ru": "Серебристый"
+          },
+          "hex": "#c8ccd0",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Orange",
+            "ru": "Оранжевый"
+          },
+          "hex": "#d2792a",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Mahogany",
+            "ru": "Махагон"
+          },
+          "hex": "#5e2c20",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Lemon",
+            "ru": "Лимонный"
+          },
+          "hex": "#e6cf6a",
+          "weight": 30
+        }
+      ],
+      "patterns": [
+        {
+          "name": {
+            "en": "Solid",
+            "ru": "Однотонный"
+          },
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Laced",
+            "ru": "Окаймлённый"
+          },
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Spangled",
+            "ru": "Блёстчатый"
+          },
+          "weight": 30
+        },
+        {
+          "name": {
+            "en": "Penciled",
+            "ru": "Карандашный"
+          },
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Barred",
+            "ru": "Полосатый"
+          },
+          "weight": 60
+        }
+      ]
     },
-    {
-      "en": "Splash",
-      "ru": "Брызги"
+    "comb": {
+      "colors": [
+        {
+          "name": {
+            "en": "Red",
+            "ru": "Красный"
+          },
+          "hex": "#c1352b",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Bright Red",
+            "ru": "Ярко-красный"
+          },
+          "hex": "#e23b2e",
+          "weight": 80
+        },
+        {
+          "name": {
+            "en": "Dark Red",
+            "ru": "Тёмно-красный"
+          },
+          "hex": "#8e1f1a",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Pink",
+            "ru": "Розовый"
+          },
+          "hex": "#d98a9a",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#2b2b2b",
+          "weight": 50
+        },
+        {
+          "name": {
+            "en": "Pale",
+            "ru": "Бледный"
+          },
+          "hex": "#d8a0a0",
+          "weight": 50
+        },
+        {
+          "name": {
+            "en": "Mulberry",
+            "ru": "Шелковичный"
+          },
+          "hex": "#5a2342",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Purple",
+            "ru": "Пурпурный"
+          },
+          "hex": "#6a2e5a",
+          "weight": 30
+        }
+      ]
     },
-    {
-      "en": "Iridescent",
-      "ru": "Переливчатый"
+    "leg": {
+      "colors": [
+        {
+          "name": {
+            "en": "Yellow",
+            "ru": "Жёлтый"
+          },
+          "hex": "#e3b94e",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Slate",
+            "ru": "Сланцевый"
+          },
+          "hex": "#5a6470",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#2b2b2b",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "White",
+            "ru": "Белый"
+          },
+          "hex": "#e9e9ec",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Pink",
+            "ru": "Розовый"
+          },
+          "hex": "#d9a7a0",
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Greenish",
+            "ru": "Зеленоватый"
+          },
+          "hex": "#7c8a4a",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Blue",
+            "ru": "Синий"
+          },
+          "hex": "#6e7f8d",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Willow",
+            "ru": "Ивовый"
+          },
+          "hex": "#6f7a3f",
+          "weight": 30
+        }
+      ]
     },
-    {
-      "en": "Penciled",
-      "ru": "Карандашный"
+    "eye": {
+      "colors": [
+        {
+          "name": {
+            "en": "Amber",
+            "ru": "Янтарный"
+          },
+          "hex": "#c8861f",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#1c1c1c",
+          "weight": 90
+        },
+        {
+          "name": {
+            "en": "Brown",
+            "ru": "Коричневый"
+          },
+          "hex": "#6b4423",
+          "weight": 80
+        },
+        {
+          "name": {
+            "en": "Red",
+            "ru": "Красный"
+          },
+          "hex": "#a52a2a",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Pale",
+            "ru": "Бледный"
+          },
+          "hex": "#d9c9a0",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Orange",
+            "ru": "Оранжевый"
+          },
+          "hex": "#d2792a",
+          "weight": 45
+        },
+        {
+          "name": {
+            "en": "Emerald",
+            "ru": "Изумрудный"
+          },
+          "hex": "#1f7a5a",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Pearl",
+            "ru": "Жемчужный"
+          },
+          "hex": "#d6d2c4",
+          "weight": 35
+        },
+        {
+          "name": {
+            "en": "Sapphire",
+            "ru": "Сапфировый"
+          },
+          "hex": "#2f5fa0",
+          "weight": 25
+        },
+        {
+          "name": {
+            "en": "Void",
+            "ru": "Пустота"
+          },
+          "hex": "#0a0a12",
+          "weight": 5
+        },
+        {
+          "name": {
+            "en": "Laser",
+            "ru": "Лазер"
+          },
+          "hex": "#ff2d55",
+          "weight": 3
+        }
+      ]
     },
-    {
-      "en": "Spangled",
-      "ru": "Блёстчатый"
-    },
-    {
-      "en": "Cuckoo",
-      "ru": "Кукушечный"
-    },
-    {
-      "en": "Columbian",
-      "ru": "Колумбийский"
-    },
-    {
-      "en": "Birchen",
-      "ru": "Берёзовый"
+    "beak": {
+      "colors": [
+        {
+          "name": {
+            "en": "Yellow",
+            "ru": "Жёлтый"
+          },
+          "hex": "#e3b94e",
+          "weight": 100
+        },
+        {
+          "name": {
+            "en": "Horn",
+            "ru": "Роговой"
+          },
+          "hex": "#c9a86a",
+          "weight": 90
+        },
+        {
+          "name": {
+            "en": "Black",
+            "ru": "Чёрный"
+          },
+          "hex": "#2b2b2b",
+          "weight": 70
+        },
+        {
+          "name": {
+            "en": "Ivory",
+            "ru": "Слоновая кость"
+          },
+          "hex": "#ece4cf",
+          "weight": 60
+        },
+        {
+          "name": {
+            "en": "Slate",
+            "ru": "Сланцевый"
+          },
+          "hex": "#6b7079",
+          "weight": 50
+        },
+        {
+          "name": {
+            "en": "Pink",
+            "ru": "Розовый"
+          },
+          "hex": "#d9a7a0",
+          "weight": 40
+        },
+        {
+          "name": {
+            "en": "Willow",
+            "ru": "Ивовый"
+          },
+          "hex": "#8a8a4a",
+          "weight": 30
+        }
+      ]
     }
-  ]
+  }
 }

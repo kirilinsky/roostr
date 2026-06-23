@@ -171,12 +171,16 @@ export interface WeightClass {
 // Weight classes (body modifiers) — data in RELATIONS.json.
 export const WEIGHT_CLASSES = relationsData.weightClasses as WeightClass[];
 
-// --- Cosmetic colors + pattern (no battle effect) — data in COSMETICS.json ---
+// --- Cosmetic appearance (no battle effect) — per-part catalog in COSMETICS.json.
+// Each part offers `colors` (always), and optionally `patterns` (body/wing/hackle/
+// saddle) or `effects` (tail). A rooster's chosen look is a `RoosterAppearance`
+// (one color/pattern/effect per part); the catalog here is the set of options. ---
 export type CosmeticLayer =
   | "body"
   | "wing"
   | "tail"
   | "hackle"
+  | "saddle"
   | "comb"
   | "leg"
   | "eye"
@@ -187,30 +191,47 @@ interface ColorSwatch {
   hex: string;
   weight: number; // drop frequency; exotics are low
 }
+// patterns + effects share this shape (no hex — they modify how a color renders).
+interface NamedSwatch {
+  name: { en: string; ru: string };
+  weight: number;
+}
+interface PartDef {
+  colors: ColorSwatch[];
+  patterns?: NamedSwatch[]; // body/wing/hackle/saddle
+  effects?: NamedSwatch[]; // tail
+}
 
-const COSMETIC_LAYERS = cosmeticsData.layers as Record<
-  CosmeticLayer,
-  ColorSwatch[]
->;
+const PARTS = cosmeticsData.parts as Record<CosmeticLayer, PartDef>;
+const LAYER_KEYS = Object.keys(PARTS) as CosmeticLayer[];
 
-// layer -> available color ids (the canonical key = name.en; what the roll picks).
+// part -> available color ids (the canonical key = name.en; what the roll picks).
 export const COLORS = Object.fromEntries(
-  (Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]).map((layer) => [
-    layer,
-    COSMETIC_LAYERS[layer].map((c) => c.name.en),
-  ]),
+  LAYER_KEYS.map((p) => [p, PARTS[p].colors.map((c) => c.name.en)]),
 ) as Record<CosmeticLayer, string[]>;
 
-const PATTERN_SWATCHES = cosmeticsData.patterns as { en: string; ru: string }[];
-export const PATTERNS = PATTERN_SWATCHES.map((p) => p.en); // ids (en) — what the roll picks
-const PATTERN_RU = Object.fromEntries(
-  PATTERN_SWATCHES.map((p) => [p.en, p.ru]),
+// part -> available pattern ids ([] for parts without patterns, e.g. comb/leg/eye).
+export const PATTERNS_BY_PART = Object.fromEntries(
+  LAYER_KEYS.map((p) => [p, (PARTS[p].patterns ?? []).map((x) => x.name.en)]),
+) as Record<CosmeticLayer, string[]>;
+
+// Tail material effects (iridescent sheen etc.) — ids (en).
+export const TAIL_EFFECTS = (PARTS.tail.effects ?? []).map((x) => x.name.en);
+
+// Global id -> ru label maps (union across parts) for localized display.
+const PATTERN_RU: Record<string, string> = {};
+for (const p of LAYER_KEYS)
+  for (const x of PARTS[p].patterns ?? []) PATTERN_RU[x.name.en] = x.name.ru;
+const EFFECT_RU = Object.fromEntries(
+  (PARTS.tail.effects ?? []).map((x) => [x.name.en, x.name.ru]),
 );
 
 export function patternLabel(id: string, locale: Locale): string {
   return locale === "ru" ? (PATTERN_RU[id] ?? id) : id;
 }
-
+export function effectLabel(id: string, locale: Locale): string {
+  return locale === "ru" ? (EFFECT_RU[id] ?? id) : id;
+}
 export function colorLabel(
   layer: CosmeticLayer,
   id: string,
@@ -219,21 +240,19 @@ export function colorLabel(
   return locale === "ru" ? (COLOR_LABEL_RU[layer]?.[id] ?? id) : id;
 }
 
-// layer -> { colorId: hex } (fixed swatches). Renderer/cards paint from this.
+// part -> { colorId: hex } (fixed swatches). Renderer/cards paint from this.
 export const COLOR_HEX = Object.fromEntries(
-  (Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]).map((layer) => [
-    layer,
-    Object.fromEntries(COSMETIC_LAYERS[layer].map((c) => [c.name.en, c.hex])),
+  LAYER_KEYS.map((p) => [
+    p,
+    Object.fromEntries(PARTS[p].colors.map((c) => [c.name.en, c.hex])),
   ]),
 ) as Record<CosmeticLayer, Record<string, string>>;
 
-// layer -> { colorId: ruLabel } for localized display.
+// part -> { colorId: ruLabel } for localized display.
 export const COLOR_LABEL_RU = Object.fromEntries(
-  (Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]).map((layer) => [
-    layer,
-    Object.fromEntries(
-      COSMETIC_LAYERS[layer].map((c) => [c.name.en, c.name.ru]),
-    ),
+  LAYER_KEYS.map((p) => [
+    p,
+    Object.fromEntries(PARTS[p].colors.map((c) => [c.name.en, c.name.ru])),
   ]),
 ) as Record<CosmeticLayer, Record<string, string>>;
 
@@ -289,7 +308,76 @@ export function formatTraitEffects(
     .join(" · ");
 }
 
-export type ColorSet = Record<CosmeticLayer, string>;
+// A rooster's chosen look — one option per part (ids reference COSMETICS.json).
+// body/wing carry a pattern (+ optional secondary patternColor); tail an optional
+// material effect; hackle/saddle an optional pattern; the rest are color-only.
+export type ColorId = string; // a color swatch's name.en, per part
+export type PatternId = string; // a pattern's name.en
+export type MaterialEffect = string; // a tail effect's name.en
+
+export interface RoosterAppearance {
+  body: { color: ColorId; pattern: PatternId; patternColor?: ColorId };
+  wing: { color: ColorId; pattern: PatternId; patternColor?: ColorId };
+  tail: { color: ColorId; effect?: MaterialEffect };
+  hackle: { color: ColorId; pattern?: PatternId };
+  saddle: { color: ColorId; pattern?: PatternId };
+  comb: { color: ColorId };
+  leg: { color: ColorId };
+  eye: { color: ColorId };
+  beak: { color: ColorId };
+}
+
+// Legacy alias — `colors` fields still hold a rooster's full appearance object.
+export type ColorSet = RoosterAppearance;
+
+// Default color id for a part (first/most-common swatch) — fallback for migration.
+function defaultColor(part: CosmeticLayer): ColorId {
+  return PARTS[part].colors[0]?.name.en ?? "Black";
+}
+
+// Normalize stored `colors` (+ legacy `pattern`) into a RoosterAppearance. Accepts
+// BOTH the new per-part object shape AND the old flat `{ part: "ColorId" }` shape so
+// nothing crashes before the one-off DB migration runs (same logic the migration uses):
+//   old → new: each color carried over; the single legacy pattern applies to
+//   body+wing; saddle (which didn't exist) mirrors the hackle color.
+export function toAppearance(
+  raw: unknown,
+  legacyPattern?: string,
+): RoosterAppearance {
+  const r = (raw ?? {}) as Record<string, unknown>;
+  const part = (p: CosmeticLayer) => r[p] as Record<string, unknown> | string | undefined;
+  const isNew = typeof part("body") === "object";
+  const colorOf = (p: CosmeticLayer): ColorId => {
+    const v = part(p);
+    if (v && typeof v === "object" && typeof v.color === "string") return v.color;
+    if (typeof v === "string") return v;
+    return defaultColor(p);
+  };
+  const patternOf = (p: CosmeticLayer, fallback?: PatternId): PatternId | undefined => {
+    const v = part(p);
+    if (v && typeof v === "object" && typeof v.pattern === "string") return v.pattern;
+    return fallback;
+  };
+  const fieldOf = (p: CosmeticLayer, key: string): string | undefined => {
+    const v = part(p);
+    return v && typeof v === "object" && typeof v[key] === "string"
+      ? (v[key] as string)
+      : undefined;
+  };
+  const lp: PatternId = legacyPattern || "Solid";
+  const hackleColor = colorOf("hackle");
+  return {
+    body: { color: colorOf("body"), pattern: patternOf("body", lp)!, patternColor: fieldOf("body", "patternColor") },
+    wing: { color: colorOf("wing"), pattern: patternOf("wing", lp)!, patternColor: fieldOf("wing", "patternColor") },
+    tail: { color: colorOf("tail"), effect: fieldOf("tail", "effect") },
+    hackle: { color: hackleColor, pattern: patternOf("hackle") },
+    saddle: { color: isNew ? colorOf("saddle") : hackleColor, pattern: patternOf("saddle") },
+    comb: { color: colorOf("comb") },
+    leg: { color: colorOf("leg") },
+    eye: { color: colorOf("eye") },
+    beak: { color: colorOf("beak") },
+  };
+}
 
 export interface RolledRoostr {
   breed: Breed;
@@ -322,10 +410,6 @@ export function pickWeighted<T extends { weight: number }>(
     if (r <= 0) return e;
   }
   return entries[entries.length - 1];
-}
-
-function pick<T>(arr: readonly T[], rng: Rng = Math.random): T {
-  return arr[Math.floor(rng() * arr.length)];
 }
 
 // Gene count: 2 almost always. 3 is uncommon (~0.3%). 1 and 4 are both super-rare
@@ -542,14 +626,41 @@ export function computeRating(
   return skillSum + Math.round(maxHealth * HP_RATING_WEIGHT);
 }
 
+// Roll a fresh appearance: weighted color per part, weighted pattern where the part
+// supports one, an optional tail effect, and a ~1/3 chance of a secondary
+// patternColor on body/wing (else the pattern reads in the base color).
+function rollAppearance(rng: Rng): RoosterAppearance {
+  const color = (p: CosmeticLayer): ColorId =>
+    pickWeighted(PARTS[p].colors, rng).name.en;
+  const pattern = (p: CosmeticLayer): PatternId => {
+    const ps = PARTS[p].patterns;
+    return ps && ps.length ? pickWeighted(ps, rng).name.en : "Solid";
+  };
+  const patternColor = (p: CosmeticLayer): ColorId | undefined =>
+    rng() < 0.35 ? pickWeighted(PARTS[p].colors, rng).name.en : undefined;
+  const effect = (): MaterialEffect | undefined => {
+    const es = PARTS.tail.effects;
+    const e = es && es.length ? pickWeighted(es, rng).name.en : "None";
+    return e === "None" ? undefined : e;
+  };
+  return {
+    body: { color: color("body"), pattern: pattern("body"), patternColor: patternColor("body") },
+    wing: { color: color("wing"), pattern: pattern("wing"), patternColor: patternColor("wing") },
+    tail: { color: color("tail"), effect: effect() },
+    hackle: { color: color("hackle"), pattern: pattern("hackle") },
+    saddle: { color: color("saddle"), pattern: pattern("saddle") },
+    comb: { color: color("comb") },
+    leg: { color: color("leg") },
+    eye: { color: color("eye") },
+    beak: { color: color("beak") },
+  };
+}
+
 export function rollRoostr(rng: Rng = Math.random): RolledRoostr {
   const breed = pickWeighted(BREEDS, rng);
   const weightClass = pickWeighted(WEIGHT_CLASSES, rng);
   const genes = pickGenes(breed, rng);
-  const colors = {} as ColorSet;
-  for (const layer of Object.keys(COSMETIC_LAYERS) as CosmeticLayer[]) {
-    colors[layer] = pickWeighted(COSMETIC_LAYERS[layer], rng).name.en;
-  }
+  const colors = rollAppearance(rng);
   return {
     breed,
     weightClass,
@@ -557,7 +668,7 @@ export function rollRoostr(rng: Rng = Math.random): RolledRoostr {
     maxHealth: computeMaxHealth(breed, weightClass, genes),
     stats: computeStats(genes, {}, weightClass),
     colors,
-    pattern: pick(PATTERNS, rng),
+    pattern: colors.body.pattern, // legacy column mirror (body pattern)
     role: deriveRole(genes),
     seed: Math.floor(rng() * 0xffffff),
   };
@@ -591,7 +702,7 @@ export interface RoostrRow {
   weightClassId: string;
   geneIds: string[];
   geneLevels?: Record<string, number> | null;
-  colors: Record<string, string>;
+  colors: unknown; // old flat or new per-part shape; normalized on hydrate
   pattern: string;
   seed: number;
   nickname?: string | null;
@@ -652,7 +763,7 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     weightClass,
     genes,
     geneLevels,
-    colors: row.colors as ColorSet,
+    colors: toAppearance(row.colors, row.pattern),
     pattern: row.pattern,
     seed: row.seed,
     nickname: row.nickname ?? null,
