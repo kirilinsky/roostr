@@ -14,6 +14,17 @@ import { getReferralIdForUser, REFERRER_COOKIE } from "@/lib/referrals";
 
 export const runtime = "nodejs";
 
+class TelegramAuthFlowError extends Error {
+  constructor(
+    public readonly reason: string,
+    cause?: unknown,
+  ) {
+    super(reason);
+    this.name = "TelegramAuthFlowError";
+    this.cause = cause;
+  }
+}
+
 interface TelegramTokenResponse {
   access_token?: string;
   token_type?: string;
@@ -50,21 +61,44 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const idToken = await exchangeCodeForIdToken({
-      req,
-      code,
-      verifier,
-      clientId,
-      clientSecret,
-    });
-    const claims = await verifyTelegramIdToken(idToken, clientId);
+    let idToken: string;
+    try {
+      idToken = await exchangeCodeForIdToken({
+        req,
+        code,
+        verifier,
+        clientId,
+        clientSecret,
+      });
+    } catch (e) {
+      throw new TelegramAuthFlowError("token_exchange_failed", e);
+    }
+
+    let claims;
+    try {
+      claims = await verifyTelegramIdToken(idToken, clientId);
+    } catch (e) {
+      throw new TelegramAuthFlowError("id_token_invalid", e);
+    }
+
     const user = telegramClaimsToSessionUser(claims);
     const referrerId = getReferralIdForUser(
       req.cookies.get(REFERRER_COOKIE)?.value,
       user.id,
     );
-    const token = await signSession(user);
-    await upsertUser(user, { referredById: referrerId });
+
+    let token: string;
+    try {
+      token = await signSession(user);
+    } catch (e) {
+      throw new TelegramAuthFlowError("session_failed", e);
+    }
+
+    try {
+      await upsertUser(user, { referredById: referrerId });
+    } catch (e) {
+      throw new TelegramAuthFlowError("user_upsert_failed", e);
+    }
 
     const res = NextResponse.redirect(
       new URL(`/${user.id}?ref_registered=1`, req.url),
@@ -81,7 +115,10 @@ export async function GET(req: NextRequest) {
     return res;
   } catch (e) {
     console.error("Telegram OIDC callback failed:", e);
-    return authError(req, "callback_failed");
+    return authError(
+      req,
+      e instanceof TelegramAuthFlowError ? e.reason : "callback_failed",
+    );
   }
 }
 
