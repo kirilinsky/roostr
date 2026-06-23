@@ -11,8 +11,11 @@ import RoostrCard from "@/components/RoostrCard";
 import RoostrAvatarLab from "@/components/RoostrAvatarLab";
 import GeneLab from "@/components/GeneLab";
 import DebugCoinGrant from "@/components/DebugCoinGrant";
+import { useToast } from "@/components/ToastProvider";
+import AchievementIcon from "@/components/AchievementIcon";
 import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
-import { useT } from "@/i18n/I18nProvider";
+import { PROFILE_ACHIEVEMENTS, achievementName } from "@/lib/achievements";
+import { useLocale, useT } from "@/i18n/I18nProvider";
 
 interface BatchStats {
   n: number;
@@ -66,8 +69,12 @@ function Dist({
   );
 }
 
+const FIRST_HATCH = PROFILE_ACHIEVEMENTS.find((a) => a.id === "first-hatch")!;
+
 export default function DebugPage() {
   const t = useT();
+  const locale = useLocale();
+  const toast = useToast();
   const [current, setCurrent] = useState<RolledRoostr | null>(null);
   const [count, setCount] = useState(0);
   const [batch, setBatch] = useState<BatchStats | null>(null);
@@ -90,9 +97,40 @@ export default function DebugPage() {
           {t("debug.subtitle")} {t("debug.rolls", { count })}
         </Typography>
 
-        <Button variant="contained" size="large" onClick={hatch}>
-          🥚 {t("debug.hatch")}
-        </Button>
+        <Stack
+          direction="row"
+          spacing={1}
+          flexWrap="wrap"
+          justifyContent="center"
+          useFlexGap
+        >
+          <Button variant="contained" size="large" onClick={hatch}>
+            🥚 {t("debug.hatch")}
+          </Button>
+          {/* toast system smoke test — fires a sample achievement toast */}
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="large"
+            onClick={() =>
+              toast.show({
+                variant: "achievement",
+                icon: (
+                  <AchievementIcon
+                    id={FIRST_HATCH.id}
+                    icon={FIRST_HATCH.icon}
+                    size={26}
+                  />
+                ),
+                title: t("achievements.unlocked"),
+                message: achievementName(FIRST_HATCH, locale),
+                href: "/achievements",
+              })
+            }
+          >
+            🔔 {t("debug.testToast")}
+          </Button>
+        </Stack>
 
         <Box sx={{ minHeight: 360, display: "flex", alignItems: "center" }}>
           {current ? (
@@ -136,14 +174,14 @@ export default function DebugPage() {
 
         {batch && (
           <Stack spacing={2} sx={{ width: "100%" }}>
-            <Typography variant="body2" color="text.secondary" textAlign="center">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              textAlign="center"
+            >
               {batch.n.toLocaleString()} rolls
             </Typography>
-            <Dist
-              title="Gene count"
-              data={batch.genes}
-              total={batch.n}
-            />
+            <Dist title="Gene count" data={batch.genes} total={batch.n} />
             <Dist title="Recommended role" data={batch.roles} total={batch.n} />
             <Dist title="Body color" data={batch.body} total={batch.n} />
           </Stack>

@@ -5,6 +5,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import theme from "@/theme";
 import AppShell, { type NavItem, type ShellUser } from "@/components/AppShell";
 import { AdminProvider } from "@/components/AdminProvider";
+import ToastProvider from "@/components/ToastProvider";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
@@ -59,9 +60,7 @@ export default async function RootLayout({
     // Bank lives behind the balance HUD (ResourceBar) now — not in the sidebar.
     { href: "/pedia", label: t("nav.pedia"), icon: "📖" },
     // Debug is admin-only.
-    ...(admin
-      ? [{ href: "/debug", label: t("nav.debug"), icon: "🐞" }]
-      : []),
+    ...(admin ? [{ href: "/debug", label: t("nav.debug"), icon: "🐞" }] : []),
     // Support moved to the footer.
     ...(loggedIn
       ? [{ href: "/settings", label: t("nav.settings"), icon: "⚙️" }]
@@ -79,24 +78,26 @@ export default async function RootLayout({
             <CssBaseline />
             <I18nProvider locale={locale}>
               <AdminProvider isAdmin={admin}>
-                <AppShell
-                  user={user}
-                  coinBalance={user ? dbUser?.coins ?? 0 : undefined}
-                  eggsBalance={user ? dbUser?.eggs ?? 0 : undefined}
-                  sciBalance={user ? dbUser?.sci ?? 0 : undefined}
-                  energy={user ? { current: 10, max: 10 } : undefined}
-                  feathersLabel={t("resource.feathers")}
-                  eggsLabel={t("resource.eggs")}
-                  sciLabel={t("resource.sci")}
-                  botUsername={botUsername}
-                  mainNav={mainNav}
-                  bottomNav={bottomNav}
-                  loginLabel={t("nav.login")}
-                  aboutLabel={t("nav.about")}
-                  supportLabel={t("nav.support")}
-                >
-                  {children}
-                </AppShell>
+                <ToastProvider>
+                  <AppShell
+                    user={user}
+                    coinBalance={user ? (dbUser?.coins ?? 0) : undefined}
+                    eggsBalance={user ? (dbUser?.eggs ?? 0) : undefined}
+                    sciBalance={user ? (dbUser?.sci ?? 0) : undefined}
+                    energy={user ? { current: 10, max: 10 } : undefined}
+                    feathersLabel={t("resource.feathers")}
+                    eggsLabel={t("resource.eggs")}
+                    sciLabel={t("resource.sci")}
+                    botUsername={botUsername}
+                    mainNav={mainNav}
+                    bottomNav={bottomNav}
+                    loginLabel={t("nav.login")}
+                    aboutLabel={t("nav.about")}
+                    supportLabel={t("nav.support")}
+                  >
+                    {children}
+                  </AppShell>
+                </ToastProvider>
               </AdminProvider>
             </I18nProvider>
           </ThemeProvider>

@@ -246,6 +246,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "profile.allAchievements": "View all achievements",
     "achievements.title": "Achievements",
     "achievements.back": "Profile",
+    "achievements.unlocked": "Achievement unlocked!",
     "achievement.tier.common": "Common",
     "achievement.tier.rare": "Rare",
     "achievement.tier.collectible": "Collectible",
@@ -255,6 +256,7 @@ export const dictionaries: Record<Locale, Dict> = {
       "Client-side hatch roll. No art / DB yet. Every roostr hatches Common — what's unique is the combo: breed, weight, colors and 2-4 key genes.",
     "debug.rolls": "Rolls: {count}",
     "debug.hatch": "Hatch",
+    "debug.testToast": "Test toast",
     "debug.press": "Press Hatch to roll.",
 
     "card.common": "Common",
@@ -567,6 +569,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "profile.allAchievements": "Все достижения",
     "achievements.title": "Достижения",
     "achievements.back": "Профиль",
+    "achievements.unlocked": "Достижение получено!",
     "achievement.tier.common": "Обычная",
     "achievement.tier.rare": "Редкая",
     "achievement.tier.collectible": "Коллекционная",
@@ -576,6 +579,7 @@ export const dictionaries: Record<Locale, Dict> = {
       "Клиентский ролл вылупа. Пока без арта/БД. Каждый петух вылупляется обычным — уникальна комбинация: порода, вес, окрас и 2-4 ключевых гена.",
     "debug.rolls": "Роллов: {count}",
     "debug.hatch": "Вылупить",
+    "debug.testToast": "Тест тоста",
     "debug.press": "Нажми «Вылупить» для ролла.",
 
     "card.common": "Обычный",

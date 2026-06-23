@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
+import AchievementIcon from "@/components/AchievementIcon";
 import type { Achievement } from "@/lib/achievements";
 import type { Locale } from "@/i18n/config";
 
@@ -25,12 +26,12 @@ export default function AchievementBadge({
         opacity: unlocked ? 1 : 0.55,
       }}
     >
-      <Typography
-        component="span"
-        sx={{ fontSize: 30, lineHeight: 1, filter: unlocked ? "none" : "grayscale(1)" }}
-      >
-        {achievement.icon}
-      </Typography>
+      <AchievementIcon
+        id={achievement.id}
+        icon={achievement.icon}
+        size={36}
+        unlocked={unlocked}
+      />
       <Box sx={{ minWidth: 0 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }} noWrap>
           {achievement.name[locale]}
