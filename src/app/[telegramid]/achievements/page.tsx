@@ -5,12 +5,8 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AchievementBadge from "@/components/AchievementBadge";
-import {
-  PROFILE_ACHIEVEMENTS,
-  evaluate,
-  profileMetricsFrom,
-} from "@/lib/achievements";
-import { getUserStats, getAchievementUnlocks } from "@/db/queries";
+import { PROFILE_ACHIEVEMENTS, evaluate } from "@/lib/achievements";
+import { getProfileMetrics, getAchievementUnlocks } from "@/db/queries";
 import { getTranslations } from "@/i18n/server";
 
 // Full achievements list for a user (by Telegram id). Unlock state is derived
@@ -25,11 +21,8 @@ export default async function AchievementsPage({
   const { t, locale } = await getTranslations();
 
   const id = Number(telegramid);
-  const stats = Number.isFinite(id) ? await getUserStats(id) : null;
-  const statuses = evaluate(
-    PROFILE_ACHIEVEMENTS,
-    stats ? profileMetricsFrom(stats) : {},
-  );
+  const metrics = Number.isFinite(id) ? await getProfileMetrics(id) : null;
+  const statuses = evaluate(PROFILE_ACHIEVEMENTS, metrics ?? {});
   const unlocks = Number.isFinite(id) ? await getAchievementUnlocks(id) : [];
   const unlockedAt = new Map(unlocks.map((u) => [u.achievementId, u.unlockedAt]));
   // Earned = persisted unlock OR currently satisfied (a view before the next sync).

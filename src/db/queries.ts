@@ -254,6 +254,78 @@ export async function getUserStats(userId: number): Promise<{
   }
 }
 
+// Full profile metrics map for the achievements engine — the single source of the
+// profile wiring (evaluate() reads these by key; absent keys → 0 → locked). Only
+// metrics whose data is actually produced today are computed; the rest stay absent
+// on purpose. See .notes/ACHIEVEMENTS-ROADMAP.md for what's wired vs blocked.
+export async function getProfileMetrics(
+  userId: number,
+): Promise<Record<string, number>> {
+  const base = await getUserStats(userId); // eggsHatched, coinsEarned, coinsSpent
+  const metrics: Record<string, number> = { ...base };
+  if (!process.env.DATABASE_URL) return metrics;
+  try {
+    const { db } = await import("@/db");
+    const { resourceTxns, friendships, users, breedDiscoveries } = await import(
+      "@/db/schema"
+    );
+    const { and, eq, gt, or, sql } = await import("drizzle-orm");
+    const { hydrateRoostr, TIERS } = await import("@/lib/roostr");
+
+    // Lifetime science earned (positive sci ledger rows — lab claims).
+    const [sci] = await db
+      .select({ s: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)` })
+      .from(resourceTxns)
+      .where(
+        and(
+          eq(resourceTxns.userId, userId),
+          eq(resourceTxns.resource, "sci"),
+          gt(resourceTxns.amount, 0),
+        ),
+      );
+    metrics.sciEarned = Number(sci?.s ?? 0);
+
+    // Friends (a friendship row stores the pair canonically; match either side).
+    const [fr] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(friendships)
+      .where(or(eq(friendships.userAId, userId), eq(friendships.userBId, userId)));
+    metrics.friends = Number(fr?.n ?? 0);
+
+    // Breeds discovered (persistent dex — survives recycling the bird).
+    const [bd] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(breedDiscoveries)
+      .where(eq(breedDiscoveries.userId, userId));
+    metrics.breedsDiscovered = Number(bd?.n ?? 0);
+
+    // Battle record (denormalized on users; 0 until the battle system writes it).
+    const [u] = await db
+      .select({ wins: users.wins, losses: users.losses, draws: users.draws })
+      .from(users)
+      .where(eq(users.id, userId));
+    metrics.wins = Number(u?.wins ?? 0);
+    metrics.losses = Number(u?.losses ?? 0);
+    metrics.battles = metrics.wins + metrics.losses + Number(u?.draws ?? 0);
+
+    // Owned collection (active + working) → count, highest tier, distinct tiers.
+    const owned = await getCollectionRoostrs(userId);
+    metrics.roostrsOwned = owned.length;
+    let highest = 0;
+    const tiers = new Set<number>();
+    for (const row of owned) {
+      const rank = TIERS.findIndex((t) => t.id === hydrateRoostr(row).tier.id);
+      if (rank > highest) highest = rank;
+      if (rank >= 0) tiers.add(rank);
+    }
+    metrics.highestTier = highest;
+    metrics.tiersOwned = tiers.size;
+  } catch (e) {
+    console.error("getProfileMetrics failed:", e);
+  }
+  return metrics;
+}
+
 // Persisted achievement unlocks for a user: id → ISO unlock date. The presence
 // of a row means earned (permanent); the date is when it first unlocked.
 export async function getAchievementUnlocks(

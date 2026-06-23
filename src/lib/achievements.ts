@@ -33,30 +33,11 @@ export interface Achievement {
 export const PROFILE_ACHIEVEMENTS = data.profile as Achievement[];
 export const ROOSTER_ACHIEVEMENTS = data.rooster as Achievement[];
 
-// Computed inputs the achievements read. Build these where the data lives
-// (profile page / rooster page); pass to `evaluate`. Missing metric → treated 0
-// (so achievements for not-yet-built systems, e.g. battles/invites, stay locked).
-export interface ProfileMetrics {
-  eggsHatched: number;
-  coinsEarned: number;
-  coinsSpent: number;
-  sciEarned: number; // lifetime science points earned (Σ positive sci ledger rows)
-  highestTier: number; // tier rank 0..6 of the user's best rooster
-  roostrsOwned: number;
-  roostrsSold: number; // lifetime roosters sold on the market (not tracked yet)
-  saleEarnings: number; // lifetime coins earned from sales (not tracked yet)
-  friends: number;
-  invites: number; // not tracked yet
-  battles: number; // not tracked yet
-}
-
-export interface RoosterMetrics {
-  geneCount: number;
-  maxGeneLevel: number;
-  tierRank: number; // 0..6
-  wins: number; // not tracked yet
-  losses: number; // not tracked yet
-}
+// The achievements read a flat `Record<string, number>` metrics map (missing key →
+// 0 → locked). The maps are built where the data lives:
+//   - profile: `getProfileMetrics(userId)` in src/db/queries.ts
+//   - rooster: `roosterMetricsFrom(bird)` below (per-bird, no DB)
+// Which metric keys are wired vs blocked is tracked in .notes/ACHIEVEMENTS-ROADMAP.md.
 
 export interface AchievementStatus {
   def: Achievement;
@@ -87,19 +68,28 @@ export function evaluate(
   });
 }
 
-// Build the profile metrics map from the data we currently compute (getUserStats).
-// Metrics for not-yet-built systems are simply absent → evaluate() treats them as
-// 0, so those achievements stay locked. As new metrics get wired, extend this map
-// (single source of the profile wiring) — see .notes/ACHIEVEMENTS-ROADMAP.md.
-export function profileMetricsFrom(stats: {
-  eggsHatched: number;
-  coinsEarned: number;
-  coinsSpent: number;
+// Build the rooster (per-bird) metrics map from a hydrated roostr. Everything here
+// is derivable from the bird itself — no DB round-trip. `synthSlotsFilled` stays
+// absent (→ 0, locked) until synthetic genes are actually stored on the bird.
+// Structural param so this stays decoupled from the full HydratedRoostr type.
+export function roosterMetricsFrom(r: {
+  genes: { id: string }[];
+  geneLevels: Record<string, number>;
+  tier: { id: string };
+  wins: number;
+  losses: number;
+  stats: Record<string, number>;
 }): Record<string, number> {
+  const levels = Object.values(r.geneLevels);
+  const statVals = Object.values(r.stats);
   return {
-    eggsHatched: stats.eggsHatched,
-    coinsEarned: stats.coinsEarned,
-    coinsSpent: stats.coinsSpent,
+    geneCount: r.genes.length,
+    maxGeneLevel: levels.length ? Math.max(...levels) : r.genes.length ? 1 : 0,
+    tierRank: tierRank(r.tier.id),
+    wins: r.wins,
+    losses: r.losses,
+    soloGene: r.genes.length === 1 ? 1 : 0,
+    minStat: statVals.length ? Math.min(...statVals) : 0,
   };
 }
 

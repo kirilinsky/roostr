@@ -12,18 +12,14 @@ import CollectionCard from "@/components/CollectionCard";
 import AchievementBadge from "@/components/AchievementBadge";
 import AchievementToaster from "@/components/AchievementToaster";
 import LogoutButton from "@/components/LogoutButton";
-import {
-  PROFILE_ACHIEVEMENTS,
-  evaluate,
-  profileMetricsFrom,
-} from "@/lib/achievements";
+import { PROFILE_ACHIEVEMENTS, evaluate } from "@/lib/achievements";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import {
   getUserById,
   getFriendship,
   getRoostrs,
-  getUserStats,
+  getProfileMetrics,
   getAchievementUnlocks,
   recordAchievementUnlocks,
 } from "@/db/queries";
@@ -78,10 +74,8 @@ export default async function PublicProfilePage({
   // Own-profile extras (economy + achievements + logout). Evaluate live, persist
   // anything now satisfied (idempotent), then read the permanent set + unlock
   // dates. recordAchievementUnlocks returns only the NEWLY earned ids → toasted.
-  const stats = isOwnProfile ? await getUserStats(user.id) : null;
-  const statuses = stats
-    ? evaluate(PROFILE_ACHIEVEMENTS, profileMetricsFrom(stats))
-    : [];
+  const metrics = isOwnProfile ? await getProfileMetrics(user.id) : null;
+  const statuses = metrics ? evaluate(PROFILE_ACHIEVEMENTS, metrics) : [];
   const satisfiedIds = statuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =
     isOwnProfile && satisfiedIds.length
@@ -159,7 +153,7 @@ export default async function PublicProfilePage({
         )}
 
         {/* Own profile: economy + achievements + logout */}
-        {isOwnProfile && stats && (
+        {isOwnProfile && metrics && (
           <Stack spacing={2.5} sx={{ width: "100%", maxWidth: 380 }}>
             <AchievementToaster
               unlocked={newlyAchievements}
@@ -170,15 +164,15 @@ export default async function PublicProfilePage({
             <Stack spacing={1}>
               <Row
                 label={t("profile.eggsHatched")}
-                value={String(stats.eggsHatched)}
+                value={String(metrics.eggsHatched)}
               />
               <Row
                 label={t("profile.coinsEarned")}
-                value={stats.coinsEarned.toLocaleString()}
+                value={metrics.coinsEarned.toLocaleString()}
               />
               <Row
                 label={t("profile.coinsSpent")}
-                value={stats.coinsSpent.toLocaleString()}
+                value={metrics.coinsSpent.toLocaleString()}
               />
             </Stack>
 
