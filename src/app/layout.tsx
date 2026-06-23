@@ -25,7 +25,9 @@ export default async function RootLayout({
 }) {
   const { locale, t } = await getTranslations();
   const session = await getSession();
-  const botUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "";
+  const telegramLoginConfigured =
+    !!(process.env.TELEGRAM_CLIENT_ID ?? process.env.NEXT_PUBLIC_TELEGRAM_CLIENT_ID) &&
+    !!process.env.TELEGRAM_CLIENT_SECRET;
 
   const user: ShellUser | null = session
     ? {
@@ -87,7 +89,7 @@ export default async function RootLayout({
                     feathersLabel={t("resource.feathers")}
                     eggsLabel={t("resource.eggs")}
                     sciLabel={t("resource.sci")}
-                    botUsername={botUsername}
+                    telegramLoginConfigured={telegramLoginConfigured}
                     mainNav={mainNav}
                     bottomNav={bottomNav}
                     loginLabel={t("nav.login")}

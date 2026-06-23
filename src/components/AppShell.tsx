@@ -50,7 +50,7 @@ export default function AppShell({
   feathersLabel,
   eggsLabel,
   sciLabel,
-  botUsername,
+  telegramLoginConfigured,
   mainNav,
   bottomNav,
   loginLabel,
@@ -66,7 +66,7 @@ export default function AppShell({
   feathersLabel?: string;
   eggsLabel?: string;
   sciLabel?: string;
-  botUsername: string;
+  telegramLoginConfigured: boolean;
   mainNav: NavItem[];
   bottomNav: NavItem[];
   loginLabel: string;
@@ -157,7 +157,7 @@ export default function AppShell({
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
               {loginLabel}
             </Typography>
-            <TelegramLoginButton botUsername={botUsername} />
+            <TelegramLoginButton configured={telegramLoginConfigured} />
           </Box>
         )}
       </Box>

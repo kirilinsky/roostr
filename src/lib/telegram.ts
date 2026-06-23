@@ -1,54 +1,123 @@
 import crypto from "node:crypto";
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
+import type { SessionUser } from "@/lib/auth";
 
-/**
- * Telegram Login Widget data returned to the site after a successful login.
- * https://core.telegram.org/widgets/login#receiving-authorization-data
- */
-export interface TelegramAuthData {
-  id: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
-  [key: string]: string | number | undefined;
+const TELEGRAM_ISSUER = "https://oauth.telegram.org";
+const TELEGRAM_AUTH_URL = "https://oauth.telegram.org/auth";
+export const TELEGRAM_TOKEN_URL = "https://oauth.telegram.org/token";
+export const TELEGRAM_STATE_COOKIE = "telegram_oauth_state";
+export const TELEGRAM_VERIFIER_COOKIE = "telegram_oauth_verifier";
+
+const telegramJwks = createRemoteJWKSet(
+  new URL("https://oauth.telegram.org/.well-known/jwks.json"),
+);
+
+export interface TelegramIdTokenClaims extends JWTPayload {
+  sub: string;
+  id?: number;
+  name?: string;
+  preferred_username?: string;
+  picture?: string;
 }
 
-/**
- * Verify the Login Widget payload.
- *
- * NOTE: the Login Widget uses `secret_key = SHA256(bot_token)` — this is
- * DIFFERENT from the Mini App `initData` scheme (`HMAC_SHA256("WebAppData", bot_token)`).
- * https://core.telegram.org/widgets/login#checking-authorization
- */
-export function verifyTelegramLogin(
-  data: TelegramAuthData,
-  botToken: string,
-): boolean {
-  const { hash, ...fields } = data;
-  if (!hash) return false;
-
-  const dataCheckString = Object.keys(fields)
-    .filter((k) => fields[k] !== undefined)
-    .sort()
-    .map((k) => `${k}=${fields[k]}`)
-    .join("\n");
-
-  const secret = crypto.createHash("sha256").update(botToken).digest();
-  const hmac = crypto
-    .createHmac("sha256", secret)
-    .update(dataCheckString)
-    .digest("hex");
-
-  // constant-time compare
-  const a = Buffer.from(hmac, "hex");
-  const b = Buffer.from(hash, "hex");
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+export interface TelegramPkceChallenge {
+  state: string;
+  verifier: string;
+  challenge: string;
 }
 
-/** Reject stale logins (default: 1 day). */
-export function isFresh(authDate: number, maxAgeSeconds = 86_400): boolean {
-  const now = Math.floor(Date.now() / 1000);
-  return now - authDate <= maxAgeSeconds;
+export function createTelegramPkceChallenge(): TelegramPkceChallenge {
+  const state = randomBase64Url(32);
+  const verifier = randomBase64Url(64);
+  const challenge = crypto
+    .createHash("sha256")
+    .update(verifier)
+    .digest("base64url");
+
+  return { state, verifier, challenge };
+}
+
+export function getTelegramRedirectUri(req: Request): string {
+  return new URL("/api/auth/telegram/callback", req.url).toString();
+}
+
+export function buildTelegramAuthorizationUrl({
+  clientId,
+  redirectUri,
+  state,
+  challenge,
+}: {
+  clientId: string;
+  redirectUri: string;
+  state: string;
+  challenge: string;
+}): string {
+  const url = new URL(TELEGRAM_AUTH_URL);
+  url.searchParams.set("client_id", clientId);
+  url.searchParams.set("redirect_uri", redirectUri);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("scope", "openid profile telegram:bot_access");
+  url.searchParams.set("state", state);
+  url.searchParams.set("code_challenge", challenge);
+  url.searchParams.set("code_challenge_method", "S256");
+  return url.toString();
+}
+
+export async function verifyTelegramIdToken(
+  idToken: string,
+  clientId: string,
+): Promise<TelegramIdTokenClaims> {
+  const { payload } = await jwtVerify<TelegramIdTokenClaims>(
+    idToken,
+    telegramJwks,
+    {
+      issuer: TELEGRAM_ISSUER,
+      audience: clientId,
+    },
+  );
+
+  const id = getTelegramUserId(payload);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new Error("Telegram id_token is missing a valid user id");
+  }
+
+  return payload;
+}
+
+export function telegramClaimsToSessionUser(
+  claims: TelegramIdTokenClaims,
+): SessionUser {
+  const name =
+    typeof claims.name === "string" && claims.name.trim()
+      ? claims.name.trim()
+      : undefined;
+  const [firstName, ...rest] = name?.split(/\s+/) ?? [];
+
+  return {
+    id: getTelegramUserId(claims),
+    firstName,
+    lastName: rest.length ? rest.join(" ") : undefined,
+    username:
+      typeof claims.preferred_username === "string"
+        ? claims.preferred_username
+        : undefined,
+    photoUrl: typeof claims.picture === "string" ? claims.picture : undefined,
+  };
+}
+
+export function timingSafeEqualString(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+function getTelegramUserId(claims: TelegramIdTokenClaims): number {
+  if (typeof claims.id === "number") return claims.id;
+  const id = Number(claims.sub);
+  if (Number.isSafeInteger(id)) return id;
+  throw new Error("Telegram id_token subject is not a safe numeric id");
+}
+
+function randomBase64Url(bytes: number): string {
+  return crypto.randomBytes(bytes).toString("base64url");
 }

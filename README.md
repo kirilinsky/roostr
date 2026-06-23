@@ -12,7 +12,7 @@ Next.js — work in progress.
 - **MUI v6** — all UI flows from one design system (`src/theme.ts`)
 - **i18n** (en / ru), cookie-based locale
 - **Neon** (serverless Postgres) + **Drizzle ORM**
-- **Auth:** Telegram Login Widget → stateless JWT session (httpOnly cookie)
+- **Auth:** Telegram Web Login / OIDC → stateless JWT session (httpOnly cookie)
 
 ## Features
 
@@ -43,11 +43,18 @@ as a fake **Admin**, **User**, or **Guest**. Disabled in production.
 | Var | Purpose |
 |-----|---------|
 | `DATABASE_URL` | Neon Postgres connection string |
-| `TELEGRAM_BOT_TOKEN` | bot token from [@BotFather](https://t.me/BotFather) |
-| `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` | bot username (no `@`) |
+| `TELEGRAM_CLIENT_ID` | Telegram Web Login client id from [@BotFather](https://t.me/BotFather) |
+| `NEXT_PUBLIC_TELEGRAM_CLIENT_ID` | same client id; optional for client-side widgets, kept in env for parity |
+| `TELEGRAM_CLIENT_SECRET` | Telegram Web Login client secret from BotFather |
+| `TELEGRAM_BOT_TOKEN` | optional bot token for Bot API calls; not used by OIDC login |
 | `JWT_SECRET` | session signing secret (`openssl rand -hex 32`); dev has a fallback |
 | `NEXT_PUBLIC_APP_URL` | public base URL for share links |
 | `NEXT_PUBLIC_ADMIN_IDS` | extra admin Telegram ids (comma-separated, optional) |
+
+In BotFather, open `Bot Settings > Web Login` and set the `Redirect URL` to
+`https://roostr-two.vercel.app/api/auth/telegram/callback` for production.
+Use the same `/api/auth/telegram/callback` path for any custom domain.
+`Native Login` is only for native iOS/Android SDKs and is not needed here.
 
 ## Scripts
 
