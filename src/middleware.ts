@@ -42,6 +42,8 @@ export const config = {
     "/arena/:path*",
     "/farm/:path*",
     "/lab/:path*",
+    "/raids/:path*",
+    "/defense/:path*",
     "/notifications/:path*",
     "/bank/:path*",
     "/settings/:path*",

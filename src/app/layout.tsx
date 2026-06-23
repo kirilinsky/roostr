@@ -54,11 +54,12 @@ export default async function RootLayout({
     ? [
         { href: "/incubator", label: t("nav.incubator"), icon: "🥚" },
         { href: "/collection", label: t("nav.collection"), icon: "🐔" },
-        { href: "/roostrdex", label: t("nav.roostrdex"), icon: "📕" },
         { href: "/market", label: t("nav.market"), icon: "🛒" },
         { href: "/arena", label: t("nav.arena"), icon: "⚔️" },
         { href: "/farm", label: t("nav.farm"), icon: "🌾" },
         { href: "/lab", label: t("nav.lab"), icon: "🧪" },
+        { href: "/raids", label: t("nav.raids"), icon: "🗡️" },
+        { href: "/defense", label: t("nav.defense"), icon: "🛡️" },
       ]
     : [];
 

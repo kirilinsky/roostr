@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CollectionCard from "@/components/CollectionCard";
@@ -86,12 +88,33 @@ export default function CollectionView({
 
   return (
     <Stack spacing={2}>
-      <Filters
-        groups={groups}
-        value={filters}
-        onChange={(key, value) => setFilters((s) => ({ ...s, [key]: value }))}
-        allLabel={t("filter.all")}
-      />
+      <Stack
+        direction="row"
+        spacing={1.5}
+        alignItems="center"
+        flexWrap="wrap"
+        useFlexGap
+      >
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Filters
+            groups={groups}
+            value={filters}
+            onChange={(key, value) =>
+              setFilters((s) => ({ ...s, [key]: value }))
+            }
+            allLabel={t("filter.all")}
+          />
+        </Box>
+        <Button
+          component={Link}
+          href="/roostrdex"
+          variant="outlined"
+          color="neutral"
+          sx={{ flexShrink: 0 }}
+        >
+          📕 {t("nav.roostrdex")}
+        </Button>
+      </Stack>
 
       {filtered.length === 0 ? (
         <Typography color="text.secondary" sx={{ py: 4 }} textAlign="center">
