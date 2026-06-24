@@ -31,6 +31,11 @@ export default async function AchievementsPage({
     unlocked: unlockedAt.has(s.def.id) || s.unlocked,
     at: unlockedAt.get(s.def.id),
   }));
+  // Collectible-tier are SECRET: hidden until earned, shown in their own block.
+  const regular = items.filter((i) => i.def.tier !== "collectible");
+  const secretEarned = items.filter(
+    (i) => i.def.tier === "collectible" && i.unlocked,
+  );
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
@@ -58,7 +63,7 @@ export default async function AchievementsPage({
             },
           }}
         >
-          {items.map(({ def, unlocked, at }) => (
+          {regular.map(({ def, unlocked, at }) => (
             <AchievementBadge
               key={def.id}
               achievement={def}
@@ -74,6 +79,45 @@ export default async function AchievementsPage({
             />
           ))}
         </Box>
+
+        {/* Secret block: collectible-tier — only revealed once earned. */}
+        <Stack spacing={1.5}>
+          <Typography variant="h6" component="h2">
+            🔒 {t("achievements.secretTitle")}
+          </Typography>
+          {secretEarned.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              {t("achievements.secretHint")}
+            </Typography>
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                gap: 1.5,
+                gridTemplateColumns: {
+                  xs: "minmax(0, 1fr)",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                },
+              }}
+            >
+              {secretEarned.map(({ def, at }) => (
+                <AchievementBadge
+                  key={def.id}
+                  achievement={def}
+                  unlocked
+                  unlockedNote={
+                    at
+                      ? t("achievements.unlockedOn", {
+                          date: new Date(at).toLocaleDateString(locale),
+                        })
+                      : undefined
+                  }
+                  locale={locale}
+                />
+              ))}
+            </Box>
+          )}
+        </Stack>
       </Stack>
     </Container>
   );

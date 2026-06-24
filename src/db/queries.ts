@@ -5,6 +5,7 @@ import {
   STATIONS,
   settlePending,
   BASE_SLOTS,
+  MAX_SLOTS,
   type StationKind,
 } from "@/lib/stations";
 
@@ -360,6 +361,8 @@ export async function getAchievementUnlocks(
 export async function recordAchievementUnlocks(
   userId: number,
   achievementIds: string[],
+  scope: "profile" | "rooster" = "profile",
+  roostrId: string | null = null,
 ): Promise<string[]> {
   if (!achievementIds.length || !process.env.DATABASE_URL) return [];
   try {
@@ -367,12 +370,72 @@ export async function recordAchievementUnlocks(
     const { achievementUnlocks } = await import("@/db/schema");
     const rows = await db
       .insert(achievementUnlocks)
-      .values(achievementIds.map((id) => ({ userId, achievementId: id })))
+      .values(
+        achievementIds.map((id) => ({
+          userId,
+          achievementId: id,
+          scope,
+          // Only rooster-scope unlocks carry a bird link.
+          roostrId: scope === "rooster" ? roostrId : null,
+        })),
+      )
       .onConflictDoNothing()
       .returning({ achievementId: achievementUnlocks.achievementId });
     return rows.map((r) => r.achievementId);
   } catch (e) {
     console.error("recordAchievementUnlocks failed:", e);
+    return [];
+  }
+}
+
+export interface AchievementNotification {
+  achievementId: string;
+  scope: string; // "profile" | "rooster"
+  roostrId: string | null; // bird to link to (rooster scope)
+  unlockedAt: string;
+}
+
+// Achievements unlocked AFTER the read-cursor → "you earned X" notifications.
+// Newest first. Definitions (icon/name) are resolved client-side by id.
+export async function getNewAchievements(
+  userId: number,
+): Promise<AchievementNotification[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { achievementUnlocks, users } = await import("@/db/schema");
+    const { and, desc, eq, gt } = await import("drizzle-orm");
+    const [u] = await db
+      .select({ seen: users.notificationsSeenAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const seen = u?.seen ?? null;
+    const filter = seen
+      ? and(
+          eq(achievementUnlocks.userId, userId),
+          gt(achievementUnlocks.unlockedAt, seen),
+        )
+      : eq(achievementUnlocks.userId, userId);
+    const rows = await db
+      .select({
+        achievementId: achievementUnlocks.achievementId,
+        scope: achievementUnlocks.scope,
+        roostrId: achievementUnlocks.roostrId,
+        unlockedAt: achievementUnlocks.unlockedAt,
+      })
+      .from(achievementUnlocks)
+      .where(filter)
+      .orderBy(desc(achievementUnlocks.unlockedAt))
+      .limit(50);
+    return rows.map((r) => ({
+      achievementId: r.achievementId,
+      scope: r.scope,
+      roostrId: r.roostrId,
+      unlockedAt: r.unlockedAt.toISOString(),
+    }));
+  } catch (e) {
+    console.error("getNewAchievements failed:", e);
     return [];
   }
 }
@@ -817,8 +880,14 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
     const { db } = await import("@/db");
-    const { friendRequests, friendships, breedDiscoveries, news, users } =
-      await import("@/db/schema");
+    const {
+      friendRequests,
+      friendships,
+      breedDiscoveries,
+      news,
+      achievementUnlocks,
+      users,
+    } = await import("@/db/schema");
     const { and, eq, gt, or, sql } = await import("drizzle-orm");
     const [u] = await db
       .select({ seen: users.notificationsSeenAt })
@@ -867,6 +936,17 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       .select({ n: sql<number>`count(*)` })
       .from(news)
       .where(newsFilter);
+    // Achievements unlocked after the cursor ("you earned X").
+    const achFilter = seen
+      ? and(
+          eq(achievementUnlocks.userId, userId),
+          gt(achievementUnlocks.unlockedAt, seen),
+        )
+      : eq(achievementUnlocks.userId, userId);
+    const [ach] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(achievementUnlocks)
+      .where(achFilter);
     // Plus: stations that filled up AFTER the read-cursor ("come claim it").
     const seenMs = seen ? seen.getTime() : 0;
     const stationUnread = (await getStationAlerts(userId)).filter(
@@ -877,6 +957,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       Number(dex?.n ?? 0) +
       Number(nf?.n ?? 0) +
       Number(nw?.n ?? 0) +
+      Number(ach?.n ?? 0) +
       stationUnread
     );
   } catch (e) {
@@ -1713,6 +1794,66 @@ export async function removeWorker(
     return { ok: true };
   } catch (e) {
     console.error("removeWorker failed:", e);
+    return { ok: false, error: "db" };
+  }
+}
+
+export type BuySlotResult =
+  | { ok: true; slotsOwned: number }
+  | { ok: false; error: "db" | "maxed" | "funds" };
+
+// One-time +1 worker-slot unlock (BASE_SLOTS → MAX_SLOTS), paid in the station's
+// `slotCost` resource (farm = coins, lab = science). Spend is CAS (atomic, returns
+// null if short); the slot bump is guarded against a concurrent double-buy and
+// refunds if it loses the race.
+export async function buyStationSlot(
+  userId: number,
+  kind: StationKind,
+): Promise<BuySlotResult> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
+  const { resource, amount } = STATIONS[kind].slotCost;
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [st] = await db
+      .select()
+      .from(workStations)
+      .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
+      .limit(1);
+    const current = st?.slotsOwned ?? BASE_SLOTS;
+    if (current >= MAX_SLOTS) return { ok: false, error: "maxed" };
+
+    // Charge first (atomic CAS on balance).
+    const bal = await spendResource(userId, resource, amount, "slot", kind);
+    if (bal === null) return { ok: false, error: "funds" };
+
+    // Apply the +1, guarded so a concurrent buy can't push past the cap.
+    const applied = st
+      ? await db
+          .update(workStations)
+          .set({ slotsOwned: current + 1 })
+          .where(
+            and(
+              eq(workStations.userId, userId),
+              eq(workStations.kind, kind),
+              eq(workStations.slotsOwned, current),
+            ),
+          )
+          .returning({ s: workStations.slotsOwned })
+      : await db
+          .insert(workStations)
+          .values({ userId, kind, slotsOwned: current + 1 })
+          .onConflictDoNothing()
+          .returning({ s: workStations.slotsOwned });
+    if (applied.length === 0) {
+      // Lost the race (slot changed / row appeared) — refund the charge.
+      await grantResource(userId, resource, amount, "refund", kind);
+      return { ok: false, error: "maxed" };
+    }
+    return { ok: true, slotsOwned: current + 1 };
+  } catch (e) {
+    console.error("buyStationSlot failed:", e);
     return { ok: false, error: "db" };
   }
 }

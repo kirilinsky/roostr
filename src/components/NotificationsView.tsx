@@ -22,14 +22,23 @@ import {
 } from "@/app/[telegramid]/actions";
 import { claimNewsAction } from "@/app/notifications/actions";
 import { BREEDS_CATALOG } from "@/lib/breeds";
+import { PROFILE_ACHIEVEMENTS, ROOSTER_ACHIEVEMENTS } from "@/lib/achievements";
+import type { Achievement } from "@/lib/achievements";
 import type {
   FriendRequestSummary,
   DiscoverySummary,
   NewsItem,
+  AchievementNotification,
 } from "@/db/queries";
 
 const BREED_NAME: Record<string, { en: string; ru: string }> =
   Object.fromEntries(BREEDS_CATALOG.map((b) => [b.id, b.name]));
+
+// Profile + rooster achievement defs by id (ids don't collide across scopes) →
+// resolve icon/name for a notification row.
+const ACH_BY_ID: Record<string, Achievement> = Object.fromEntries(
+  [...PROFILE_ACHIEVEMENTS, ...ROOSTER_ACHIEVEMENTS].map((a) => [a.id, a]),
+);
 
 // Filter categories. Only "friends" carries data today (incoming requests);
 // the rest are placeholders for future notification types.
@@ -52,12 +61,16 @@ export default function NotificationsView({
   fullStations = [],
   discoveries = [],
   news = [],
+  achievements = [],
+  selfId = null,
 }: {
   requests: FriendRequestSummary[];
   newFriends?: FriendRequestSummary[]; // accepted → "you're now friends with X"
   fullStations?: ("farm" | "lab")[]; // stations whose buffer is full → claim it
   discoveries?: DiscoverySummary[]; // new Roostrdex entries
   news?: NewsItem[]; // system / promo announcements (CTA claim)
+  achievements?: AchievementNotification[]; // newly-unlocked achievements
+  selfId?: number | null; // viewer id → profile-achievement link target
 }) {
   const t = useT();
   const locale = useLocale();
@@ -85,7 +98,9 @@ export default function NotificationsView({
         ? requests.length
         : tab === "roostrdex"
           ? discoveries.length
-          : 0;
+          : tab === "achievements"
+            ? achievements.length
+            : 0;
   const pageCount = Math.ceil(activeCount / PAGE_SIZE);
   const slice = <T,>(arr: T[]) =>
     arr.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -104,6 +119,11 @@ export default function NotificationsView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [news, page, tab],
   );
+  const pagedAchievements = useMemo(
+    () => (tab === "achievements" ? slice(achievements) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [achievements, page, tab],
+  );
   const stationFull =
     (tab === "farm" || tab === "lab") && fullStations.includes(tab);
   const pager = pageCount > 1 && (
@@ -119,13 +139,26 @@ export default function NotificationsView({
   );
 
   return (
-    <Stack spacing={2}>
+    // minWidth:0 lets this flex column shrink below the tab-strip content width
+    // (otherwise the scrollable Tabs force horizontal overflow on narrow screens).
+    <Stack spacing={2} sx={{ minWidth: 0 }}>
       <Tabs
         value={tab}
         onChange={(_, v) => selectTab(v)}
         variant="scrollable"
         scrollButtons="auto"
-        sx={{ minHeight: 40, "& .MuiTab-root": { minHeight: 40 } }}
+        allowScrollButtonsMobile
+        sx={{
+          minHeight: 40,
+          maxWidth: "100%",
+          minWidth: 0,
+          "& .MuiTab-root": {
+            minHeight: 40,
+            minWidth: { xs: "auto", md: 90 },
+            px: { xs: 1, md: 2 },
+            fontSize: { xs: "0.78rem", md: "0.875rem" },
+          },
+        }}
       >
         {TABS.map((x) => (
           <Tab key={x.key} value={x.key} label={t(x.labelKey)} />
@@ -330,6 +363,59 @@ export default function NotificationsView({
           </List>
           {pager}
         </>
+      ) : tab === "achievements" ? (
+        pagedAchievements.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            {t("notifications.empty")}
+          </Typography>
+        ) : (
+          <>
+            <List disablePadding>
+              {pagedAchievements.map((a) => {
+                const def = ACH_BY_ID[a.achievementId];
+                const name = def ? def.name[locale] : a.achievementId;
+                const icon = def?.icon ?? "🏆";
+                const toRooster = a.scope === "rooster" && !!a.roostrId;
+                const href = toRooster
+                  ? `/collection/${a.roostrId}`
+                  : selfId != null
+                    ? `/${selfId}/achievements`
+                    : "/notifications";
+                return (
+                  <ListItem
+                    key={a.achievementId}
+                    divider
+                    sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
+                  >
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        🏆 {icon} {name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {t("achievements.unlockedOn", {
+                          date: new Date(a.unlockedAt).toLocaleDateString(
+                            locale,
+                          ),
+                        })}
+                      </Typography>
+                    </Box>
+                    <Button
+                      component={Link}
+                      href={href}
+                      size="small"
+                      variant="outlined"
+                    >
+                      {toRooster
+                        ? t("notifications.viewRooster")
+                        : t("profile.achievements")}
+                    </Button>
+                  </ListItem>
+                );
+              })}
+            </List>
+            {pager}
+          </>
+        )
       ) : stationFull ? (
         <Card>
           <CardContent>

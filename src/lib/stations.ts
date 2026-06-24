@@ -23,9 +23,12 @@ export interface StationDef {
   bufferCap: number; // max pending before production pauses (until claimed)
   // resource produced per DAY for a given total stat + worker count.
   ratePerDay: (totalStat: number, workers: number) => number;
+  // One-time +1 worker-slot unlock (BASE_SLOTS → MAX_SLOTS). Paid in this
+  // resource: farm = coins, lab = science.
+  slotCost: { resource: ResourceKind; amount: number };
 }
 
-// Slot caps (shared): 2 base, buy +1 → max 3 (purchase is "soon").
+// Slot caps (shared): 2 base, buy +1 → max 3 (one-time purchase per station).
 export const BASE_SLOTS = 2;
 export const MAX_SLOTS = 3;
 
@@ -37,6 +40,7 @@ export const STATIONS: Record<StationKind, StationDef> = {
     stat: "Fertility",
     bufferCap: 5,
     ratePerDay: (f, n) => (n === 0 ? 0 : 2 ** ((f - 30) / 10)),
+    slotCost: { resource: "coin", amount: 100 },
   },
   // Lab → science from Intellect. Linear: ΣIntellect science/day.
   lab: {
@@ -45,6 +49,7 @@ export const STATIONS: Record<StationKind, StationDef> = {
     stat: "Intellect",
     bufferCap: 50,
     ratePerDay: (i, n) => (n === 0 ? 0 : i),
+    slotCost: { resource: "sci", amount: 100 },
   },
 };
 

@@ -382,6 +382,12 @@ export const achievementUnlocks = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     achievementId: text("achievement_id").notNull(),
     scope: text("scope").notNull().default("profile"), // profile | rooster
+    // For rooster-scope unlocks: the bird that triggered it → notification links
+    // there. Null for profile scope (or legacy rows). set-null so the unlock
+    // survives if the bird is later released/deleted.
+    roostrId: uuid("roostr_id").references(() => roostrs.id, {
+      onDelete: "set null",
+    }),
     unlockedAt: timestamp("unlocked_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

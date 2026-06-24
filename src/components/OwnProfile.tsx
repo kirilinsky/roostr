@@ -68,7 +68,12 @@ export default async function OwnProfile({
       ),
     );
   const recentAchievements = (
-    earned.length ? earned : [...statuses].sort((a, b) => b.progress - a.progress)
+    earned.length
+      ? earned
+      : // Don't tease secret (collectible) achievements in the closest-to-unlock fallback.
+        [...statuses]
+          .filter((s) => s.def.tier !== "collectible")
+          .sort((a, b) => b.progress - a.progress)
   ).slice(0, 3);
 
   const friends = await getFriends(user.id);

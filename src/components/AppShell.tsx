@@ -333,12 +333,15 @@ export default function AppShell({
           display: "flex",
           flexDirection: "column",
           minHeight: "100dvh",
+          // minWidth:0 lets this flex column shrink below wide content (e.g. the
+          // scrollable notification tabs) instead of forcing horizontal overflow.
+          minWidth: 0,
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
         }}
       >
         {/* spacer for the mobile app bar */}
         <Toolbar sx={{ display: { md: "none" } }} />
-        <Box sx={{ flexGrow: 1 }}>{children}</Box>
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>{children}</Box>
         <Footer aboutLabel={aboutLabel} supportLabel={supportLabel} />
       </Box>
     </Box>

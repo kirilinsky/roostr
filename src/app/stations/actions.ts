@@ -6,7 +6,9 @@ import {
   assignWorker,
   removeWorker,
   claimStation,
+  buyStationSlot,
   type StationOpResult,
+  type BuySlotResult,
 } from "@/db/queries";
 import type { StationKind } from "@/lib/stations";
 
@@ -42,6 +44,16 @@ export async function claimStationAction(
   const session = await getSession();
   if (!session) return { ok: false, error: "owner" };
   const res = await claimStation(session.id, kind);
+  if (res.ok) revalidatePath(PATH[kind]);
+  return res;
+}
+
+export async function buyStationSlotAction(
+  kind: StationKind,
+): Promise<BuySlotResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "db" };
+  const res = await buyStationSlot(session.id, kind);
   if (res.ok) revalidatePath(PATH[kind]);
   return res;
 }

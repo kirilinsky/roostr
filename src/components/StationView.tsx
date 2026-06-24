@@ -25,12 +25,22 @@ import {
   assignWorkerAction,
   removeWorkerAction,
   claimStationAction,
+  buyStationSlotAction,
 } from "@/app/stations/actions";
+import type { ResourceKind } from "@/db/queries";
 import { syncProfileAchievementsAction } from "@/app/achievements/actions";
 import { useAchievementToasts } from "@/components/useAchievementToasts";
 import { useT } from "@/i18n/I18nProvider";
 
 const rid = (r: HydratedRoostr) => String(r.id ?? r.seed);
+
+// Resource glyphs for the slot-cost label.
+const SLOT_ICON: Record<ResourceKind, string> = {
+  coin: "🌽",
+  sci: "🔬",
+  egg: "🥚",
+  feather: "🪶",
+};
 
 // Per-kind UI config — the engine (rate/stat/resource/cap) lives in lib/stations;
 // this only maps visuals + i18n keys. Add a station = one entry here + in STATIONS.
@@ -162,6 +172,16 @@ export default function StationView({
     });
   }
   const remove = (id: string) => act(() => removeWorkerAction(kind, id));
+  // One-time +1 slot unlock. Funds error → alert; success → refresh (cap reflects).
+  const buySlot = () =>
+    startBusy(async () => {
+      const res = await buyStationSlotAction(kind);
+      if (!res.ok) {
+        if (res.error === "funds") window.alert(t("station.slotFunds"));
+        return;
+      }
+      router.refresh();
+    });
   // Claim, then immediately sync profile achievements so an unlock (e.g. first
   // science point → "first-sci") toasts right here at claim time, not only when
   // the player next opens their profile.
@@ -367,15 +387,14 @@ export default function StationView({
           {slotsOwned < MAX_SLOTS && (
             <Button
               variant="outlined"
-              color="neutral"
+              color="primary"
               size="small"
-              disabled
+              disabled={busy}
+              onClick={buySlot}
               sx={{ flexShrink: 0 }}
-              endIcon={
-                <Chip label={t("pedia.soon")} size="small" variant="outlined" />
-              }
             >
-              {t(ui.buyKey)}
+              {t(ui.buyKey)} · {def.slotCost.amount}
+              {SLOT_ICON[def.slotCost.resource]}
             </Button>
           )}
         </Stack>

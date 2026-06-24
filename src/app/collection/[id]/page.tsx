@@ -46,7 +46,7 @@ export default async function RoostrDetailPage({
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =
     isOwner && session && satisfiedIds.length
-      ? await recordAchievementUnlocks(session.id, satisfiedIds)
+      ? await recordAchievementUnlocks(session.id, satisfiedIds, "rooster", id)
       : [];
   const unlocks =
     isOwner && session ? await getAchievementUnlocks(session.id) : [];
