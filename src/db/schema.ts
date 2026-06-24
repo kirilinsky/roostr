@@ -85,6 +85,47 @@ export const referrals = pgTable(
   ],
 );
 
+// System / promo announcements (the notifications "News" feed). Global rows shown
+// to everyone; "unread" is derived vs `users.notificationsSeenAt`. An optional CTA
+// (`ctaType`, e.g. "claim_egg" + `ctaAmount`) is claimable ONCE per user — tracked
+// in `news_claims`. Authored by an admin (see createNewsAction).
+export const news = pgTable(
+  "news",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Bilingual content (shown by the viewer's locale).
+    titleEn: text("title_en").notNull(),
+    titleRu: text("title_ru").notNull(),
+    bodyEn: text("body_en").notNull(),
+    bodyRu: text("body_ru").notNull(),
+    link: text("link"), // optional CTA link (read more / go somewhere)
+    ctaType: text("cta_type"), // null | "claim_egg" (extensible: claim_coin, …)
+    ctaAmount: integer("cta_amount"), // reward amount for claim CTAs
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("news_created_at_idx").on(t.createdAt)],
+);
+
+// One row per (news, user) that claimed the CTA → idempotent claim-once.
+export const newsClaims = pgTable(
+  "news_claims",
+  {
+    newsId: uuid("news_id")
+      .notNull()
+      .references(() => news.id, { onDelete: "cascade" }),
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    claimedAt: timestamp("claimed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.newsId, t.userId] })],
+);
+
 export const roostrs = pgTable("roostrs", {
   id: uuid("id").primaryKey().defaultRandom(),
   ownerId: bigint("owner_id", { mode: "number" })

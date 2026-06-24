@@ -817,7 +817,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
     const { db } = await import("@/db");
-    const { friendRequests, friendships, breedDiscoveries, users } =
+    const { friendRequests, friendships, breedDiscoveries, news, users } =
       await import("@/db/schema");
     const { and, eq, gt, or, sql } = await import("drizzle-orm");
     const [u] = await db
@@ -859,6 +859,14 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       .select({ n: sql<number>`count(*)` })
       .from(friendships)
       .where(friendFilter);
+    // News published after the cursor ("new announcement").
+    const newsFilter = seen
+      ? and(eq(news.active, true), gt(news.createdAt, seen))
+      : eq(news.active, true);
+    const [nw] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(news)
+      .where(newsFilter);
     // Plus: stations that filled up AFTER the read-cursor ("come claim it").
     const seenMs = seen ? seen.getTime() : 0;
     const stationUnread = (await getStationAlerts(userId)).filter(
@@ -868,6 +876,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       Number(row?.n ?? 0) +
       Number(dex?.n ?? 0) +
       Number(nf?.n ?? 0) +
+      Number(nw?.n ?? 0) +
       stationUnread
     );
   } catch (e) {
@@ -991,6 +1000,135 @@ export async function getNewFriends(
   } catch (e) {
     console.error("getNewFriends failed:", e);
     return [];
+  }
+}
+
+// --- News (system / promo announcements + claim-once CTA) ---
+
+export interface NewsItem {
+  id: string;
+  title: { en: string; ru: string };
+  body: { en: string; ru: string };
+  link: string | null;
+  ctaType: string | null; // null | "claim_egg"
+  ctaAmount: number | null;
+  createdAt: string;
+  claimed: boolean; // has THIS user claimed the CTA?
+}
+
+// Active news newest-first, flagged with whether the user already claimed the CTA.
+export async function getNews(
+  userId: number,
+  limit = 50,
+): Promise<NewsItem[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { news, newsClaims } = await import("@/db/schema");
+    const { and, desc, eq, sql } = await import("drizzle-orm");
+    const rows = await db
+      .select({
+        id: news.id,
+        titleEn: news.titleEn,
+        titleRu: news.titleRu,
+        bodyEn: news.bodyEn,
+        bodyRu: news.bodyRu,
+        link: news.link,
+        ctaType: news.ctaType,
+        ctaAmount: news.ctaAmount,
+        createdAt: news.createdAt,
+        claimed: sql<boolean>`${newsClaims.newsId} is not null`,
+      })
+      .from(news)
+      .leftJoin(
+        newsClaims,
+        and(eq(newsClaims.newsId, news.id), eq(newsClaims.userId, userId)),
+      )
+      .where(eq(news.active, true))
+      .orderBy(desc(news.createdAt))
+      .limit(limit);
+    return rows.map((r) => ({
+      id: r.id,
+      title: { en: r.titleEn, ru: r.titleRu },
+      body: { en: r.bodyEn, ru: r.bodyRu },
+      link: r.link,
+      ctaType: r.ctaType,
+      ctaAmount: r.ctaAmount,
+      createdAt: r.createdAt.toISOString(),
+      claimed: !!r.claimed,
+    }));
+  } catch (e) {
+    console.error("getNews failed:", e);
+    return [];
+  }
+}
+
+// Claim a news CTA — once per user (CAS on the news_claims PK). Returns the granted
+// egg amount on success; { ok:false } if already claimed / no claimable CTA.
+export async function claimNews(
+  userId: number,
+  newsId: string,
+): Promise<{ ok: boolean; egg?: number }> {
+  if (!process.env.DATABASE_URL) return { ok: false };
+  try {
+    const { db } = await import("@/db");
+    const { news, newsClaims } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const [n] = await db
+      .select({
+        ctaType: news.ctaType,
+        ctaAmount: news.ctaAmount,
+        active: news.active,
+      })
+      .from(news)
+      .where(eq(news.id, newsId))
+      .limit(1);
+    if (!n || !n.active || n.ctaType !== "claim_egg") return { ok: false };
+    const claimed = await db
+      .insert(newsClaims)
+      .values({ newsId, userId })
+      .onConflictDoNothing()
+      .returning({ newsId: newsClaims.newsId });
+    if (claimed.length === 0) return { ok: false }; // already claimed
+    const egg = n.ctaAmount ?? 0;
+    if (egg > 0) await grantResource(userId, "egg", egg, "news");
+    return { ok: true, egg };
+  } catch (e) {
+    console.error("claimNews failed:", e);
+    return { ok: false };
+  }
+}
+
+// Publish a news item (admin). Returns the new id.
+export async function createNews(input: {
+  titleEn: string;
+  titleRu: string;
+  bodyEn: string;
+  bodyRu: string;
+  link?: string | null;
+  ctaType?: string | null;
+  ctaAmount?: number | null;
+}): Promise<string | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { news } = await import("@/db/schema");
+    const [row] = await db
+      .insert(news)
+      .values({
+        titleEn: input.titleEn,
+        titleRu: input.titleRu,
+        bodyEn: input.bodyEn,
+        bodyRu: input.bodyRu,
+        link: input.link ?? null,
+        ctaType: input.ctaType ?? null,
+        ctaAmount: input.ctaAmount ?? null,
+      })
+      .returning({ id: news.id });
+    return row?.id ?? null;
+  } catch (e) {
+    console.error("createNews failed:", e);
+    return null;
   }
 }
 

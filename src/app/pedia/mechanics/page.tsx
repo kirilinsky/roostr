@@ -77,6 +77,13 @@ const ARTICLES = [
     live: true,
   },
   {
+    href: "/pedia/mechanics/referrals",
+    icon: "🎁",
+    titleKey: "pedia.mech.referrals.title",
+    descKey: "pedia.mech.referrals.desc",
+    live: true,
+  },
+  {
     href: "/pedia/mechanics/bank",
     icon: "🏦",
     titleKey: "pedia.mech.bank.title",

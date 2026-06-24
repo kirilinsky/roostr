@@ -11,6 +11,7 @@ import RoostrCard from "@/components/RoostrCard";
 import RoostrAvatarLab from "@/components/RoostrAvatarLab";
 import GeneLab from "@/components/GeneLab";
 import DebugCoinGrant from "@/components/DebugCoinGrant";
+import NewsPublisher from "@/components/NewsPublisher";
 import { useToast } from "@/components/ToastProvider";
 import AchievementIcon from "@/components/AchievementIcon";
 import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
@@ -152,6 +153,11 @@ export default function DebugPage() {
 
         {/* Dev faucet — grant coins to test the economy. */}
         <DebugCoinGrant />
+
+        <Divider flexItem />
+
+        {/* Publish a News / promo broadcast to all players. */}
+        <NewsPublisher />
 
         <Divider flexItem />
 

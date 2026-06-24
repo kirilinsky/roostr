@@ -10,6 +10,7 @@ import {
   getNewFriends,
   getStationAlerts,
   getRecentDiscoveries,
+  getNews,
 } from "@/db/queries";
 
 // Notifications feed. For now the only event type is an incoming friend request
@@ -23,6 +24,7 @@ export default async function NotificationsPage() {
   const newFriends = session ? await getNewFriends(session.id) : [];
   const stationAlerts = session ? await getStationAlerts(session.id) : [];
   const discoveries = session ? await getRecentDiscoveries(session.id) : [];
+  const news = session ? await getNews(session.id) : [];
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
@@ -36,6 +38,7 @@ export default async function NotificationsPage() {
           newFriends={newFriends}
           fullStations={stationAlerts.map((a) => a.kind)}
           discoveries={discoveries}
+          news={news}
         />
       </Stack>
     </Container>

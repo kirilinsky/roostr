@@ -20,8 +20,13 @@ import {
   acceptFriendRequestAction,
   declineFriendRequestAction,
 } from "@/app/[telegramid]/actions";
+import { claimNewsAction } from "@/app/notifications/actions";
 import { BREEDS_CATALOG } from "@/lib/breeds";
-import type { FriendRequestSummary, DiscoverySummary } from "@/db/queries";
+import type {
+  FriendRequestSummary,
+  DiscoverySummary,
+  NewsItem,
+} from "@/db/queries";
 
 const BREED_NAME: Record<string, { en: string; ru: string }> =
   Object.fromEntries(BREEDS_CATALOG.map((b) => [b.id, b.name]));
@@ -29,6 +34,7 @@ const BREED_NAME: Record<string, { en: string; ru: string }> =
 // Filter categories. Only "friends" carries data today (incoming requests);
 // the rest are placeholders for future notification types.
 const TABS = [
+  { key: "news", labelKey: "notifications.news" },
   { key: "friends", labelKey: "nav.friends" },
   { key: "battles", labelKey: "pedia.mech.battle.title" },
   { key: "market", labelKey: "nav.market" },
@@ -45,11 +51,13 @@ export default function NotificationsView({
   newFriends = [],
   fullStations = [],
   discoveries = [],
+  news = [],
 }: {
   requests: FriendRequestSummary[];
   newFriends?: FriendRequestSummary[]; // accepted → "you're now friends with X"
   fullStations?: ("farm" | "lab")[]; // stations whose buffer is full → claim it
   discoveries?: DiscoverySummary[]; // new Roostrdex entries
+  news?: NewsItem[]; // system / promo announcements (CTA claim)
 }) {
   const t = useT();
   const locale = useLocale();
@@ -62,7 +70,7 @@ export default function NotificationsView({
     setTab(key);
     setPage(1);
   }
-  function act(fn: () => Promise<void>) {
+  function act(fn: () => Promise<unknown>) {
     startTransition(async () => {
       await fn();
       router.refresh();
@@ -71,11 +79,13 @@ export default function NotificationsView({
 
   // friends → request list · roostrdex → discovery list · farm/lab → "buffer full".
   const activeCount =
-    tab === "friends"
-      ? requests.length
-      : tab === "roostrdex"
-        ? discoveries.length
-        : 0;
+    tab === "news"
+      ? news.length
+      : tab === "friends"
+        ? requests.length
+        : tab === "roostrdex"
+          ? discoveries.length
+          : 0;
   const pageCount = Math.ceil(activeCount / PAGE_SIZE);
   const slice = <T,>(arr: T[]) =>
     arr.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -88,6 +98,11 @@ export default function NotificationsView({
     () => (tab === "roostrdex" ? slice(discoveries) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [discoveries, page, tab],
+  );
+  const pagedNews = useMemo(
+    () => (tab === "news" ? slice(news) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [news, page, tab],
   );
   const stationFull =
     (tab === "farm" || tab === "lab") && fullStations.includes(tab);
@@ -117,7 +132,66 @@ export default function NotificationsView({
         ))}
       </Tabs>
 
-      {tab === "friends" ? (
+      {tab === "news" ? (
+        pagedNews.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            {t("notifications.empty")}
+          </Typography>
+        ) : (
+          <>
+            <List disablePadding>
+              {pagedNews.map((n) => (
+                <ListItem
+                  key={n.id}
+                  divider
+                  sx={{ px: 0, gap: 1.5, flexWrap: "wrap", alignItems: "flex-start" }}
+                >
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      📣 {n.title[locale]}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      component="div"
+                    >
+                      {n.body[locale]}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(n.createdAt).toLocaleDateString(locale)}
+                    </Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    {n.link && (
+                      <Button
+                        component={Link}
+                        href={n.link}
+                        size="small"
+                        variant="outlined"
+                      >
+                        {t("notifications.open")}
+                      </Button>
+                    )}
+                    {n.ctaType === "claim_egg" && (
+                      <Button
+                        size="small"
+                        variant="contained"
+                        disabled={busy || n.claimed}
+                        onClick={() => act(() => claimNewsAction(n.id))}
+                      >
+                        {n.claimed
+                          ? t("notifications.claimed")
+                          : t("notifications.claimEgg", { n: n.ctaAmount ?? 1 })}
+                      </Button>
+                    )}
+                  </Stack>
+                </ListItem>
+              ))}
+            </List>
+            {pager}
+          </>
+        )
+      ) : tab === "friends" ? (
         newFriends.length === 0 && requests.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
             {t("notifications.empty")}
