@@ -201,6 +201,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T36 | . | rarities: rare collectible drops from raids/arena, stored in Bank, store/sell (later trade) | V18 |
 | T37 | . | seasons: time-limited event with exotic season-only breeds (own genes/stats), server-gated window | V19 |
 | T38 | . | settings: TON wallet field — persist a player's TON address to `users.tonAddress` (already in schema), toward the §G "mint TON NFT later" goal | C,G |
+| T39 | x | notifications "News": stored bilingual (en/ru) system/promo feed (`news` + `news_claims`), unread vs `notificationsSeenAt`; admin publisher on /debug; CTA `claim_egg` grants N eggs once per user (CAS on `news_claims` PK + ledger) | C |
+| T40 | . | widen news CTA: reward types beyond eggs — `claim_coin` / `claim_science` / `claim_feather` (optional), reuse claim-once CAS + `grantResource` ledger; admin form picks type+amount | C |
 
 ## §B — Bugs
 
