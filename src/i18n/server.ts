@@ -1,18 +1,25 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { dictionaries } from "./dictionaries";
 import {
   LOCALE_COOKIE,
   defaultLocale,
   isLocale,
+  localeFromTag,
   createT,
   type Locale,
   type TFunc,
 } from "./config";
 
-/** Read the current locale from the cookie (server only). Falls back to default. */
+/**
+ * Current locale (server only). Priority: explicit choice (NEXT_LOCALE cookie) →
+ * browser system language (Accept-Language header) → default. The cookie is set
+ * by the locale switcher and, on first Telegram login, from the id_token locale.
+ */
 export async function getLocale(): Promise<Locale> {
   const v = (await cookies()).get(LOCALE_COOKIE)?.value;
-  return isLocale(v) ? v : defaultLocale;
+  if (isLocale(v)) return v;
+  const accept = (await headers()).get("accept-language");
+  return localeFromTag(accept) ?? defaultLocale;
 }
 
 /** Server-side translations for the current request. */

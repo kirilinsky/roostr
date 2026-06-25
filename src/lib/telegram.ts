@@ -18,6 +18,8 @@ export interface TelegramIdTokenClaims extends JWTPayload {
   name?: string;
   preferred_username?: string;
   picture?: string;
+  locale?: string; // OIDC standard claim — the user's language (e.g. "ru", "en")
+  language_code?: string; // Telegram's own field, when present
 }
 
 export interface TelegramPkceChallenge {

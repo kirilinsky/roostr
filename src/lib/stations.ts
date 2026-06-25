@@ -23,14 +23,14 @@ export interface StationDef {
   bufferCap: number; // max pending before production pauses (until claimed)
   // resource produced per DAY for a given total stat + worker count.
   ratePerDay: (totalStat: number, workers: number) => number;
-  // One-time +1 worker-slot unlock (BASE_SLOTS → MAX_SLOTS). Paid in this
-  // resource: farm = coins, lab = science.
-  slotCost: { resource: ResourceKind; amount: number };
+  // Purchasable +1 worker-slot unlocks. Paid in `resource` (farm = coins, lab =
+  // science). `prices[i]` = cost of the (i+1)-th extra slot, so the ladder length
+  // is how many slots can be bought (BASE_SLOTS → BASE_SLOTS + prices.length).
+  slotCost: { resource: ResourceKind; prices: number[] };
 }
 
-// Slot caps (shared): 2 base, buy +1 → max 3 (one-time purchase per station).
+// Slots: 2 base; each station can buy up to `slotCost.prices.length` more.
 export const BASE_SLOTS = 2;
-export const MAX_SLOTS = 3;
 
 export const STATIONS: Record<StationKind, StationDef> = {
   // Farm → eggs from Fertility. Exponential + slow (SPEC §V13).
@@ -40,7 +40,7 @@ export const STATIONS: Record<StationKind, StationDef> = {
     stat: "Fertility",
     bufferCap: 5,
     ratePerDay: (f, n) => (n === 0 ? 0 : 2 ** ((f - 30) / 10)),
-    slotCost: { resource: "coin", amount: 100 },
+    slotCost: { resource: "coin", prices: [100, 500] },
   },
   // Lab → science from Intellect. Linear: ΣIntellect science/day.
   lab: {
@@ -49,9 +49,25 @@ export const STATIONS: Record<StationKind, StationDef> = {
     stat: "Intellect",
     bufferCap: 50,
     ratePerDay: (i, n) => (n === 0 ? 0 : i),
-    slotCost: { resource: "sci", amount: 100 },
+    slotCost: { resource: "sci", prices: [100, 500] },
   },
 };
+
+// Max worker slots for a station = base + number of purchasable unlocks.
+export function maxSlots(kind: StationKind): number {
+  return BASE_SLOTS + STATIONS[kind].slotCost.prices.length;
+}
+
+// Cost of the NEXT slot for a station that currently owns `current` slots, or null
+// if already maxed.
+export function nextSlotPrice(
+  kind: StationKind,
+  current: number,
+): number | null {
+  const i = current - BASE_SLOTS;
+  const { prices } = STATIONS[kind].slotCost;
+  return i >= 0 && i < prices.length ? prices[i] : null;
+}
 
 const DAY_MS = 86_400_000;
 

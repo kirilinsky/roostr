@@ -18,6 +18,15 @@ export function isLocale(v: unknown): v is Locale {
   return typeof v === "string" && locales.some((l) => l.code === v);
 }
 
+// Best-effort: map a BCP-47 / language tag ("ru", "ru-RU", "en-US", "en_GB") to a
+// supported locale, or null if unsupported. Used to guess the locale from the
+// Telegram id_token `locale` claim and the browser's Accept-Language header.
+export function localeFromTag(tag: string | undefined | null): Locale | null {
+  if (!tag) return null;
+  const code = tag.trim().toLowerCase().split(/[-_;,]/)[0];
+  return locales.some((l) => l.code === code) ? (code as Locale) : null;
+}
+
 export type Dict = Record<string, string>;
 export type TFunc = (
   key: string,

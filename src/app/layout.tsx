@@ -102,6 +102,7 @@ export default async function RootLayout({
                     mainNav={mainNav}
                     bottomNav={bottomNav}
                     loginLabel={t("nav.login")}
+                    viewProfileLabel={t("nav.viewProfile")}
                     aboutLabel={t("nav.about")}
                     supportLabel={t("nav.support")}
                   >

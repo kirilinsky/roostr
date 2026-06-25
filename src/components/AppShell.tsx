@@ -56,6 +56,7 @@ export default function AppShell({
   mainNav,
   bottomNav,
   loginLabel,
+  viewProfileLabel,
   aboutLabel,
   supportLabel,
   children,
@@ -74,6 +75,7 @@ export default function AppShell({
   mainNav: NavItem[];
   bottomNav: NavItem[];
   loginLabel: string;
+  viewProfileLabel: string;
   aboutLabel: string;
   supportLabel: string;
   children: ReactNode;
@@ -201,8 +203,17 @@ export default function AppShell({
               display: "flex",
               alignItems: "center",
               gap: 1.5,
+              p: 1,
+              borderRadius: 1,
+              border: 1,
+              borderColor: "divider",
               textDecoration: "none",
               color: "inherit",
+              transition: "background-color .15s, border-color .15s",
+              "&:hover": {
+                bgcolor: "action.hover",
+                borderColor: "primary.main",
+              },
             }}
           >
             <Avatar
@@ -212,9 +223,16 @@ export default function AppShell({
             >
               {user.name.charAt(0) || "?"}
             </Avatar>
-            <Box sx={{ minWidth: 0 }}>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
               <Typography variant="subtitle1" noWrap>
                 {user.name}
+              </Typography>
+              <Typography
+                variant="caption"
+                noWrap
+                sx={{ display: "block", color: "primary.main", fontWeight: 600 }}
+              >
+                {viewProfileLabel} ›
               </Typography>
             </Box>
           </Box>

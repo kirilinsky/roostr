@@ -5,7 +5,8 @@ import {
   STATIONS,
   settlePending,
   BASE_SLOTS,
-  MAX_SLOTS,
+  maxSlots,
+  nextSlotPrice,
   type StationKind,
 } from "@/lib/stations";
 
@@ -1802,16 +1803,16 @@ export type BuySlotResult =
   | { ok: true; slotsOwned: number }
   | { ok: false; error: "db" | "maxed" | "funds" };
 
-// One-time +1 worker-slot unlock (BASE_SLOTS → MAX_SLOTS), paid in the station's
-// `slotCost` resource (farm = coins, lab = science). Spend is CAS (atomic, returns
-// null if short); the slot bump is guarded against a concurrent double-buy and
-// refunds if it loses the race.
+// +1 worker-slot unlock, priced by a per-station ladder (slot 3 = 100, slot 4 =
+// 500), paid in the station's `slotCost` resource (farm = coins, lab = science).
+// Spend is CAS (atomic, returns null if short); the slot bump is guarded against a
+// concurrent double-buy and refunds if it loses the race.
 export async function buyStationSlot(
   userId: number,
   kind: StationKind,
 ): Promise<BuySlotResult> {
   if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
-  const { resource, amount } = STATIONS[kind].slotCost;
+  const { resource } = STATIONS[kind].slotCost;
   try {
     const { db } = await import("@/db");
     const { workStations } = await import("@/db/schema");
@@ -1822,10 +1823,12 @@ export async function buyStationSlot(
       .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
       .limit(1);
     const current = st?.slotsOwned ?? BASE_SLOTS;
-    if (current >= MAX_SLOTS) return { ok: false, error: "maxed" };
+    const price = nextSlotPrice(kind, current);
+    if (price === null || current >= maxSlots(kind))
+      return { ok: false, error: "maxed" };
 
     // Charge first (atomic CAS on balance).
-    const bal = await spendResource(userId, resource, amount, "slot", kind);
+    const bal = await spendResource(userId, resource, price, "slot", kind);
     if (bal === null) return { ok: false, error: "funds" };
 
     // Apply the +1, guarded so a concurrent buy can't push past the cap.
@@ -1848,7 +1851,7 @@ export async function buyStationSlot(
           .returning({ s: workStations.slotsOwned });
     if (applied.length === 0) {
       // Lost the race (slot changed / row appeared) — refund the charge.
-      await grantResource(userId, resource, amount, "refund", kind);
+      await grantResource(userId, resource, price, "refund", kind);
       return { ok: false, error: "maxed" };
     }
     return { ok: true, slotsOwned: current + 1 };

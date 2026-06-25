@@ -1,8 +1,49 @@
 import Link from "next/link";
 import MuiLink from "@mui/material/Link";
 import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import LocaleSwitcher from "@/components/LocaleSwitcher";
+
+// Inline footer link — muted, brand-color on hover, no permanent underline.
+function FootLink({
+  href,
+  external,
+  children,
+}: {
+  href: string;
+  external?: boolean;
+  children: React.ReactNode;
+}) {
+  const extra = external
+    ? { target: "_blank", rel: "noopener noreferrer" }
+    : { component: Link };
+  return (
+    <MuiLink
+      href={href}
+      underline="hover"
+      color="text.secondary"
+      sx={{
+        fontSize: "0.8125rem",
+        transition: "color 0.15s",
+        "&:hover": { color: "primary.main" },
+      }}
+      {...extra}
+    >
+      {children}
+    </MuiLink>
+  );
+}
+
+const Dot = () => (
+  <Box
+    component="span"
+    aria-hidden
+    sx={{ color: "text.disabled", fontSize: "0.7rem" }}
+  >
+    •
+  </Box>
+);
 
 export default function Footer({
   aboutLabel,
@@ -18,38 +59,38 @@ export default function Footer({
       sx={{
         borderTop: 1,
         borderColor: "divider",
-        py: 2,
-        px: 3,
+        py: { xs: 2, md: 1.75 },
+        px: { xs: 2, md: 3 },
         display: "flex",
         flexWrap: "wrap",
-        gap: 1,
+        gap: 1.5,
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: { xs: "center", sm: "space-between" },
       }}
     >
-      <Typography variant="body2" color="text.secondary">
-        © {year} ·{" "}
-        <MuiLink
-          component={Link}
-          href="/about"
-          color="inherit"
+      <Stack
+        direction="row"
+        alignItems="center"
+        flexWrap="wrap"
+        justifyContent="center"
+        sx={{ gap: { xs: 0.75, sm: 1.25 } }}
+      >
+        <Typography
+          variant="caption"
+          component="span"
+          sx={{ color: "text.secondary", fontWeight: 600 }}
         >
-          {aboutLabel}
-        </MuiLink>
-        {" · "}
-        <MuiLink component={Link} href="/support" color="inherit">
-          {supportLabel}
-        </MuiLink>
-        {" · "}
-        <MuiLink
-          href="https://github.com/kirilinsky"
-          target="_blank"
-          rel="noopener noreferrer"
-          color="inherit"
-        >
-          github.com/kirilinsky
-        </MuiLink>
-      </Typography>
+          🐓 Roostr © {year}
+        </Typography>
+        <Dot />
+        <FootLink href="/about">{aboutLabel}</FootLink>
+        <Dot />
+        <FootLink href="/support">{supportLabel}</FootLink>
+        <Dot />
+        <FootLink href="https://github.com/kirilinsky" external>
+          GitHub
+        </FootLink>
+      </Stack>
       <LocaleSwitcher />
     </Box>
   );

@@ -18,7 +18,8 @@ import type { HydratedRoostr } from "@/lib/roostr";
 import {
   STATIONS,
   settlePending,
-  MAX_SLOTS,
+  maxSlots,
+  nextSlotPrice,
   type StationKind,
 } from "@/lib/stations";
 import {
@@ -34,12 +35,12 @@ import { useT } from "@/i18n/I18nProvider";
 
 const rid = (r: HydratedRoostr) => String(r.id ?? r.seed);
 
-// Resource glyphs for the slot-cost label.
+// Resource icons for the slot-cost label — same art as the HUD (ResourceBar).
 const SLOT_ICON: Record<ResourceKind, string> = {
-  coin: "🌽",
-  sci: "🔬",
-  egg: "🥚",
-  feather: "🪶",
+  coin: "/corn-coin.png",
+  sci: "/sci.png",
+  egg: "/eggs.png",
+  feather: "/feather.png",
 };
 
 // Per-kind UI config — the engine (rate/stat/resource/cap) lives in lib/stations;
@@ -384,7 +385,7 @@ export default function StationView({
           <Typography variant="h6" noWrap sx={{ minWidth: 0 }}>
             {t(ui.workersKey)} ({workers.length}/{slotsOwned})
           </Typography>
-          {slotsOwned < MAX_SLOTS && (
+          {slotsOwned < maxSlots(kind) && (
             <Button
               variant="outlined"
               color="primary"
@@ -393,8 +394,14 @@ export default function StationView({
               onClick={buySlot}
               sx={{ flexShrink: 0 }}
             >
-              {t(ui.buyKey)} · {def.slotCost.amount}
-              {SLOT_ICON[def.slotCost.resource]}
+              {t(ui.buyKey)} · {nextSlotPrice(kind, slotsOwned)}
+              <Image
+                src={SLOT_ICON[def.slotCost.resource]}
+                alt=""
+                width={16}
+                height={16}
+                style={{ height: 14, width: "auto", marginLeft: 4 }}
+              />
             </Button>
           )}
         </Stack>

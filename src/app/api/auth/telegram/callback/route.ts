@@ -11,6 +11,7 @@ import {
 import { signSession, SESSION_COOKIE } from "@/lib/auth";
 import { upsertUser } from "@/db/queries";
 import { getReferralIdForUser, REFERRER_COOKIE } from "@/lib/referrals";
+import { LOCALE_COOKIE, localeFromTag } from "@/i18n/config";
 
 export const runtime = "nodejs";
 
@@ -118,6 +119,16 @@ export async function GET(req: NextRequest) {
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
+    // Seed the UI language from Telegram's account language on first login — only
+    // if the visitor hasn't already chosen one (never override an explicit pick).
+    const tgLocale = localeFromTag(claims.locale ?? claims.language_code);
+    if (tgLocale && !req.cookies.get(LOCALE_COOKIE)) {
+      res.cookies.set(LOCALE_COOKIE, tgLocale, {
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 365,
+      });
+    }
     return res;
   } catch (e) {
     console.error("Telegram OIDC callback failed:", e);
