@@ -7,6 +7,7 @@ import Divider from "@mui/material/Divider";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import GeneIcon from "@/components/GeneIcon";
 import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
 import StatModBadges from "@/components/StatModBadges";
@@ -48,6 +49,19 @@ const COLOR_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
   { key: "eye", labelKey: "card.eye" },
 ];
 
+function shadeHex(hex: string, amount: number): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const target = amount < 0 ? 0 : 255;
+  const t = Math.min(1, Math.abs(amount));
+  const mix = (c: number) => Math.max(0, Math.min(255, Math.round(c + (target - c) * t)));
+  return `#${[mix(r), mix(g), mix(b)]
+    .map((c) => c.toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
 // Full "DNA passport" card shown on hatch (and the debug preview). Compact + wide:
 // art panel on the left, info on the right (stacks on mobile). Cosmetic colors are a
 // tight swatch strip (hover for the name) instead of a tall list of labelled chips.
@@ -64,28 +78,37 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
 
   return (
     <Card
-      sx={{
+      sx={(theme) => ({
         width: "100%",
         maxWidth: 1100,
         overflow: "hidden",
-        boxShadow: "none",
+        boxShadow: `0 6px 18px ${alpha(theme.palette.common.black, 0.06)}`,
         border: 1,
-        borderColor: "divider",
+        borderColor: alpha(tier.color, 0.48),
+        borderRadius: 1,
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-      }}
+        background: `linear-gradient(180deg, ${alpha(tier.color, 0.08)}, ${theme.palette.background.paper} 34%)`,
+      })}
     >
       {/* LEFT — art panel, tinted by body color */}
       <Box
-        sx={{
-          width: { xs: "100%", md: 230 },
+        sx={(theme) => ({
+          width: { xs: "100%", md: 292 },
           flexShrink: 0,
-          p: { xs: 2, md: 1.75 },
+          p: { xs: 2, md: 2 },
           display: "flex",
           flexDirection: "column",
-          gap: 1.25,
-          background: `linear-gradient(160deg, ${bodyHex}, ${bodyHex}cc)`,
-        }}
+          gap: 1.5,
+          borderRight: { md: 1 },
+          borderBottom: { xs: 1, md: 0 },
+          borderColor: "divider",
+          background: [
+            `linear-gradient(135deg, ${alpha(theme.palette.common.white, 0.2)} 0 1px, transparent 1px 10px)`,
+            `radial-gradient(circle at 72% 16%, ${alpha(tier.color, 0.58)}, transparent 34%)`,
+            `linear-gradient(155deg, ${bodyHex}, ${shadeHex(bodyHex, -0.3)})`,
+          ].join(", "),
+        })}
       >
         {/* top chips */}
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
@@ -93,17 +116,23 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             <Chip
               label={patternLabel(pattern, locale)}
               size="small"
-              sx={{ bgcolor: "neutral.main", color: "common.white", fontWeight: 700 }}
+              sx={{
+                bgcolor: "common.black",
+                color: "common.white",
+                fontWeight: 800,
+                borderRadius: 0.75,
+              }}
             />
             <Chip
               label={weightClass.name[locale]}
               size="small"
               title={weightLabel}
               sx={{
-                bgcolor: "neutral.main",
+                bgcolor: "common.black",
                 color: "common.white",
-                fontWeight: 700,
+                fontWeight: 800,
                 cursor: "help",
+                borderRadius: 0.75,
               }}
             />
           </Stack>
@@ -111,7 +140,12 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             <Chip
               label={seedId}
               size="small"
-              sx={{ bgcolor: "background.paper", fontFamily: MONO_FONT }}
+              sx={{
+                bgcolor: "background.paper",
+                fontFamily: MONO_FONT,
+                borderRadius: 0.75,
+                boxShadow: 2,
+              }}
             />
             <Chip
               label={`${tier.id} · ${rating}`}
@@ -121,6 +155,8 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                 bgcolor: tier.color,
                 color: theme.palette.getContrastText(tier.color),
                 fontWeight: 800,
+                borderRadius: 0.75,
+                boxShadow: 2,
               })}
             />
           </Stack>
@@ -128,18 +164,24 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
 
         {/* art — deterministic pixel avatar composited from this roostr's params */}
         <Box
-          sx={{
+          sx={(theme) => ({
             alignSelf: "center",
             width: "100%",
-            maxWidth: 200,
+            maxWidth: 244,
             aspectRatio: "1 / 1",
-            borderRadius: 2,
+            borderRadius: 1,
             overflow: "hidden",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             background: tierBackground(tier.color),
-          }}
+            border: "2px solid",
+            borderColor: alpha(theme.palette.common.white, 0.82),
+            boxShadow: [
+              `0 16px 28px ${alpha(theme.palette.common.black, 0.22)}`,
+              `inset 0 0 0 1px ${alpha(theme.palette.common.black, 0.18)}`,
+            ].join(", "),
+          })}
         >
           <RoostrAvatarPixel
             colors={colors}
@@ -151,69 +193,120 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
           />
         </Box>
 
-        {/* Cosmetic colors — compact swatch strip (hover for the name). */}
-        <Stack
-          direction="row"
-          flexWrap="wrap"
-          justifyContent="center"
-          sx={{ gap: 0.75 }}
+        {/* Cosmetic colors — compact swatches with visible layer labels. */}
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gap: 0.75,
+          }}
         >
           {COLOR_ROWS.map(({ key, labelKey }) => (
             <Box
               key={key}
               title={`${t(labelKey)}: ${colorLabel(key, colors[key].color, locale)}`}
               sx={{
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                flexShrink: 0,
+                minWidth: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                px: 0.75,
+                py: 0.5,
+                borderRadius: 0.75,
                 cursor: "help",
-                bgcolor: COLOR_HEX[key]?.[colors[key].color] ?? "#888",
-                border: "2px solid",
-                borderColor: "background.paper",
-                boxShadow: 1,
+                bgcolor: "rgba(0,0,0,0.34)",
+                color: "common.white",
+                boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.18)",
               }}
-            />
+            >
+              <Box
+                sx={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 0.25,
+                  flexShrink: 0,
+                  bgcolor: COLOR_HEX[key]?.[colors[key].color] ?? "#888",
+                  border: "1px solid",
+                  borderColor: "rgba(255,255,255,0.72)",
+                }}
+              />
+              <Typography
+                variant="caption"
+                noWrap
+                sx={{ minWidth: 0, fontSize: "0.66rem", fontWeight: 800 }}
+              >
+                {t(labelKey)}
+              </Typography>
+            </Box>
           ))}
-        </Stack>
+        </Box>
       </Box>
 
       {/* RIGHT — info */}
-      <Box sx={{ flexGrow: 1, p: { xs: 2, md: 2.5 }, minWidth: 0 }}>
+      <Box sx={{ flexGrow: 1, p: { xs: 2, md: 2.75 }, minWidth: 0 }}>
         <Stack
-          direction="row"
+          direction={{ xs: "column", sm: "row" }}
           justifyContent="space-between"
-          alignItems="center"
+          alignItems={{ xs: "flex-start", sm: "center" }}
           spacing={1}
         >
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 800, textTransform: "uppercase", minWidth: 0 }}
-            noWrap
-          >
-            {breed.name[locale]}
-          </Typography>
-          <Chip
-            label={roleLabel(role, locale).toUpperCase()}
-            color="primary"
-            size="small"
-            sx={{ flexShrink: 0, fontWeight: 800, letterSpacing: 1 }}
-          />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              variant="overline"
+              color="text.secondary"
+              sx={{ lineHeight: 1, fontFamily: MONO_FONT }}
+            >
+              {seedId} / {tier.id} / {rating}
+            </Typography>
+            <Typography
+              variant="h4"
+              component="h2"
+              sx={{
+                fontWeight: 900,
+                textTransform: "uppercase",
+                lineHeight: 1.05,
+                minWidth: 0,
+              }}
+              noWrap
+            >
+              {breed.name[locale]}
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+            <Chip
+              label={roleLabel(role, locale).toUpperCase()}
+              color="primary"
+              size="small"
+              sx={{ flexShrink: 0, fontWeight: 900, letterSpacing: 1, borderRadius: 0.75 }}
+            />
+            <Chip
+              label={weightLabel}
+              variant="outlined"
+              size="small"
+              sx={{ flexShrink: 0, fontWeight: 800, borderRadius: 0.75 }}
+            />
+          </Stack>
         </Stack>
 
         <Stack
           direction="row"
           alignItems="center"
           flexWrap="wrap"
-          sx={{ mt: 1, gap: 0.75 }}
+          sx={{ mt: 1.5, gap: 0.75 }}
         >
-          <Chip size="small" label={`♥ ${maxHealth}`} variant="outlined" />
+          <Chip
+            size="small"
+            label={`♥ ${maxHealth}`}
+            variant="outlined"
+            sx={{ borderRadius: 0.75, fontWeight: 800 }}
+          />
           <Chip
             size="small"
             label={`☆ ${breed.trait.name[locale]}`}
             variant="outlined"
             color="secondary"
             title={breed.trait.description[locale]}
+            sx={{ borderRadius: 0.75, fontWeight: 800 }}
           />
           <Typography variant="caption" color="text.secondary">
             {formatTraitEffects(breed.trait.effects, locale)}
@@ -223,20 +316,34 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
         <Divider sx={{ my: 1.5 }} />
 
         {/* Stats (starting values: base + weight + gene mods) */}
-        <Typography variant="overline" color="text.secondary">
-          {t("card.stats")}
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography variant="overline" color="text.secondary">
+            {t("card.stats")}
+          </Typography>
+          <Typography variant="overline" color="text.secondary">
+            {t("card.rating")} {rating}
+          </Typography>
+        </Stack>
         <Box
           sx={{
             mt: 0.5,
             display: "grid",
             gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(3, 1fr)" },
-            columnGap: 2,
-            rowGap: 0.5,
+            gap: 1,
           }}
         >
           {SKILL_IDS.map((id) => (
-            <Box key={id}>
+            <Box
+              key={id}
+              sx={{
+                minWidth: 0,
+                p: 1,
+                border: 1,
+                borderColor: "divider",
+                borderRadius: 1,
+                bgcolor: "background.default",
+              }}
+            >
               <Stack direction="row" justifyContent="space-between">
                 <Typography variant="caption" color="text.secondary" noWrap>
                   {skillLabel(id, locale)}
@@ -252,7 +359,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                 variant="determinate"
                 value={Math.min(100, (stats[id] / STAT_BAR_MAX) * 100)}
                 color={STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
-                sx={{ height: 5, borderRadius: 1 }}
+                sx={{ mt: 0.5, height: 6, borderRadius: 0.5 }}
               />
             </Box>
           ))}
@@ -278,11 +385,12 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
               sx={{
                 flex: 1,
                 minWidth: 0,
-                py: 0.75,
-                px: 1,
+                py: 1,
+                px: 1.25,
                 border: 1,
                 borderColor: "divider",
-                borderRadius: 2,
+                borderRadius: 1,
+                bgcolor: "background.default",
               }}
             >
               <GeneIcon no={g.no} family={g.family} />

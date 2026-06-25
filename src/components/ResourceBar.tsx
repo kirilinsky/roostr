@@ -191,7 +191,7 @@ export default function ResourceBar({
           )}
           {/* Defense — TBA (raids/защита). Shows 0 until the system ships. */}
           {typeof coinBalance === "number" && (
-            <Counter emoji="🛡️" label="Defense" value={0} />
+            <Counter src="/defense.png" label="Defense" value={0} />
           )}
         </Stack>
       </Card>

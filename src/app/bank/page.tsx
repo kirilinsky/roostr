@@ -1,11 +1,11 @@
 import Image from "next/image";
+import type { ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Divider from "@mui/material/Divider";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import BankHistory from "@/components/BankHistory";
@@ -31,6 +31,82 @@ const RESOURCE_META: Record<ResourceKind, { icon: string; labelKey: string }> =
 // Currencies shown as balance cards (top of page), in display order.
 const WALLET: ResourceKind[] = ["coin", "sci", "egg"];
 
+function SurfaceCard({
+  children,
+  minHeight,
+}: {
+  children: ReactNode;
+  minHeight?: number;
+}) {
+  return (
+    <Card
+      sx={{
+        height: "100%",
+        minHeight,
+        boxShadow: "none",
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 1,
+        bgcolor: "background.paper",
+      }}
+    >
+      <CardContent sx={{ height: "100%", p: 2, "&:last-child": { pb: 2 } }}>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+function BalanceTile({
+  icon,
+  label,
+  value,
+}: {
+  icon: string;
+  label: string;
+  value: number;
+}) {
+  return (
+    <SurfaceCard minHeight={132}>
+      <Stack spacing={1} sx={{ height: "100%" }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <Image
+            src={icon}
+            alt={label}
+            width={34}
+            height={34}
+            style={{ height: 34, width: "auto" }}
+          />
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            noWrap
+            sx={{ minWidth: 0, fontWeight: 700 }}
+          >
+            {label}
+          </Typography>
+        </Stack>
+        <Box sx={{ flexGrow: 1 }} />
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 900,
+            lineHeight: 1,
+            fontSize: { xs: "1.35rem", sm: "1.75rem", md: "2rem" },
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {value.toLocaleString()}
+        </Typography>
+      </Stack>
+    </SurfaceCard>
+  );
+}
+
 export default async function BankPage() {
   const { t } = await getTranslations();
   const session = await getSession();
@@ -47,11 +123,36 @@ export default async function BankPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
-      <Stack spacing={2.5}>
-        <Typography variant="h4" component="h1">
-          {t("bank.title")}
-        </Typography>
+    <Container
+      maxWidth="lg"
+      sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}
+    >
+      <Stack spacing={2}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          alignItems={{ xs: "flex-start", sm: "flex-end" }}
+          justifyContent="space-between"
+          spacing={1}
+        >
+          <Box>
+            <Typography variant="overline" color="text.secondary">
+              {t("pedia.mech.bank.desc")}
+            </Typography>
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{ fontWeight: 900, lineHeight: 1.1 }}
+            >
+              {t("bank.title")}
+            </Typography>
+          </Box>
+          <Chip
+            label={t("bank.history")}
+            variant="outlined"
+            size="small"
+            sx={{ borderRadius: 0.75, fontWeight: 800 }}
+          />
+        </Stack>
 
         {/* Desktop: controls (balance + actions) left, history right. Mobile: stacked. */}
         <Box
@@ -59,65 +160,64 @@ export default async function BankPage() {
             display: "grid",
             gridTemplateColumns: {
               xs: "minmax(0, 1fr)",
-              md: "minmax(0, 340px) minmax(0, 1fr)",
+              lg: "minmax(0, 460px) minmax(0, 1fr)",
             },
-            gap: 2.5,
+            gap: 2,
             alignItems: "start",
           }}
         >
-          {/* left column — balance + actions */}
-          <Stack spacing={2.5}>
-            {/* Block 1 — balances, all wallet currencies in one card */}
-            <Card>
-              <CardContent>
-                <Typography variant="overline" color="text.secondary">
-                  {t("bank.balance")}
-                </Typography>
-                <Stack
-                  direction="row"
-                  divider={<Divider orientation="vertical" flexItem />}
-                  sx={{ mt: 1 }}
-                >
-                  {WALLET.map((res) => {
-                    const meta = RESOURCE_META[res];
-                    return (
-                      <Stack
-                        key={res}
-                        spacing={0.5}
-                        alignItems="center"
-                        sx={{ flex: 1, minWidth: 0 }}
-                      >
-                        <Image
-                          src={meta.icon}
-                          alt={t(meta.labelKey)}
-                          width={28}
-                          height={28}
-                          style={{ height: 28, width: "auto" }}
-                        />
-                        <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                          {balances[res].toLocaleString()}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          noWrap
-                        >
-                          {t(meta.labelKey)}
-                        </Typography>
-                      </Stack>
-                    );
-                  })}
-                </Stack>
-              </CardContent>
-            </Card>
+          <Stack spacing={2}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "repeat(3, minmax(0, 1fr))",
+                  sm: "repeat(3, minmax(0, 1fr))",
+                },
+                gap: 1.25,
+              }}
+            >
+              {WALLET.map((res) => {
+                const meta = RESOURCE_META[res];
+                return (
+                  <BalanceTile
+                    key={res}
+                    icon={meta.icon}
+                    label={t(meta.labelKey)}
+                    value={balances[res]}
+                  />
+                );
+              })}
+            </Box>
 
-            {/* Block 2 — money actions (top up + transfer to friend, both soon) */}
-            <Card>
-              <CardContent>
-                <Typography variant="overline" color="text.secondary">
-                  {t("bank.actions")}
-                </Typography>
-                <Stack spacing={1} sx={{ mt: 1 }}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, minmax(0, 1fr))",
+                },
+                gap: 1.25,
+              }}
+            >
+              {/* Block 2 — money actions (top up + transfer to friend, both soon) */}
+              <SurfaceCard minHeight={154}>
+                <Stack spacing={1.25} sx={{ height: "100%" }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Typography variant="overline" color="text.secondary">
+                      {t("bank.actions")}
+                    </Typography>
+                    <Chip
+                      label={t("pedia.soon")}
+                      size="small"
+                      variant="outlined"
+                      sx={{ borderRadius: 0.75 }}
+                    />
+                  </Stack>
                   <Button
                     variant="contained"
                     disabled
@@ -148,40 +248,39 @@ export default async function BankPage() {
                     {t("bank.transfer")}
                   </Button>
                 </Stack>
-              </CardContent>
-            </Card>
+              </SurfaceCard>
 
-            {/* Block 3 — collectible rarities (soon) */}
-            <Card>
-              <CardContent>
+              {/* Block 3 — collectible rarities (soon) */}
+              <SurfaceCard minHeight={154}>
                 <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
                   spacing={1}
+                  sx={{ height: "100%", justifyContent: "space-between" }}
                 >
-                  <Typography variant="overline" color="text.secondary">
-                    {t("bank.rarities")}
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    spacing={1}
+                  >
+                    <Typography variant="overline" color="text.secondary">
+                      {t("bank.rarities")}
+                    </Typography>
+                    <Chip
+                      label={t("pedia.soon")}
+                      size="small"
+                      variant="outlined"
+                      sx={{ borderRadius: 0.75 }}
+                    />
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary">
+                    {t("bank.raritiesDesc")}
                   </Typography>
-                  <Chip
-                    label={t("pedia.soon")}
-                    size="small"
-                    variant="outlined"
-                  />
+                  <Box />
                 </Stack>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 1 }}
-                >
-                  {t("bank.raritiesDesc")}
-                </Typography>
-              </CardContent>
-            </Card>
+              </SurfaceCard>
 
-            {/* Block 4 — feathers (soon) */}
-            <Card>
-              <CardContent>
+              {/* Block 4 — feathers (soon) */}
+              <SurfaceCard minHeight={132}>
                 <Stack
                   direction="row"
                   alignItems="center"
@@ -197,9 +296,9 @@ export default async function BankPage() {
                     <Image
                       src="/feather.png"
                       alt={t("resource.feathers")}
-                      width={28}
-                      height={28}
-                      style={{ height: 28, width: "auto" }}
+                      width={34}
+                      height={34}
+                      style={{ height: 34, width: "auto" }}
                     />
                     <Box sx={{ minWidth: 0 }}>
                       <Typography
@@ -218,14 +317,13 @@ export default async function BankPage() {
                     label={t("pedia.soon")}
                     size="small"
                     variant="outlined"
+                    sx={{ borderRadius: 0.75 }}
                   />
                 </Stack>
-              </CardContent>
-            </Card>
+              </SurfaceCard>
 
-            {/* Block 5 — defense (soon, TBA raids/защита) */}
-            <Card>
-              <CardContent>
+              {/* Block 5 — defense (soon, TBA raids/защита) */}
+              <SurfaceCard minHeight={132}>
                 <Stack
                   direction="row"
                   alignItems="center"
@@ -238,16 +336,13 @@ export default async function BankPage() {
                     spacing={1.5}
                     sx={{ minWidth: 0 }}
                   >
-                    <Typography
-                      sx={{
-                        fontSize: 26,
-                        lineHeight: 1,
-                        width: 28,
-                        textAlign: "center",
-                      }}
-                    >
-                      🛡️
-                    </Typography>
+                    <Image
+                      src="/defense.png"
+                      alt={t("nav.defense")}
+                      width={28}
+                      height={28}
+                      style={{ height: 28, width: "auto" }}
+                    />
                     <Box sx={{ minWidth: 0 }}>
                       <Typography
                         variant="overline"
@@ -265,10 +360,11 @@ export default async function BankPage() {
                     label={t("pedia.soon")}
                     size="small"
                     variant="outlined"
+                    sx={{ borderRadius: 0.75 }}
                   />
                 </Stack>
-              </CardContent>
-            </Card>
+              </SurfaceCard>
+            </Box>
           </Stack>
 
           {/* right column — ledger, tabbed by currency + paginated (client island) */}

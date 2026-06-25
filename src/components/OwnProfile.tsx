@@ -242,6 +242,32 @@ export default async function OwnProfile({
           </PanelCard>
         )}
 
+        {/* Statistics — short lifetime numbers */}
+        <PanelCard title={t("profile.stats")}>
+          <Stack spacing={0.75} sx={{ flex: 1 }}>
+            <StatLine
+              label={t("profile.eggsHatched")}
+              value={(metrics.eggsHatched ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.sciEarned")}
+              value={(metrics.sciEarned ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.coinsEarned")}
+              value={(metrics.coinsEarned ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.coinsSpent")}
+              value={(metrics.coinsSpent ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.battles")}
+              value={(metrics.battles ?? 0).toLocaleString()}
+            />
+          </Stack>
+        </PanelCard>
+
         {/* Achievements — 3 most recent + view all */}
         <PanelCard title={t("profile.achievements")}>
           <Stack spacing={1} sx={{ flex: 1 }}>
@@ -318,6 +344,23 @@ export default async function OwnProfile({
           </PanelCard>
         )}
       </Box>
+    </Stack>
+  );
+}
+
+// A compact "label … value" row for the Statistics card.
+function StatLine({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack direction="row" justifyContent="space-between" spacing={2}>
+      <Typography variant="body2" color="text.secondary" noWrap>
+        {label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
+      >
+        {value}
+      </Typography>
     </Stack>
   );
 }
