@@ -215,7 +215,7 @@ export default function AppShell({
             alignItems: "center",
             gap: 1.5,
             p: 1,
-            borderRadius: 1,
+            borderRadius: 0,
             border: 1,
             borderColor: "divider",
             textDecoration: "none",

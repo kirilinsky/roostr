@@ -47,7 +47,7 @@ export default function DevLoginButtons() {
         border: 1,
         borderStyle: "dashed",
         borderColor: "divider",
-        borderRadius: 2,
+        borderRadius: 0,
         bgcolor: "action.hover",
       }}
     >

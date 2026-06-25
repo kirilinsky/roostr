@@ -176,7 +176,7 @@ export default function NotificationsView({
     unread
       ? {
           pl: 1,
-          borderRadius: 1,
+          borderRadius: 0,
           bgcolor: (theme: Theme) => alpha(theme.palette.secondary.main, 0.08),
           boxShadow: (theme: Theme) =>
             `inset 3px 0 0 ${theme.palette.secondary.main}`,
@@ -236,7 +236,7 @@ export default function NotificationsView({
                         minWidth: 18,
                         height: 18,
                         px: 0.5,
-                        borderRadius: "9px",
+                        borderRadius: 0,
                         bgcolor: "secondary.main",
                         color: "secondary.contrastText",
                         fontSize: "0.68rem",

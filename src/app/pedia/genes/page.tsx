@@ -17,19 +17,9 @@ import {
 } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 import { MONO_FONT } from "@/lib/tokens";
+import { contrastText } from "@/lib/contrast";
 
 const FAMILY_NAME = Object.fromEntries(FAMILIES.map((f) => [f.id, f.name]));
-
-// Server component → can't pass an sx callback (function) to a client Chip, so
-// pick black/white text by luminance ourselves.
-function contrastText(hex: string): string {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return lum > 0.6 ? "#1c1c1f" : "#ffffff";
-}
 
 // Roostrpedia article: every gene and what it does. Read-only reference.
 export default async function PediaGenesPage() {

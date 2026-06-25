@@ -92,7 +92,7 @@ export default function CollectionCard({
           alignSelf: "center",
           width: "100%",
           aspectRatio: "1 / 1",
-          borderRadius: 2,
+          borderRadius: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -253,7 +253,7 @@ export default function CollectionCard({
             justifyContent: "center",
             gap: 0.5,
             py: 0.5,
-            borderRadius: 1,
+            borderRadius: 0,
             bgcolor: "background.default",
           }}
         >

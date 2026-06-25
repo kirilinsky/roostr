@@ -85,7 +85,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
         boxShadow: `0 6px 18px ${alpha(theme.palette.common.black, 0.06)}`,
         border: 1,
         borderColor: alpha(tier.color, 0.48),
-        borderRadius: 1,
+        borderRadius: 0,
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
         background: `linear-gradient(180deg, ${alpha(tier.color, 0.08)}, ${theme.palette.background.paper} 34%)`,
@@ -169,7 +169,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             width: "100%",
             maxWidth: 244,
             aspectRatio: "1 / 1",
-            borderRadius: 1,
+            borderRadius: 0,
             overflow: "hidden",
             display: "flex",
             alignItems: "center",
@@ -340,7 +340,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                 p: 1,
                 border: 1,
                 borderColor: "divider",
-                borderRadius: 1,
+                borderRadius: 0,
                 bgcolor: "background.default",
               }}
             >
@@ -389,7 +389,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
                 px: 1.25,
                 border: 1,
                 borderColor: "divider",
-                borderRadius: 1,
+                borderRadius: 0,
                 bgcolor: "background.default",
               }}
             >

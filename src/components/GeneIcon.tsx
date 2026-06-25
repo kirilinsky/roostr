@@ -24,7 +24,7 @@ export default function GeneIcon({
         sx={{
           width: size,
           height: size,
-          borderRadius: 1,
+          borderRadius: 0,
           bgcolor: color,
           flexShrink: 0,
         }}
@@ -42,7 +42,7 @@ export default function GeneIcon({
         width: size,
         height: size,
         flexShrink: 0,
-        borderRadius: 1,
+        borderRadius: 0,
         objectFit: "contain",
         border: 2,
         borderColor: color,

@@ -88,7 +88,7 @@ export default function QuestBoard({ states }: { states: QuestState[] }) {
               alignItems: "center",
               gap: 1.25,
               p: 1,
-              borderRadius: 1,
+              borderRadius: 0,
               border: 1,
               borderColor: ready ? "secondary.main" : "divider",
               opacity: claimed || locked ? 0.55 : 1,
@@ -116,7 +116,7 @@ export default function QuestBoard({ states }: { states: QuestState[] }) {
                       <LinearProgress
                         variant="determinate"
                         value={progress * 100}
-                        sx={{ flex: 1, height: 6, borderRadius: 3 }}
+                        sx={{ flex: 1, height: 6, borderRadius: 0 }}
                       />
                       <Typography
                         variant="caption"

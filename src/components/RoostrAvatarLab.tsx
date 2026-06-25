@@ -108,7 +108,7 @@ export default function RoostrAvatarLab() {
           alignItems="center"
           sx={{
             p: 1.5,
-            borderRadius: 2,
+            borderRadius: 0,
             border: 1,
             borderColor: "divider",
             bgcolor: "background.paper",
@@ -120,7 +120,7 @@ export default function RoostrAvatarLab() {
               width: 240,
               maxWidth: "100%",
               aspectRatio: "1 / 1",
-              borderRadius: 2,
+              borderRadius: 0,
               overflow: "hidden",
               // lab has no rating → default to the D (gray) backdrop
               background: tierBackground("#9e9e9e"),

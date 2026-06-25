@@ -8,16 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { GENE_MAX_LEVEL, TIERS, geneUpgradeCost } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
-
-// Server component → can't pass an sx callback to a client Chip; pick text color
-// by luminance ourselves.
-function contrastText(hex: string): string {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#1c1c1f" : "#ffffff";
-}
+import { contrastText } from "@/lib/contrast";
 
 function Section({
   title,

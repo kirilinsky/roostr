@@ -42,7 +42,7 @@ function StatBar({
         variant="determinate"
         value={value}
         color={color}
-        sx={{ flexGrow: 1, height: 8, borderRadius: 1 }}
+        sx={{ flexGrow: 1, height: 8, borderRadius: 0 }}
       />
       {valueLabel !== undefined && (
         <Typography
@@ -85,7 +85,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
         sx={{
           border: 2,
           borderColor: "divider",
-          borderRadius: 2,
+          borderRadius: 0,
           overflow: "hidden",
           bgcolor: "background.paper",
           display: "flex",
@@ -145,7 +145,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
       sx={{
         border: 2,
         borderColor: "neutral.main",
-        borderRadius: 2,
+        borderRadius: 0,
         overflow: "hidden",
         bgcolor: "background.paper",
         display: "flex",

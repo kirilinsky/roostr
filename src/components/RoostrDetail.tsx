@@ -278,7 +278,7 @@ export default function RoostrDetail({
             <Box
               sx={{
                 aspectRatio: "1 / 1",
-                borderRadius: 3,
+                borderRadius: 0,
                 border: 4,
                 borderColor: "neutral.main",
                 overflow: "hidden",
@@ -329,7 +329,7 @@ export default function RoostrDetail({
             <LinearProgress
               variant="determinate"
               value={bandPct}
-              sx={{ height: 8, borderRadius: 1 }}
+              sx={{ height: 8, borderRadius: 0 }}
             />
             {/* battle record — wins/losses (green/red), labelled on hover */}
             <Stack
@@ -369,7 +369,7 @@ export default function RoostrDetail({
               variant="determinate"
               color="error"
               value={(curHp / roostr.maxHealth) * 100}
-              sx={{ height: 8, borderRadius: 1 }}
+              sx={{ height: 8, borderRadius: 0 }}
             />
 
             {/* Weight grade — a shifting scale (tiny → huge); current is filled. */}
@@ -398,7 +398,7 @@ export default function RoostrDetail({
                   sx={{
                     flex: 1,
                     height: 8,
-                    borderRadius: 1,
+                    borderRadius: 0,
                     bgcolor: i <= weightIdx ? "tertiary.main" : "action.hover",
                   }}
                 />
@@ -473,7 +473,7 @@ export default function RoostrDetail({
                       sx={{
                         display: "flex",
                         height: 6,
-                        borderRadius: 1,
+                        borderRadius: 0,
                         overflow: "hidden",
                         bgcolor: "action.hover",
                       }}

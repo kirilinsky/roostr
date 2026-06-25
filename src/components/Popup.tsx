@@ -29,7 +29,7 @@ export default function Popup({
       maxWidth={maxWidth}
       fullWidth
       slotProps={{
-        paper: { sx: { borderRadius: 4, border: 3, borderColor: "neutral.main" } },
+        paper: { sx: { borderRadius: 0, border: 3, borderColor: "neutral.main" } },
       }}
     >
       <Stack

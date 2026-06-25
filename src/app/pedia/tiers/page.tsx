@@ -8,15 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { TIERS } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
-
-// Server component → pick black/white chip text by luminance (no sx callback).
-function contrastText(hex: string): string {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.6 ? "#1c1c1f" : "#ffffff";
-}
+import { contrastText } from "@/lib/contrast";
 
 // Roostrpedia article: tiers (overall power classes D–X) — what they are, where
 // they come from (rating), and how to climb. Ladder is sorted high → low.

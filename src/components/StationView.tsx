@@ -13,6 +13,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CollectionCard, { type CardMetric } from "@/components/CollectionCard";
+import StationWorkerCard from "@/components/StationWorkerCard";
 import Popup from "@/components/Popup";
 import type { HydratedRoostr } from "@/lib/roostr";
 import {
@@ -138,6 +139,11 @@ export default function StationView({
     [workers, def.stat],
   );
   const ratePerDay = def.ratePerDay(totalStat, workers.length);
+  // Per-worker hourly contribution — the station's daily rate split by stat share.
+  const workerRateHr = (r: HydratedRoostr) => {
+    const s = r.stats[def.stat] ?? 0;
+    return totalStat > 0 ? (ratePerDay * (s / totalStat)) / 24 : 0;
+  };
   const livePending = settlePending(
     def,
     pending,
@@ -377,7 +383,7 @@ export default function StationView({
               value={bufferPct}
               sx={{
                 height: 14,
-                borderRadius: 7,
+                borderRadius: 0,
                 // Smooth, eased rollback when the buffer resets after a claim.
                 "& .MuiLinearProgress-bar": {
                   transition: "transform .6s cubic-bezier(.4,0,.2,1)",
@@ -440,25 +446,6 @@ export default function StationView({
           <Typography variant="h6" noWrap sx={{ minWidth: 0 }}>
             {t(ui.workersKey)} ({workers.length}/{slotsOwned})
           </Typography>
-          {slotsOwned < maxSlots(kind) && (
-            <Button
-              variant="outlined"
-              color="primary"
-              size="small"
-              disabled={busy}
-              onClick={buySlot}
-              sx={{ flexShrink: 0 }}
-            >
-              {t(ui.buyKey)} · {nextSlotPrice(kind, slotsOwned)}
-              <Image
-                src={SLOT_ICON[def.slotCost.resource]}
-                alt=""
-                width={16}
-                height={16}
-                style={{ height: 14, width: "auto", marginLeft: 4 }}
-              />
-            </Button>
-          )}
         </Stack>
 
         <Box
@@ -473,11 +460,13 @@ export default function StationView({
           }}
         >
           {workers.map((r) => (
-            <CollectionCard
+            <StationWorkerCard
               key={rid(r)}
               roostr={r}
-              metric={ui.metric}
-              onClick={() => !busy && remove(rid(r))}
+              statId={def.stat}
+              rateHr={workerRateHr(r)}
+              busy={busy}
+              onRemove={() => !busy && remove(rid(r))}
             />
           ))}
 
@@ -493,18 +482,94 @@ export default function StationView({
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 0.5,
+                gap: 1.5,
                 cursor: "pointer",
                 border: "2px dashed",
                 borderColor: "divider",
                 bgcolor: "transparent",
+                boxShadow: "none",
                 color: "text.secondary",
                 transition: "border-color 0.15s, color 0.15s",
                 "&:hover": { borderColor: "primary.main", color: "primary.main" },
               }}
             >
-              <Typography sx={{ fontSize: 40, lineHeight: 1 }}>＋</Typography>
-              <Typography variant="caption">{t(ui.addKey)}</Typography>
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  border: "2px solid currentColor",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography sx={{ fontSize: 28, lineHeight: 1 }}>＋</Typography>
+              </Box>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {t(ui.addKey)}
+              </Typography>
+            </Card>
+          )}
+
+          {/* Buy / unlock the next worker slot — same dashed slot, shows the price. */}
+          {slotsOwned < maxSlots(kind) && (
+            <Card
+              component="button"
+              type="button"
+              disabled={busy}
+              onClick={buySlot}
+              sx={{
+                minHeight: 180,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 1,
+                cursor: "pointer",
+                border: "2px dashed",
+                borderColor: "divider",
+                bgcolor: "transparent",
+                boxShadow: "none",
+                color: "text.secondary",
+                transition: "border-color 0.15s, color 0.15s",
+                "&:hover": {
+                  borderColor: "secondary.main",
+                  color: "secondary.main",
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: "50%",
+                  border: "2px solid currentColor",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: (theme) => `3px 3px 0 ${theme.palette.neutral.main}`,
+                }}
+              >
+                <Typography sx={{ fontSize: 28, lineHeight: 1 }}>＋</Typography>
+              </Box>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {t(ui.buyKey)}
+              </Typography>
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Typography
+                  sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
+                >
+                  {nextSlotPrice(kind, slotsOwned)}
+                </Typography>
+                <Image
+                  src={SLOT_ICON[def.slotCost.resource]}
+                  alt=""
+                  width={16}
+                  height={16}
+                  style={{ height: 14, width: "auto" }}
+                />
+              </Stack>
             </Card>
           )}
         </Box>

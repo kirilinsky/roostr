@@ -39,17 +39,7 @@ function SurfaceCard({
   minHeight?: number;
 }) {
   return (
-    <Card
-      sx={{
-        height: "100%",
-        minHeight,
-        boxShadow: "none",
-        border: 1,
-        borderColor: "divider",
-        borderRadius: 1,
-        bgcolor: "background.paper",
-      }}
-    >
+    <Card variant="surface" sx={{ height: "100%", minHeight }}>
       <CardContent sx={{ height: "100%", p: 2, "&:last-child": { pb: 2 } }}>
         {children}
       </CardContent>

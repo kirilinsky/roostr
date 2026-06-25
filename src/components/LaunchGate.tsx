@@ -48,7 +48,7 @@ export default async function LaunchGate({
         <LinearProgress
           variant="determinate"
           value={pct}
-          sx={{ height: 14, borderRadius: 7 }}
+          sx={{ height: 14, borderRadius: 0 }}
         />
         <Typography
           variant="caption"

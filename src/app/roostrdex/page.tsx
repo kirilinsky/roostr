@@ -145,7 +145,7 @@ export default function RoostrdexPage() {
           sx={{
             border: 2,
             borderColor: "neutral.main",
-            borderRadius: 2,
+            borderRadius: 0,
             p: 2,
             bgcolor: "background.paper",
           }}
@@ -166,7 +166,7 @@ export default function RoostrdexPage() {
           <LinearProgress
             variant="determinate"
             value={pct}
-            sx={{ height: 12, borderRadius: 1 }}
+            sx={{ height: 12, borderRadius: 0 }}
           />
           <Stack
             direction="row"
@@ -188,7 +188,7 @@ export default function RoostrdexPage() {
 
         {/* Selected group blurb */}
         {filter !== ALL && (
-          <Box sx={{ borderRadius: 2, p: 2, bgcolor: "background.paper" }}>
+          <Box sx={{ borderRadius: 0, p: 2, bgcolor: "background.paper" }}>
             <Typography sx={{ fontWeight: 800 }}>
               {groupName(filter, locale)}
             </Typography>

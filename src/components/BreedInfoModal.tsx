@@ -57,7 +57,7 @@ export default function BreedInfoModal({
             alignSelf: "center",
             width: "100%",
             maxWidth: 240,
-            borderRadius: 2,
+            borderRadius: 0,
             overflow: "hidden",
             border: 1,
             borderColor: "divider",

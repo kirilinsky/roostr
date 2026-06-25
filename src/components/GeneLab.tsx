@@ -69,7 +69,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
         maxWidth: "100%",
         border: 1,
         borderColor: "divider",
-        borderRadius: 3,
+        borderRadius: 0,
         p: 2,
         bgcolor: "background.paper",
       }}
@@ -135,7 +135,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
               variant="determinate"
               value={Math.min(100, (stats[id] / STAT_BAR_MAX) * 100)}
               color={STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
-              sx={{ height: 6, borderRadius: 1 }}
+              sx={{ height: 6, borderRadius: 0 }}
             />
           </Box>
         ))}

@@ -165,7 +165,7 @@ export default function IncubatorView({
           width: "100%",
           aspectRatio: "1 / 1",
           maxHeight: 460,
-          borderRadius: 5,
+          borderRadius: 0,
           overflow: "hidden",
           bgcolor: (theme) => theme.palette.grey[900],
           boxShadow: 8,

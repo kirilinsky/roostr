@@ -61,15 +61,7 @@ export default function BankHistory({ txns }: { txns: ResourceTxn[] }) {
   const paged = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <Card
-      sx={{
-        boxShadow: "none",
-        border: 1,
-        borderColor: "divider",
-        borderRadius: 1,
-        minHeight: { lg: 520 },
-      }}
-    >
+    <Card variant="surface" sx={{ minHeight: { lg: 520 } }}>
       <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
           <Typography variant="overline" color="text.secondary">
@@ -131,7 +123,7 @@ export default function BankHistory({ txns }: { txns: ResourceTxn[] }) {
                     mb: 0.75,
                     border: 1,
                     borderColor: "divider",
-                    borderRadius: 1,
+                    borderRadius: 0,
                     bgcolor: alpha(theme.palette.background.default, 0.72),
                     "&:last-child": { mb: 0 },
                   })}
@@ -159,7 +151,7 @@ export default function BankHistory({ txns }: { txns: ResourceTxn[] }) {
                       justifyContent: "center",
                       border: 1,
                       borderColor: "divider",
-                      borderRadius: 1,
+                      borderRadius: 0,
                       bgcolor: "background.paper",
                     }}
                   >
