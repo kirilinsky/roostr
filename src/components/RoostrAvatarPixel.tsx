@@ -113,6 +113,10 @@ function blurShade(sh: Int8Array): Float32Array {
 // rasterize into the GRID (256) pixel grid, so shapes come out smooth/detailed.
 // `half` thickness is in DESIGN units and scaled to keep stroke proportions.
 type Grid = { ids: Int8Array; sh: Int8Array };
+type EyeVariant = "alert" | "fierce";
+type BodyShape = "standard" | "compact" | "deep" | "athletic" | "round";
+type LegVariant = "standard" | "long" | "heavy" | "feathered";
+type TailVariant = "standard" | "long" | "short" | "upright" | "fan";
 const at = (x: number, y: number) => y * GRID + x;
 const inb = (x: number, y: number) => x >= 0 && x < GRID && y >= 0 && y < GRID;
 const halfPx = (half: number) => Math.round(half * S + (S - 1) / 2);
@@ -203,52 +207,406 @@ function quad(
   }
 }
 
-function buildGrid(weightId: string, tags: Set<string>): Grid {
-  const g: Grid = { ids: new Int8Array(GRID * GRID), sh: new Int8Array(GRID * GRID) };
-  const sz = WEIGHT_PX[weightId] ?? WEIGHT_PX.middle;
-  const tall = tags.has("tall");
-  const rx = sz.rx;
-  const ry = sz.ry;
-  const bodyCx = 24;
-  const bodyCy = 37 - (tall ? 4 : 0);
+function drawEye(g: Grid, ex: number, ey: number, variant: EyeVariant) {
+  if (variant === "fierce") {
+    // Narrow, angled eye: white still visible, but the dark brow makes it read
+    // sharper and more game-bird-like.
+    ellipse(g, ex, ey, 2.0, 1.05, EYE_W);
+    ellipse(g, ex + 0.9, ey, 1, 1, EYE_I);
+    set(g, ex + 1, ey, EYE_P);
+    set(g, ex + 0.3, ey - 0.6, EYE_W);
+    line(g, ex - 2.5, ey - 1.9, ex + 2.7, ey - 0.8, 0, OUT);
+    quad(g, ex - 1.8, ey + 1.2, ex + 0.2, ey + 1.45, ex + 2, ey + 0.95, 0, -1, -2);
+    addSh(g, ex + 2, ey + 1, -1);
+    return;
+  }
 
-  const headR = 8;
-  const headCx = bodyCx + rx + 4;
-  const headCy = bodyCy - ry - 3;
+  // Round, alert eye: larger sclera, clear iris ring and a bright catch-light.
+  ellipse(g, ex, ey, 2.2, 2.0, EYE_W);
+  ellipse(g, ex + 0.8, ey, 1.15, 1.25, EYE_I);
+  set(g, ex + 1, ey, EYE_P);
+  set(g, ex + 0.1, ey - 1.1, EYE_W);
+  quad(g, ex - 1.8, ey + 1.75, ex + 0.1, ey + 2.15, ex + 1.9, ey + 1.65, 0, -1, -2);
+  line(g, ex - 1.8, ey - 2.3, ex + 1.5, ey - 2.6, 0, OUT);
+  addSh(g, ex + 2, ey + 2, -1);
+}
 
-  const hooked =
-    tags.has("fighter") || tags.has("game") || tags.has("strong") || tags.has("hard-feather");
-  const long = tags.has("longtail");
+function drawBeak(g: Grid, bx: number, by: number, hooked: boolean) {
+  const len = hooked ? 7.4 : 5.5;
+  const tipDrop = hooked ? 1.7 : 0.35;
+  const tipX = bx + len;
+  const tipY = by + tipDrop;
 
-  // ---- TAIL: sickle feathers fanned by ANGLE (fountain, not a parallel tube) ----
+  // Upper mandible: broad at the cheek, tapered to a point.
+  for (let k = 0; k <= Math.ceil(len); k++) {
+    const t = Math.min(1, k / len);
+    const cx = bx + k;
+    const centerY = by - 0.45 + (hooked ? t * t * 0.95 : t * 0.12);
+    const half = (1 - t) * 1.55 + 0.18;
+    line(g, cx, centerY - half, cx, centerY + half * 0.35, 0, BEAK);
+  }
+
+  // Lower mandible is smaller and darker, separated from the upper beak.
+  for (let k = 0; k <= Math.ceil(len * 0.72); k++) {
+    const t = Math.min(1, k / (len * 0.72));
+    const cx = bx + k;
+    const centerY = by + 1.15 + t * 0.12;
+    const half = (1 - t) * 0.78 + 0.08;
+    line(g, cx, centerY - half * 0.2, cx, centerY + half, 0, BEAK);
+    addSh(g, cx, centerY + half, -1);
+  }
+
+  // Hooked breeds get a distinct downturned tip.
+  if (hooked) {
+    quad(g, tipX - 1.4, tipY - 0.4, tipX + 0.45, tipY + 0.7, tipX - 0.3, tipY + 1.8, 0.75, BEAK);
+    quad(g, tipX - 1.1, tipY + 0.2, tipX + 0.1, tipY + 1.1, tipX - 0.6, tipY + 1.7, 0, -1, -2);
+  }
+
+  // Mouth seam, nostril and small highlights.
+  quad(g, bx + 0.6, by + 0.45, bx + len * 0.48, by + 0.6, bx + len * 0.84, by + 0.28 + tipDrop * 0.4, 0, -1, -2);
+  addSh(g, bx + 1.4, by - 0.65, -3);
+  addSh(g, bx + 1, by - 1.35, 2);
+  addSh(g, bx + 2, by - 1.2, 1);
+  addSh(g, bx + 1, by + 1.55, -2);
+}
+
+function chooseBodyShape(tags: Set<string>, weightId: string, seed: number): BodyShape {
+  if (
+    tags.has("tiny") ||
+    tags.has("small") ||
+    tags.has("sprightly") ||
+    tags.has("fast") ||
+    tags.has("swift")
+  ) {
+    return "compact";
+  }
+  if (
+    tags.has("fighter") ||
+    tags.has("game") ||
+    tags.has("duelist") ||
+    tags.has("hard-feather") ||
+    tags.has("reach")
+  ) {
+    return "athletic";
+  }
+  if (
+    tags.has("giant") ||
+    tags.has("largest") ||
+    tags.has("heavy") ||
+    tags.has("tank") ||
+    tags.has("meat") ||
+    weightId === "huge"
+  ) {
+    return "deep";
+  }
+  if (tags.has("fluffy") || tags.has("soft") || tags.has("round")) {
+    return "round";
+  }
+
+  const variants: BodyShape[] = ["standard", "compact", "athletic", "round"];
+  return variants[Math.abs(Math.trunc(seed)) % variants.length];
+}
+
+function chooseLegVariant(tags: Set<string>, weightId: string): LegVariant {
+  if (tags.has("feathered-feet") || tags.has("fluffy") || tags.has("soft")) {
+    return "feathered";
+  }
+  if (
+    tags.has("fighter") ||
+    tags.has("game") ||
+    tags.has("duelist") ||
+    tags.has("tall") ||
+    tags.has("reach") ||
+    tags.has("hard-feather")
+  ) {
+    return "long";
+  }
+  if (
+    tags.has("giant") ||
+    tags.has("largest") ||
+    tags.has("heavy") ||
+    tags.has("tank") ||
+    tags.has("meat") ||
+    weightId === "huge"
+  ) {
+    return "heavy";
+  }
+  return "standard";
+}
+
+function chooseTailVariant(tags: Set<string>, weightId: string, seed: number): TailVariant {
+  if (tags.has("longtail")) return "long";
+  if (
+    tags.has("fighter") ||
+    tags.has("game") ||
+    tags.has("hard-feather") ||
+    tags.has("tall") ||
+    tags.has("duelist")
+  ) {
+    return "upright";
+  }
+  if (
+    tags.has("giant") ||
+    tags.has("heavy") ||
+    tags.has("round") ||
+    tags.has("fluffy") ||
+    tags.has("tank") ||
+    weightId === "huge"
+  ) {
+    return "fan";
+  }
+  if (tags.has("tiny") || tags.has("small") || tags.has("naked-neck")) {
+    return "short";
+  }
+
+  const variants: TailVariant[] = ["standard", "short", "upright"];
+  return variants[Math.abs(Math.trunc(seed >> 2)) % variants.length];
+}
+
+function drawTail(g: Grid, bodyCx: number, bodyCy: number, rx: number, ry: number, variant: TailVariant) {
   const tbx = bodyCx - rx + 5;
   const tby = bodyCy - 2;
-  const nF = long ? 7 : 5;
-  const reach = long ? rx + ry + 14 : rx + 8;
-  ellipse(g, tbx, tby + 2, 5, 6, TAIL); // base mass connecting to body
-  for (let i = 0; i < nF; i++) {
-    const f = i / (nF - 1); // 0 = short covert over back → 1 = long back sickle
-    const ang = (-68 - f * 60) * (Math.PI / 180); // spread up → up-back-left
-    const len = reach * (0.6 + 0.4 * f);
+  const config: Record<
+    TailVariant,
+    { n: number; reach: number; startDeg: number; spreadDeg: number; baseRx: number; baseRy: number; half: number }
+  > = {
+    standard: { n: 5, reach: rx + 8, startDeg: -64, spreadDeg: 58, baseRx: 5, baseRy: 6, half: 1 },
+    long: { n: 8, reach: rx + ry + 20, startDeg: -52, spreadDeg: 92, baseRx: 5.5, baseRy: 7, half: 0.9 },
+    short: { n: 4, reach: rx + 1, startDeg: -68, spreadDeg: 48, baseRx: 4.5, baseRy: 5.2, half: 1.25 },
+    upright: { n: 5, reach: rx + 11, startDeg: -82, spreadDeg: 62, baseRx: 4.8, baseRy: 6.2, half: 1.05 },
+    fan: { n: 6, reach: rx + 5, startDeg: -48, spreadDeg: 82, baseRx: 6.5, baseRy: 7.2, half: 1.35 },
+  };
+  const cfg = config[variant];
+
+  ellipse(g, tbx, tby + 2, cfg.baseRx, cfg.baseRy, TAIL);
+  if (variant === "fan") ellipse(g, tbx - 2, tby + 3, cfg.baseRx * 0.9, cfg.baseRy * 0.72, TAIL);
+
+  for (let i = 0; i < cfg.n; i++) {
+    const f = cfg.n === 1 ? 0 : i / (cfg.n - 1);
+    const angleDeg = cfg.startDeg - f * cfg.spreadDeg;
+    const ang = angleDeg * (Math.PI / 180);
+    const len =
+      cfg.reach *
+      (variant === "long"
+        ? 0.55 + 0.55 * f
+        : variant === "fan"
+          ? 0.7 + 0.25 * Math.sin(f * Math.PI)
+          : 0.66 + 0.34 * f);
     const ox = Math.cos(ang);
     const oy = Math.sin(ang);
     const ex = tbx + ox * len;
     const ey = tby + oy * len;
-    const ca = ang - 0.28; // bow control back-left → sickle curve
-    const mx = tbx + Math.cos(ca) * len * 0.6;
-    const my = tby + Math.sin(ca) * len * 0.6;
-    quad(g, tbx, tby, mx, my, ex, ey, 1, TAIL);
-    const px = -oy; // unit perpendicular → feather separation seam + edge
+    const bend = variant === "long" ? 0.42 : variant === "upright" ? 0.18 : 0.28;
+    const ca = ang - bend;
+    const mx = tbx + Math.cos(ca) * len * (variant === "short" ? 0.48 : 0.6);
+    const my = tby + Math.sin(ca) * len * (variant === "short" ? 0.48 : 0.6);
+    quad(g, tbx, tby, mx, my, ex, ey, cfg.half, TAIL);
+
+    const px = -oy;
     const py = ox;
-    quad(g, tbx + px, tby + py, mx + px, my + py, ex + px, ey + py, 0, -1, -2); // dark seam
-    quad(g, tbx - px, tby - py, mx - px, my - py, ex - px, ey - py, 0, -1, 1); // light edge
+    quad(g, tbx + px, tby + py, mx + px, my + py, ex + px, ey + py, 0, -1, -2);
+    quad(g, tbx - px, tby - py, mx - px, my - py, ex - px, ey - py, 0, -1, 1);
+
+    if (variant === "long" && i >= cfg.n - 3) {
+      quad(g, tbx - 1, tby + 1, mx - 2, my + 2, ex - 3, ey + 3, 0, -1, -1);
+    }
   }
+
+  if (variant === "short") {
+    quad(g, tbx + 1, tby - 2, tbx - 2, tby - 8, tbx - 7, tby - 11, 1.2, TAIL);
+  } else if (variant === "upright") {
+    quad(g, tbx + 1, tby, tbx - 1, tby - 10, tbx - 4, tby - 19, 1, TAIL);
+  }
+}
+
+function drawLegs({
+  g,
+  bodyCx,
+  bodyCy,
+  rx,
+  ry,
+  tags,
+  variant,
+}: {
+  g: Grid;
+  bodyCx: number;
+  bodyCy: number;
+  rx: number;
+  ry: number;
+  tags: Set<string>;
+  variant: LegVariant;
+}) {
+  const footY = variant === "long" ? 61 : 60;
+  const legTop = bodyCy + ry - (variant === "long" ? 2 : 1);
+  const stance =
+    variant === "heavy" ? 0.58 : variant === "long" ? 0.64 : variant === "feathered" ? 0.48 : 0.52;
+  const legWidth = variant === "heavy" ? 2 : 1;
+  const toeReach = variant === "long" ? 5 : variant === "heavy" ? 4.2 : 4;
+  const toeDrop = variant === "long" ? 3.6 : variant === "heavy" ? 2.4 : 3;
+  const backToe = variant === "long" ? 4 : 3;
+  const legLean = variant === "long" ? 1.2 : variant === "heavy" ? 0.35 : 0.65;
+  const lx1 = bodyCx - (variant === "heavy" ? 1 : 0);
+  const lx2 = bodyCx + Math.round(rx * stance);
+
+  for (const [i, lx] of [lx1, lx2].entries()) {
+    const lean = (i === 0 ? -legLean : legLean) * 0.45;
+    const ankleX = lx + lean;
+
+    // Shank with slight natural lean. Heavy legs are thicker, long legs slimmer.
+    for (let w = 0; w < legWidth; w++) {
+      line(g, lx + w, legTop, ankleX + w, footY, 0, LEG);
+    }
+    if (variant !== "long") line(g, lx + legWidth, legTop + 1, ankleX + legWidth, footY, 0, LEG);
+
+    // Scale bands, staggered so legs read as segmented instead of plain sticks.
+    for (let yy = legTop + 1; yy <= footY; yy++) {
+      if ((yy - legTop) % 2 === 0) {
+        addSh(g, ankleX, yy, -1);
+        if (legWidth > 1) addSh(g, ankleX + 1, yy, -1);
+      }
+    }
+
+    // Feathered breeds get hock/foot puffs that partially cover the shank.
+    if (variant === "feathered") {
+      ellipse(g, lx + 0.5, legTop + 1.5, 3.2, 3.3, BODY);
+      ellipse(g, ankleX + 0.5, footY - 1.5, 3.4, 2.5, BODY);
+      quad(g, lx - 2, legTop + 1, lx - 1, legTop + 4, ankleX - 1, footY - 2, 0, -1, -2);
+    }
+
+    // Toes: spread changes by variant. Long/game birds get longer talons; heavy
+    // birds get shorter, wider stance.
+    line(g, ankleX, footY, ankleX + toeReach, footY + 0.8, 0, LEG);
+    line(g, ankleX, footY, ankleX + toeReach * 0.72, footY + toeDrop, 0, LEG);
+    line(g, ankleX, footY, ankleX + 0.8, footY + toeDrop + 1.2, 0, LEG);
+    line(g, ankleX, footY, ankleX - backToe, footY + 1, 0, LEG);
+    if (variant === "heavy") {
+      line(g, ankleX + 1, footY, ankleX + toeReach * 0.78, footY + 1.6, 0, LEG);
+    }
+
+    // Claws stay small so the global outline does not make them too chunky.
+    set(g, ankleX + toeReach + 0.8, footY + 1, OUT);
+    set(g, ankleX + toeReach * 0.75 + 0.8, footY + toeDrop + 0.5, OUT);
+    set(g, ankleX + 0.8, footY + toeDrop + 2, OUT);
+    set(g, ankleX - backToe - 0.8, footY + 1, OUT);
+
+    // Spurs: fighter/game birds get a longer back-pointing spur; multi-spur adds
+    // a second higher point.
+    const spurLen = variant === "long" ? 3 : 2;
+    line(g, ankleX - 0.4, footY - 3.5, ankleX - spurLen, footY - 4.8, 0, LEG);
+    set(g, ankleX - spurLen - 0.8, footY - 5, OUT);
+    if (tags.has("multi-spur")) {
+      line(g, ankleX - 0.4, footY - 5.2, ankleX - spurLen - 1, footY - 7.1, 0, LEG);
+      set(g, ankleX - spurLen - 1.8, footY - 7.4, OUT);
+    }
+  }
+}
+
+function buildGrid(
+  weightId: string,
+  tags: Set<string>,
+  eyeVariant: EyeVariant,
+  bodyShape: BodyShape,
+  legVariant: LegVariant,
+  tailVariant: TailVariant,
+): Grid {
+  const g: Grid = { ids: new Int8Array(GRID * GRID), sh: new Int8Array(GRID * GRID) };
+  const sz = WEIGHT_PX[weightId] ?? WEIGHT_PX.middle;
+  const tall = tags.has("tall");
+  let rx = sz.rx;
+  let ry = sz.ry;
+  const bodyCx = 24;
+  let bodyCy = 37 - (tall ? 4 : 0);
+  let breastForward = 0.5;
+  let breastDrop = 0.34;
+  let breastRx = 0.6;
+  let breastRy = 0.92;
+  let saddleBack = 0.42;
+  let saddleLift = 0.42;
+  let saddleRx = 0.52;
+  let saddleRy = 0.58;
+  let headForward = 4;
+  let headLift = 3;
+
+  switch (bodyShape) {
+    case "compact":
+      rx = Math.max(10, rx - 2);
+      ry = Math.max(9, ry - 1);
+      bodyCy += 1;
+      breastForward = 0.42;
+      breastDrop = 0.28;
+      breastRx = 0.5;
+      breastRy = 0.78;
+      saddleBack = 0.34;
+      saddleLift = 0.36;
+      headForward = 3;
+      headLift = 2;
+      break;
+    case "deep":
+      rx += 1;
+      ry += 2;
+      bodyCy += 1;
+      breastForward = 0.48;
+      breastDrop = 0.44;
+      breastRx = 0.68;
+      breastRy = 1.02;
+      saddleBack = 0.48;
+      saddleLift = 0.34;
+      headForward = 3;
+      headLift = 2;
+      break;
+    case "athletic":
+      rx += 1;
+      ry = Math.max(10, ry - 2);
+      bodyCy -= 1;
+      breastForward = 0.58;
+      breastDrop = 0.18;
+      breastRx = 0.48;
+      breastRy = 0.72;
+      saddleBack = 0.5;
+      saddleLift = 0.5;
+      saddleRx = 0.6;
+      saddleRy = 0.5;
+      headForward = 5;
+      headLift = 4;
+      break;
+    case "round":
+      rx = Math.max(10, rx - 1);
+      ry += 1;
+      breastForward = 0.5;
+      breastDrop = 0.36;
+      breastRx = 0.76;
+      breastRy = 0.95;
+      saddleBack = 0.36;
+      saddleLift = 0.34;
+      saddleRx = 0.48;
+      saddleRy = 0.62;
+      headForward = 3.5;
+      headLift = 2.5;
+      break;
+  }
+
+  const headR = 8;
+  const headCx = bodyCx + rx + headForward;
+  const headCy = bodyCy - ry - headLift;
+
+  const hooked =
+    tags.has("fighter") || tags.has("game") || tags.has("strong") || tags.has("hard-feather");
+
+  // ---- TAIL: breed-driven silhouettes (short, fan, upright, longtail) ----
+  drawTail(g, bodyCx, bodyCy, rx, ry, tailVariant);
 
   // ---- BODY + breast ----
   ellipse(g, bodyCx, bodyCy, rx, ry, BODY);
   // teardrop: full low breast forward (right) + raised saddle toward the tail (left)
-  ellipse(g, bodyCx + rx * 0.5, bodyCy + ry * 0.34, rx * 0.6, ry * 0.92, BODY); // breast bulge (fuller, lower)
-  ellipse(g, bodyCx - rx * 0.42, bodyCy - ry * 0.42, rx * 0.52, ry * 0.58, BODY); // saddle rise to tail base
+  ellipse(g, bodyCx + rx * breastForward, bodyCy + ry * breastDrop, rx * breastRx, ry * breastRy, BODY); // breast bulge
+  ellipse(g, bodyCx - rx * saddleBack, bodyCy - ry * saddleLift, rx * saddleRx, ry * saddleRy, BODY); // saddle rise to tail base
+  if (bodyShape === "deep") {
+    ellipse(g, bodyCx + rx * 0.1, bodyCy + ry * 0.58, rx * 0.72, ry * 0.42, BODY); // low keel mass
+  } else if (bodyShape === "athletic") {
+    quad(g, bodyCx - rx * 0.55, bodyCy - ry * 0.22, bodyCx - rx * 0.05, bodyCy - ry * 0.62, bodyCx + rx * 0.62, bodyCy - ry * 0.35, 2, BODY);
+  } else if (bodyShape === "round") {
+    ellipse(g, bodyCx - rx * 0.1, bodyCy + ry * 0.22, rx * 0.78, ry * 0.76, BODY);
+  }
 
   // shading: belly shadow, back/saddle highlight, breast under-shadow
   // (iterate pixel space, convert back to design units for the body math)
@@ -260,6 +618,8 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
       if (ny > 0.1) putSh(g, x, y, -Math.round(ny * 2.5));
       if (ny < -0.25 && nx < 0.1) putSh(g, x, y, 1);
       if (nx > 0.55 && ny > 0.1) putSh(g, x, y, -1);
+      if (bodyShape === "athletic" && nx < -0.15 && ny < -0.05) putSh(g, x, y, 1);
+      if (bodyShape === "deep" && ny > 0.45) putSh(g, x, y, -1);
     }
   // breast scallop feather rows (3 rows of small arcs)
   for (let row = 0; row < 3; row++) {
@@ -364,30 +724,56 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     ellipse(g, headCx + 4, headCy - headR + 1, 3, 4, HACKLE);
   }
 
-  // ---- COMB: fleshy serrated crown with front lobe + shaded base ----
+  // ---- COMB: fleshy organic crown with rounded lobes + soft folds ----
   const combBaseY = headCy - headR + 1;
   const combStartX = headCx - 7;
-  const toothHeights = [3.6, 5.4, 6.4, 5.1, 3.7];
-  // base ridge follows the top of the skull instead of sitting like a flat line
-  quad(g, combStartX - 1, combBaseY + 0.4, headCx - 4, combBaseY - 1.1, headCx + 4, combBaseY + 0.8, 1.4, COMB);
-  ellipse(g, combStartX - 1.5, combBaseY + 1.1, 1.8, 2.2, COMB); // rear/base lobe
-  for (let i = 0; i < toothHeights.length; i++) {
-    const cx2 = combStartX + i * 2.7;
-    const h = toothHeights[i];
-    // each tooth is a tapered mini-lobe, wider at the skull and pinched at top
-    ellipse(g, cx2, combBaseY - h * 0.45, 1.45, h * 0.55, COMB);
-    quad(g, cx2 - 0.6, combBaseY - 0.3, cx2 - 0.2, combBaseY - h * 0.72, cx2 + 0.2, combBaseY - h, 0.75, COMB);
-    addSh(g, cx2 - 0.8, combBaseY - h + 0.6, 2); // top-left catch light
-    addSh(g, cx2 + 0.8, combBaseY - 1, -1); // right/base depth
+  if (tags.has("crest")) {
+    // Crested birds keep most of the comb tucked under the crest.
+    quad(g, headCx - 4.5, combBaseY + 0.8, headCx - 1, combBaseY - 0.8, headCx + 3.2, combBaseY + 0.9, 1.3, COMB);
+    ellipse(g, headCx - 3.5, combBaseY - 0.6, 1.7, 2.0, COMB);
+    ellipse(g, headCx - 0.4, combBaseY - 1.2, 1.9, 2.4, COMB);
+    ellipse(g, headCx + 2.6, combBaseY - 0.4, 1.4, 1.9, COMB);
+    quad(g, headCx - 3.5, combBaseY + 0.6, headCx - 0.2, combBaseY + 1.2, headCx + 3.2, combBaseY + 0.7, 0, -1, -2);
+    addSh(g, headCx - 1, combBaseY - 2, 2);
+  } else {
+    const tallComb =
+      tags.has("fighter") ||
+      tags.has("game") ||
+      tags.has("proud") ||
+      tags.has("long-crower");
+    const toothHeights = tallComb
+      ? [4.3, 6.2, 7.3, 6.5, 5.2, 3.8]
+      : [3.7, 5.4, 6.2, 5.3, 4.0];
+    const step = tallComb ? 2.35 : 2.65;
+    const baseEnd = combStartX + (toothHeights.length - 1) * step + 2.2;
+
+    // Curved blade base: a soft, thick ridge that follows the skull.
+    quad(g, combStartX - 1.2, combBaseY + 0.7, headCx - 3.2, combBaseY - 1.0, baseEnd, combBaseY + 0.9, 1.55, COMB);
+    ellipse(g, combStartX - 1.7, combBaseY + 1.3, 1.9, 2.4, COMB); // rear lobe
+
+    for (let i = 0; i < toothHeights.length; i++) {
+      const cx2 = combStartX + i * step;
+      const h = toothHeights[i];
+      const lean = (i - toothHeights.length / 2) * 0.18;
+      // Each lobe is rounded and slightly overlaps the next, like a real single comb.
+      ellipse(g, cx2 + lean, combBaseY - h * 0.48, 1.5, h * 0.55, COMB);
+      quad(g, cx2 - 0.65, combBaseY - 0.1, cx2 + lean * 2, combBaseY - h * 0.82, cx2 + 0.25 + lean, combBaseY - h, 0.75, COMB);
+      addSh(g, cx2 - 0.8, combBaseY - h + 0.7, 2);
+      addSh(g, cx2 + 0.8, combBaseY - h * 0.24, -1);
+
+      if (i > 0) {
+        const foldX = cx2 - step * 0.45;
+        quad(g, foldX, combBaseY - 0.4, foldX + 0.5, combBaseY - h * 0.5, foldX + 0.25, combBaseY - h * 0.78, 0, -1, -2);
+      }
+    }
+
+    // Forward fold falls toward the beak and gives the comb a real attachment.
+    quad(g, baseEnd - 0.2, combBaseY + 0.3, baseEnd + 1.7, combBaseY + 1.5, baseEnd + 0.9, combBaseY + 3.0, 1.05, COMB);
+    quad(g, baseEnd - 0.6, combBaseY + 1.0, baseEnd + 0.9, combBaseY + 2.0, baseEnd + 0.5, combBaseY + 2.8, 0, -1, -2);
+
+    // Underside shadow anchors the comb to the skull without heavy black lines.
+    for (let x = combStartX - 2; x <= baseEnd + 1; x++) addSh(g, x, combBaseY + 1, -1);
   }
-  // forward small fold falling toward the beak
-  quad(g, headCx + 3.4, combBaseY + 0.2, headCx + 5.4, combBaseY + 1.6, headCx + 4.8, combBaseY + 3.2, 1.05, COMB);
-  // crease shadows between teeth
-  for (let i = 1; i < toothHeights.length; i++) {
-    const cx2 = combStartX - 1.3 + i * 2.7;
-    line(g, cx2, combBaseY - 0.6, cx2 + 0.2, combBaseY - toothHeights[i] * 0.58, 0, OUT);
-  }
-  for (let x = headCx - 8; x <= headCx + 6; x++) addSh(g, x, combBaseY + 1, -1);
 
   // ---- WATTLE / BEARD ----
   if (tags.has("beard") || tags.has("bearded")) {
@@ -398,56 +784,17 @@ function buildGrid(weightId: string, tags: Set<string>): Grid {
     set(g, headCx + 1, headCy + headR + 2, WATTLE);
   }
 
-  // ---- BEAK: tapered triangular wedge (sharp point, not a round blob) ----
+  // ---- BEAK: upper/lower mandibles + nostril + optional hook ----
   const bx = headCx + headR - 1;
-  const beakLen = hooked ? 7 : 5;
-  for (let k = 0; k <= beakLen; k++) {
-    const tt = k / beakLen;
-    const h = (1 - tt) * 1.9; // half-height tapers to 0 at the tip
-    const cy = headCy + (hooked ? tt * tt * 1.4 : tt * 0.2); // hook curves down
-    line(g, bx + k, cy - h, bx + k, cy + h, 0, BEAK); // vertical column → wedge
-  }
-  addSh(g, bx + 1, headCy - 1, 2); // upper mandible highlight
-  addSh(g, bx + 2, headCy + 1, -2); // lower mandible shadow
-  addSh(g, bx, headCy, -3); // nostril
+  drawBeak(g, bx, headCy, hooked);
 
-  // ---- EYE (sclera + iris + pupil + highlight) ----
+  // ---- EYE (two deterministic variants: alert round / fierce narrowed) ----
   const ex = headCx + 3;
   const ey = headCy - 1;
-  ellipse(g, ex, ey, 2, 2, EYE_W);
-  ellipse(g, ex + 1, ey, 1, 1, EYE_I);
-  set(g, ex + 1, ey, EYE_P);
-  set(g, ex, ey - 1, EYE_W); // catch-light
+  drawEye(g, ex, ey, eyeVariant);
 
-  // ---- LEGS: 2px scaled shanks + toes + claws + spur ----
-  const footY = 60;
-  const lx1 = bodyCx; // shifted ~2% left relative to the body
-  const lx2 = bodyCx + Math.round(rx * 0.5) - 1;
-  const legTop = bodyCy + ry - 1;
-  for (const lx of [lx1, lx2]) {
-    line(g, lx, legTop, lx, footY, 0, LEG);
-    line(g, lx + 1, legTop, lx + 1, footY, 0, LEG);
-    // scale bands
-    for (let yy = legTop; yy <= footY; yy++)
-      if ((yy - legTop) % 2 === 0) {
-        addSh(g, lx, yy, -1);
-        addSh(g, lx + 1, yy, -1);
-      }
-    // toes (3 fwd + 1 back)
-    line(g, lx, footY, lx + 4, footY + 1, 0, LEG);
-    line(g, lx, footY, lx + 3, footY + 3, 0, LEG);
-    line(g, lx, footY, lx + 1, footY + 4, 0, LEG);
-    line(g, lx, footY, lx - 3, footY + 1, 0, LEG);
-    // claws (dark tips)
-    set(g, lx + 5, footY + 1, OUT);
-    set(g, lx + 4, footY + 3, OUT);
-    set(g, lx + 1, footY + 5, OUT);
-    set(g, lx - 4, footY + 1, OUT);
-    // spur (back-pointing)
-    set(g, lx - 1, footY - 4, LEG);
-    set(g, lx - 2, footY - 5, LEG);
-    if (tags.has("multi-spur")) set(g, lx - 3, footY - 7, LEG);
-  }
+  // ---- LEGS: breed/weight-driven shanks, toes, claws and spurs ----
+  drawLegs({ g, bodyCx, bodyCy, rx, ry, tags, variant: legVariant });
 
   // ---- OUTLINE: 1px dark ring around the silhouette ----
   const out = g.ids.slice();
@@ -479,11 +826,29 @@ export default function RoostrAvatarPixel({
   colors,
   breed,
   weightClass,
+  seed,
 }: RoostrAvatarPixelProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const offRef = useRef<HTMLCanvasElement | null>(null);
   const tags = useMemo(() => new Set(breed.tags), [breed.tags]);
-  const grid = useMemo(() => buildGrid(weightClass.id, tags), [weightClass.id, tags]);
+  const eyeVariant: EyeVariant =
+    Math.abs(Math.trunc(seed)) % 2 === 0 ? "alert" : "fierce";
+  const bodyShape = useMemo(
+    () => chooseBodyShape(tags, weightClass.id, seed),
+    [tags, weightClass.id, seed],
+  );
+  const legVariant = useMemo(
+    () => chooseLegVariant(tags, weightClass.id),
+    [tags, weightClass.id],
+  );
+  const tailVariant = useMemo(
+    () => chooseTailVariant(tags, weightClass.id, seed),
+    [tags, weightClass.id, seed],
+  );
+  const grid = useMemo(
+    () => buildGrid(weightClass.id, tags, eyeVariant, bodyShape, legVariant, tailVariant),
+    [weightClass.id, tags, eyeVariant, bodyShape, legVariant, tailVariant],
+  );
 
   const hex = useMemo(
     () => ({

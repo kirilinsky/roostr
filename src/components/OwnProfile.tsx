@@ -82,18 +82,75 @@ export default async function OwnProfile({
   const referrals = await getReferredUsers(user.id);
   const hasRequests = incoming.length > 0 || outgoing.length > 0;
 
+  const stats = [
+    { icon: "🥚", value: metrics.eggsHatched ?? 0, label: t("profile.eggsHatched") },
+    { icon: "🐔", value: metrics.roostrsOwned ?? 0, label: t("profile.roostrsOwned") },
+    { icon: "📕", value: metrics.breedsDiscovered ?? 0, label: t("profile.breedsDiscovered") },
+    { icon: "🌽", value: metrics.coinsEarned ?? 0, label: t("profile.coinsEarned") },
+    { icon: "🔬", value: metrics.sciEarned ?? 0, label: t("profile.sciEarned") },
+    { icon: "👥", value: metrics.friends ?? 0, label: t("profile.friends") },
+  ];
+
   return (
-    <Box sx={{ textAlign: "left" }}>
+    <Stack spacing={2.5} sx={{ textAlign: "left" }}>
       <AchievementToaster
         unlocked={newlyAchievements}
         href={`/${user.id}/achievements`}
       />
 
+      {/* Hero — identity + account actions, full width */}
+      <Card>
+        <CardContent>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            alignItems={{ xs: "stretch", sm: "center" }}
+            justifyContent="space-between"
+          >
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
+              <Avatar
+                src={user.photoUrl ?? undefined}
+                alt={displayName}
+                sx={{ width: 72, height: 72 }}
+              >
+                {displayName.charAt(0)}
+              </Avatar>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="h5" component="h1" noWrap>
+                  {displayName}
+                </Typography>
+                {user.username && (
+                  <Typography color="text.secondary" noWrap>
+                    @{user.username}
+                  </Typography>
+                )}
+                <Typography variant="caption" color="text.secondary">
+                  {t("profile.memberSince", {
+                    date: new Date(user.createdAt).toLocaleDateString(locale),
+                  })}
+                </Typography>
+              </Box>
+            </Stack>
+            <Stack
+              direction={{ xs: "row", sm: "column" }}
+              spacing={1}
+              sx={{ flexShrink: 0, "& > *": { flex: { xs: 1, sm: "initial" } } }}
+            >
+              <ShareProfileButton
+                telegramId={user.id}
+                label={t("friends.share")}
+                copiedLabel={t("friends.copied")}
+              />
+              <LogoutButton />
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+
       {/* Brand-new player (no roosters yet) → nudge to the first-steps guide. */}
       {metrics.roostrsOwned === 0 && (
         <Card
           sx={{
-            mb: 2.5,
             borderColor: "secondary.main",
             borderWidth: 1,
             borderStyle: "solid",
@@ -118,6 +175,28 @@ export default async function OwnProfile({
         </Card>
       )}
 
+      {/* Stat tiles — uniform grid */}
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.5,
+          gridTemplateColumns: {
+            xs: "repeat(2, minmax(0, 1fr))",
+            sm: "repeat(3, minmax(0, 1fr))",
+          },
+        }}
+      >
+        {stats.map((s) => (
+          <StatTile
+            key={s.label}
+            icon={s.icon}
+            value={s.value.toLocaleString()}
+            label={s.label}
+          />
+        ))}
+      </Box>
+
+      {/* Content cards — equal height (stretch), buttons pinned to the bottom */}
       <Box
         sx={{
           display: "grid",
@@ -126,235 +205,179 @@ export default async function OwnProfile({
             xs: "minmax(0, 1fr)",
             md: "repeat(2, minmax(0, 1fr))",
           },
-          alignItems: "start",
+          alignItems: "stretch",
         }}
       >
-        {/* Identity — avatar + name + username + account actions (share / logout) */}
-        <Card>
-          <CardContent>
-            <Stack spacing={2}>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <Avatar
-                  src={user.photoUrl ?? undefined}
-                  alt={displayName}
-                  sx={{ width: 64, height: 64 }}
-                >
-                  {displayName.charAt(0)}
-                </Avatar>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="h6" component="h1" noWrap>
-                    {displayName}
-                  </Typography>
-                  {user.username && (
-                    <Typography color="text.secondary" noWrap>
-                      @{user.username}
-                    </Typography>
-                  )}
-                </Box>
-              </Stack>
-              <Stack spacing={1}>
-                <ShareProfileButton
-                  telegramId={user.id}
-                  label={t("friends.share")}
-                  copiedLabel={t("friends.copied")}
-                />
-                <LogoutButton />
-              </Stack>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {/* Stats */}
-        <Card>
-          <CardContent>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {t("profile.stats")}
-            </Typography>
-            <Stack spacing={1} sx={{ mt: 1.5 }}>
-              <Row
-                label={t("profile.eggsHatched")}
-                value={String(metrics.eggsHatched)}
-              />
-              <Row
-                label={t("profile.coinsEarned")}
-                value={metrics.coinsEarned.toLocaleString()}
-              />
-              <Row
-                label={t("profile.coinsSpent")}
-                value={metrics.coinsSpent.toLocaleString()}
-              />
-              <Row
-                label={t("profile.registered")}
-                value={new Date(user.createdAt).toLocaleDateString(locale)}
-              />
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {/* Achievements — 3 most recent + view all */}
-        <Card>
-          <CardContent>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {t("profile.achievements")}
-            </Typography>
-            <Stack spacing={1} sx={{ mt: 1.5 }}>
-              {recentAchievements.map((s) => {
-                const at = unlockedAt.get(s.def.id);
-                return (
-                  <AchievementBadge
-                    key={s.def.id}
-                    achievement={s.def}
-                    unlocked={!!at}
-                    unlockedNote={
-                      at
-                        ? t("achievements.unlockedOn", {
-                            date: new Date(at).toLocaleDateString(locale),
-                          })
-                        : undefined
-                    }
-                    locale={locale}
-                  />
-                );
-              })}
-              <Button
-                component={Link}
-                href={`/${user.id}/achievements`}
-                variant="outlined"
-                color="neutral"
-                fullWidth
-              >
-                {t("profile.allAchievements")}
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-
-        {/* Friend requests (incoming accept/decline + outgoing cancel) — above friends */}
+        {/* Friend requests (incoming accept/decline + outgoing cancel) */}
         {hasRequests && (
-          <Card>
-            <CardContent>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                {t("profile.friendRequests")}
-              </Typography>
-              <Box sx={{ mt: 1.5 }}>
-                <ProfileFriendRequests incoming={incoming} outgoing={outgoing} />
-              </Box>
-            </CardContent>
-          </Card>
+          <PanelCard title={t("profile.friendRequests")}>
+            <ProfileFriendRequests incoming={incoming} outgoing={outgoing} />
+          </PanelCard>
         )}
 
+        {/* Achievements — 3 most recent + view all */}
+        <PanelCard title={t("profile.achievements")}>
+          <Stack spacing={1} sx={{ flex: 1 }}>
+            {recentAchievements.map((s) => {
+              const at = unlockedAt.get(s.def.id);
+              return (
+                <AchievementBadge
+                  key={s.def.id}
+                  achievement={s.def}
+                  unlocked={!!at}
+                  unlockedNote={
+                    at
+                      ? t("achievements.unlockedOn", {
+                          date: new Date(at).toLocaleDateString(locale),
+                        })
+                      : undefined
+                  }
+                  locale={locale}
+                />
+              );
+            })}
+          </Stack>
+          <Button
+            component={Link}
+            href={`/${user.id}/achievements`}
+            variant="outlined"
+            color="neutral"
+            fullWidth
+            sx={{ mt: 1.5 }}
+          >
+            {t("profile.allAchievements")}
+          </Button>
+        </PanelCard>
+
         {/* Friends — first 3 + all friends → /[id]/friends */}
-        <Card>
-          <CardContent>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              {t("profile.friends")}
-            </Typography>
-            <Stack spacing={1} sx={{ mt: 1.5 }}>
-              {friends.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  {t("friends.empty")}
-                </Typography>
-              ) : (
-                friends.slice(0, 3).map((f) => {
-                  const name =
-                    [f.firstName, f.lastName].filter(Boolean).join(" ") ||
-                    (f.username ? `@${f.username}` : String(f.id));
-                  return (
-                    <Button
-                      key={f.id}
-                      component={Link}
-                      href={`/${f.id}`}
-                      color="neutral"
-                      sx={{
-                        justifyContent: "flex-start",
-                        textTransform: "none",
-                        gap: 1,
-                        px: 1,
-                      }}
-                    >
-                      <Avatar
-                        src={f.photoUrl ?? undefined}
-                        alt={name}
-                        sx={{ width: 28, height: 28 }}
-                      >
-                        {name.charAt(0)}
-                      </Avatar>
-                      <Typography variant="body2" noWrap>
-                        {name}
-                      </Typography>
-                    </Button>
-                  );
-                })
-              )}
-              <Button
-                component={Link}
-                href={`/${user.id}/friends`}
-                variant="outlined"
-                color="neutral"
-                fullWidth
-              >
-                {t("profile.allFriends")}
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
+        <PanelCard title={t("profile.friends")}>
+          <Stack spacing={1} sx={{ flex: 1 }}>
+            {friends.length === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {t("friends.empty")}
+              </Typography>
+            ) : (
+              friends.slice(0, 3).map((f) => {
+                const name =
+                  [f.firstName, f.lastName].filter(Boolean).join(" ") ||
+                  (f.username ? `@${f.username}` : String(f.id));
+                return <PersonRow key={f.id} id={f.id} name={name} photoUrl={f.photoUrl} />;
+              })
+            )}
+          </Stack>
+          <Button
+            component={Link}
+            href={`/${user.id}/friends`}
+            variant="outlined"
+            color="neutral"
+            fullWidth
+            sx={{ mt: 1.5 }}
+          >
+            {t("profile.allFriends")}
+          </Button>
+        </PanelCard>
 
         {/* Referrals — players who registered via this user's invite link */}
         {referrals.length > 0 && (
-          <Card>
-            <CardContent>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                {t("profile.referrals")}
-              </Typography>
-              <Stack spacing={1} sx={{ mt: 1.5 }}>
-                {referrals.map((r) => {
-                  const rname =
-                    [r.firstName, r.lastName].filter(Boolean).join(" ") ||
-                    (r.username ? `@${r.username}` : String(r.id));
-                  return (
-                    <Button
-                      key={r.id}
-                      component={Link}
-                      href={`/${r.id}`}
-                      color="neutral"
-                      sx={{
-                        justifyContent: "flex-start",
-                        textTransform: "none",
-                        gap: 1,
-                        px: 1,
-                      }}
-                    >
-                      <Avatar
-                        src={r.photoUrl ?? undefined}
-                        alt={rname}
-                        sx={{ width: 28, height: 28 }}
-                      >
-                        {rname.charAt(0)}
-                      </Avatar>
-                      <Typography variant="body2" noWrap>
-                        {rname}
-                      </Typography>
-                    </Button>
-                  );
-                })}
-              </Stack>
-            </CardContent>
-          </Card>
+          <PanelCard title={t("profile.referrals")}>
+            <Stack spacing={1} sx={{ flex: 1 }}>
+              {referrals.map((r) => {
+                const rname =
+                  [r.firstName, r.lastName].filter(Boolean).join(" ") ||
+                  (r.username ? `@${r.username}` : String(r.id));
+                return <PersonRow key={r.id} id={r.id} name={rname} photoUrl={r.photoUrl} />;
+              })}
+            </Stack>
+          </PanelCard>
         )}
       </Box>
-    </Box>
+    </Stack>
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+// A framed content panel — fills its grid cell (equal height) and lays children in
+// a column so a trailing action button pins to the bottom.
+function PanelCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Stack direction="row" justifyContent="space-between" spacing={2}>
-      <Typography variant="body2" color="text.secondary">
-        {label}
+    <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <CardContent
+        sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1.5 }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {title}
+        </Typography>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatTile({
+  icon,
+  value,
+  label,
+}: {
+  icon: string;
+  value: string;
+  label: string;
+}) {
+  return (
+    <Card sx={{ height: "100%" }}>
+      <CardContent
+        sx={{
+          p: 1.5,
+          "&:last-child": { pb: 1.5 },
+          textAlign: "center",
+        }}
+      >
+        <Typography sx={{ fontSize: 22, lineHeight: 1 }}>{icon}</Typography>
+        <Typography
+          sx={{
+            fontWeight: 800,
+            fontSize: "1.25rem",
+            fontVariantNumeric: "tabular-nums",
+            mt: 0.5,
+          }}
+          noWrap
+        >
+          {value}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" noWrap component="div">
+          {label}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PersonRow({
+  id,
+  name,
+  photoUrl,
+}: {
+  id: number;
+  name: string;
+  photoUrl: string | null;
+}) {
+  return (
+    <Button
+      component={Link}
+      href={`/${id}`}
+      color="neutral"
+      sx={{ justifyContent: "flex-start", textTransform: "none", gap: 1, px: 1 }}
+    >
+      <Avatar src={photoUrl ?? undefined} alt={name} sx={{ width: 28, height: 28 }}>
+        {name.charAt(0)}
+      </Avatar>
+      <Typography variant="body2" noWrap>
+        {name}
       </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-        {value}
-      </Typography>
-    </Stack>
+    </Button>
   );
 }

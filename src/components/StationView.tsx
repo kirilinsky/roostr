@@ -122,6 +122,9 @@ export default function StationView({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickedId, setPickedId] = useState<string | null>(null);
   const [now, setNow] = useState(lastSettleAtMs);
+  // Just-claimed amount → a floating "+N" that rises over the buffer. `key` restarts
+  // the CSS animation on repeat claims.
+  const [reward, setReward] = useState<{ n: number; key: number } | null>(null);
 
   // Tick the live buffer once a second.
   useEffect(() => {
@@ -189,9 +192,11 @@ export default function StationView({
   const toastAchievements = useAchievementToasts();
   const claim = () =>
     startBusy(async () => {
+      const amount = claimable; // snapshot before the buffer resets
       const res = await claimStationAction(kind);
       router.refresh();
       if (res.ok) {
+        if (amount > 0) setReward({ n: amount, key: Date.now() });
         const newlyUnlocked = await syncProfileAchievementsAction();
         toastAchievements(newlyUnlocked);
       }
@@ -298,7 +303,50 @@ export default function StationView({
             />
           </Stack>
 
-          <Box>
+          <Box sx={{ position: "relative" }}>
+            {/* Floating "+N" reward that rises over the bar on claim. */}
+            {reward && (
+              <Box
+                key={reward.key}
+                onAnimationEnd={() => setReward(null)}
+                sx={{
+                  position: "absolute",
+                  top: -2,
+                  left: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  fontWeight: 900,
+                  fontSize: "1.1rem",
+                  color: "secondary.main",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                  textShadow: (theme) =>
+                    `0 1px 4px ${theme.palette.background.paper}`,
+                  animation: "roostrClaimRise 1.1s ease-out forwards",
+                  "@keyframes roostrClaimRise": {
+                    "0%": {
+                      opacity: 0,
+                      transform: "translate(-50%, 10px) scale(0.8)",
+                    },
+                    "18%": { opacity: 1 },
+                    "100%": {
+                      opacity: 0,
+                      transform: "translate(-50%, -30px) scale(1.12)",
+                    },
+                  },
+                }}
+              >
+                +{reward.n}
+                <Image
+                  src={ui.icon}
+                  alt=""
+                  width={18}
+                  height={18}
+                  style={{ height: 16, width: "auto" }}
+                />
+              </Box>
+            )}
             <Stack
               direction="row"
               justifyContent="space-between"
@@ -327,7 +375,14 @@ export default function StationView({
             <LinearProgress
               variant="determinate"
               value={bufferPct}
-              sx={{ height: 14, borderRadius: 7 }}
+              sx={{
+                height: 14,
+                borderRadius: 7,
+                // Smooth, eased rollback when the buffer resets after a claim.
+                "& .MuiLinearProgress-bar": {
+                  transition: "transform .6s cubic-bezier(.4,0,.2,1)",
+                },
+              }}
             />
             <Typography
               variant="caption"

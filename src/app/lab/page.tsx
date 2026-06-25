@@ -1,8 +1,6 @@
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Link from "next/link";
 import StationView from "@/components/StationView";
 import { getSession } from "@/lib/auth";
 import { getRoostrs, getStationView } from "@/db/queries";
@@ -32,26 +30,9 @@ export default async function LabPage() {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
       <Stack spacing={2}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          spacing={1}
-          flexWrap="wrap"
-          useFlexGap
-        >
-          <Typography variant="h4" component="h1">
-            {t("nav.lab")}
-          </Typography>
-          <Button
-            component={Link}
-            href="/lab/synthetic-genes"
-            variant="outlined"
-            color="secondary"
-          >
-            🧬 {t("lab.geneShop")}
-          </Button>
-        </Stack>
+        <Typography variant="h4" component="h1">
+          {t("nav.lab")}
+        </Typography>
         <StationView
           kind="lab"
           workers={workers}

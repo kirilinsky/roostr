@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Badge from "@mui/material/Badge";
@@ -10,6 +11,55 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { EnergyState } from "@/components/AppShell";
 
+// Tween a balance from its previous value to the new one (easeOutCubic, ~520ms) and
+// pulse (scale + accent color) when it GROWS — so a claim visibly "lands" in the HUD.
+function AnimatedNumber({ value }: { value: number }) {
+  const [display, setDisplay] = useState(value);
+  const prev = useRef(value);
+  const [bump, setBump] = useState(false);
+
+  useEffect(() => {
+    const from = prev.current;
+    const to = value;
+    prev.current = value;
+    if (from === to) return;
+    let bumpTimer: ReturnType<typeof setTimeout> | undefined;
+    if (to > from) {
+      setBump(true);
+      bumpTimer = setTimeout(() => setBump(false), 480);
+    }
+    const dur = 520;
+    let startTs: number | null = null;
+    let raf = 0;
+    const tick = (ts: number) => {
+      if (startTs === null) startTs = ts;
+      const p = Math.min(1, (ts - startTs) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(Math.round(from + (to - from) * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(raf);
+      if (bumpTimer) clearTimeout(bumpTimer);
+    };
+  }, [value]);
+
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: "inline-block",
+        transition: "transform .18s ease, color .18s ease",
+        transform: bump ? "scale(1.22)" : "scale(1)",
+        color: bump ? "secondary.main" : "inherit",
+      }}
+    >
+      {display.toLocaleString()}
+    </Box>
+  );
+}
+
 function Counter({
   src,
   label,
@@ -17,7 +67,7 @@ function Counter({
 }: {
   src: string;
   label: string;
-  value: string;
+  value: number | string;
 }) {
   return (
     <Box
@@ -36,6 +86,7 @@ function Counter({
         style={{ height: 16, width: "auto" }}
       />
       <Typography
+        component="div"
         sx={{
           fontWeight: 800,
           fontVariantNumeric: "tabular-nums",
@@ -43,7 +94,7 @@ function Counter({
         }}
         noWrap
       >
-        {value}
+        {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
       </Typography>
     </Box>
   );
@@ -109,24 +160,20 @@ export default function ResourceBar({
           divider={<Divider orientation="vertical" flexItem />}
         >
           {typeof coinBalance === "number" && (
-            <Counter
-              src="/corn-coin.png"
-              label="Corn Coin"
-              value={coinBalance.toLocaleString()}
-            />
+            <Counter src="/corn-coin.png" label="Corn Coin" value={coinBalance} />
           )}
           {typeof sciBalance === "number" && (
             <Counter
               src="/sci.png"
               label={sciLabel ?? "Science"}
-              value={sciBalance.toLocaleString()}
+              value={sciBalance}
             />
           )}
           {typeof eggsBalance === "number" && (
             <Counter
               src="/eggs.png"
               label={eggsLabel ?? "Eggs"}
-              value={eggsBalance.toLocaleString()}
+              value={eggsBalance}
             />
           )}
           {energy && (
