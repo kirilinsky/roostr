@@ -354,7 +354,10 @@ export async function getProfileMetrics(
       ws.find((r) => r.kind === "lab")?.slots ?? STATIONS.lab.baseSlots;
     metrics.defenseGuards =
       ws.find((r) => r.kind === "defense")?.ids?.length ?? 0;
-    metrics.defenseValue = await getDefenseValue(userId); // Σ Crow on watch
+    // One read for both station-derived metrics: base defense (Σ Crow) + farm income.
+    const hud = await getHudStationStats(userId);
+    metrics.defenseValue = hud.defenseValue; // Σ Crow on watch
+    metrics.farmEggsPerDay = hud.eggPerDay; // farm egg income / day
 
     // Times the player has claimed from a station (ledger rows kind farm|lab).
     const [sc] = await db
@@ -684,10 +687,16 @@ export async function setNickname(
   try {
     const { db } = await import("@/db");
     const { roostrs } = await import("@/db/schema");
-    const { and, eq } = await import("drizzle-orm");
+    const { and, eq, sql } = await import("drizzle-orm");
+    // Bump meta.renameCount on a real rename (not a clear) — drives the per-bird
+    // "Indecisive" achievement. jsonb_set preserves the rest of meta (work stamp).
+    const inc = nickname ? 1 : 0;
     const res = await db
       .update(roostrs)
-      .set({ nickname })
+      .set({
+        nickname,
+        meta: sql`jsonb_set(coalesce(${roostrs.meta}, '{}'::jsonb), '{renameCount}', to_jsonb(coalesce((${roostrs.meta}->>'renameCount')::int, 0) + ${inc}))`,
+      })
       .where(and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId)))
       .returning({ id: roostrs.id });
     return res.length > 0;

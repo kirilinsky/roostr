@@ -51,9 +51,14 @@ export default async function RoostrDetailPage({
   // Rooster (per-bird) achievements: evaluate against THIS bird. They're stored
   // account-level (unlocked once any owned bird qualifies; ids don't collide with
   // profile ones). Persist + toast only for the owner; display the earned ones.
+  // Times THIS bird was renamed (meta.renameCount) → "Indecisive".
+  const renameCount = Number(
+    (row.meta as { renameCount?: number } | null)?.renameCount ?? 0,
+  );
   const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, {
     ...roosterMetricsFrom(roostr),
     owners: ownerSet.size,
+    renameCount,
   });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =

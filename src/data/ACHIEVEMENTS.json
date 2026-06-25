@@ -301,7 +301,7 @@
         "en": "Invite 10 friends.",
         "ru": "Пригласи 10 друзей."
       },
-      "metric": "invites",
+      "metric": "referralsCount",
       "value": 10
     },
     {
@@ -678,6 +678,21 @@
       },
       "metric": "tierBCount",
       "value": 8
+    },
+    {
+      "id": "census",
+      "icon": "📋",
+      "tier": "collectible",
+      "name": {
+        "en": "The Census",
+        "ru": "Перепись населения"
+      },
+      "desc": {
+        "en": "Rename 50 roosters.",
+        "ru": "Переименуй 50 петухов."
+      },
+      "metric": "renames",
+      "value": 50
     }
   ],
   "rooster": [
@@ -874,6 +889,21 @@
         "ru": "Петух, у которого было больше 4 хозяев."
       },
       "metric": "owners",
+      "value": 5
+    },
+    {
+      "id": "indecisive",
+      "icon": "🤔",
+      "tier": "rare",
+      "name": {
+        "en": "Identity Crisis",
+        "ru": "Неопределился"
+      },
+      "desc": {
+        "en": "Rename one rooster 5 times.",
+        "ru": "Смени никнейм одному петуху 5 раз."
+      },
+      "metric": "renameCount",
       "value": 5
     }
   ]
