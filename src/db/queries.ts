@@ -320,6 +320,7 @@ export async function getProfileMetrics(
     metrics.roostrsOwned = owned.length;
     let highest = 0;
     let tierB = 0;
+    let renamed = 0;
     const tiers = new Set<number>();
     for (const row of owned) {
       const tierId = hydrateRoostr(row).tier.id;
@@ -327,10 +328,13 @@ export async function getProfileMetrics(
       if (rank > highest) highest = rank;
       if (rank >= 0) tiers.add(rank);
       if (tierId === "B") tierB++;
+      if (row.nickname && row.nickname.trim()) renamed++;
     }
     metrics.highestTier = highest;
     metrics.tiersOwned = tiers.size;
     metrics.tierBCount = tierB;
+    // "Name Giver" — at least one owned rooster carries a custom nickname.
+    metrics.renames = renamed;
 
     // --- Quest-supporting metrics (also usable by achievements) ---
     // Stations: workers currently assigned (sum across farm+lab) + slots owned per
