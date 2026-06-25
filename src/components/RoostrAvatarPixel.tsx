@@ -9,7 +9,7 @@ import {
 } from "@/lib/roostr";
 
 // Detailed pixel-art avatar (the only renderer — matches the brand: logo + gene
-// assets are pixel art). We rasterize primitives into a 48×48 grid, then add a
+// assets are pixel art). We rasterize primitives into a high-res pixel grid, then add a
 // shade layer (belly shadow, highlights, feather edges) on top of a single
 // diagonal light. Rendered to a tiny canvas scaled up with image-rendering:
 // pixelated — crisp and cheap even with many cards on screen.
@@ -20,8 +20,8 @@ import {
 // Coordinates in buildGrid are authored in a 64-unit DESIGN space; the grid is
 // rasterized at GRID = D * S so curves/feathers come out smooth and detailed.
 const D = 64;
-const S = 4;
-const GRID = D * S; // 256 native
+const S = 5;
+const GRID = D * S; // 320 native
 const BEAK_HEX = "#E9A23B";
 const OUTLINE = "#15151b";
 const EYE_WHITE = "#fbf6ea";
@@ -86,6 +86,89 @@ function lerpHex(a: string, b: string, t: number): string {
   const [r1, g1, b1] = hexRgb(a);
   const [r2, g2, b2] = hexRgb(b);
   return rgbHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+}
+function hash01(x: number, y: number, seed: number): number {
+  let n = (x * 374761393 + y * 668265263 + seed * 1442695041) >>> 0;
+  n = (n ^ (n >>> 13)) >>> 0;
+  n = Math.imul(n, 1274126177) >>> 0;
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+}
+function smooth01(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+function lerpNum(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+function fract(n: number): number {
+  return n - Math.floor(n);
+}
+function valueNoise(dx: number, dy: number, scale: number, seed: number): number {
+  const sx = dx / scale;
+  const sy = dy / scale;
+  const x0 = Math.floor(sx);
+  const y0 = Math.floor(sy);
+  const tx = smooth01(fract(sx));
+  const ty = smooth01(fract(sy));
+  const a = hash01(x0, y0, seed);
+  const b = hash01(x0 + 1, y0, seed);
+  const c = hash01(x0, y0 + 1, seed);
+  const d = hash01(x0 + 1, y0 + 1, seed);
+  return lerpNum(lerpNum(a, b, tx), lerpNum(c, d, tx), ty);
+}
+function periodicLine(v: number, width: number): number {
+  const dist = Math.abs(fract(v) - 0.5) * 2;
+  return Math.max(0, 1 - dist / width);
+}
+function materialTexture(id: number, x: number, y: number, seed: number): number {
+  const dx = x / S;
+  const dy = y / S;
+  const coarse = valueNoise(dx, dy, 5.4, seed + id * 37) - 0.5;
+  const grain = valueNoise(dx + 19, dy - 11, 2.6, seed + id * 73) - 0.5;
+  let amt = coarse * 0.03 + grain * 0.012;
+
+  if (id === BODY) {
+    const softRows = periodicLine(dy / 4.2 + Math.sin(dx * 0.28 + seed) * 0.08, 0.22);
+    const broken = valueNoise(dx + 31, dy, 3.8, seed + 101);
+    amt -= softRows * broken * 0.025;
+    amt += periodicLine(dy / 4.2 + 0.18 + Math.sin(dx * 0.28 + seed) * 0.08, 0.16) * 0.012;
+  } else if (id === WING) {
+    const vane = dx * 0.42 + dy * 0.68 + seed * 0.07;
+    amt -= periodicLine(vane / 2.6, 0.18) * 0.055;
+    amt += periodicLine(vane / 2.6 + 0.16, 0.13) * 0.022;
+  } else if (id === HACKLE || id === SADDLE) {
+    const flow = dx * 0.62 - dy * 0.28 + Math.sin(dy * 0.18) * 0.24 + seed * 0.05;
+    amt -= periodicLine(flow / 2.1, 0.17) * 0.052;
+    amt += periodicLine(flow / 2.1 + 0.2, 0.12) * 0.026;
+  } else if (id === TAIL) {
+    const vane = dx * 0.68 + dy * 0.22 + Math.sin(dy * 0.22) * 0.45 + seed * 0.09;
+    amt -= periodicLine(vane / 2.7, 0.2) * 0.06;
+    amt += periodicLine(vane / 2.7 + 0.22, 0.12) * 0.032;
+  } else if (id === COMB || id === WATTLE) {
+    amt += (valueNoise(dx, dy, 3.2, seed + 211) - 0.5) * 0.055;
+    amt += periodicLine((dx + dy * 0.45) / 5.2 + seed * 0.03, 0.12) * -0.016;
+  } else if (id === LEG || id === BEAK || id === BARE_NECK) {
+    const rings = periodicLine(dy / 2.9 + seed * 0.05, 0.15);
+    amt -= rings * 0.026;
+    if (id === BEAK) amt += periodicLine(dx / 5.6 + dy / 11 + seed * 0.02, 0.18) * 0.018;
+  }
+
+  return amt;
+}
+function edgeShade(ids: Int8Array, x: number, y: number, id: number): number {
+  let edge = 0;
+  let seam = 0;
+  const check = (xx: number, yy: number) => {
+    if (!inb(xx, yy)) return;
+    const nid = ids[at(xx, yy)];
+    if (nid === id) return;
+    if (nid === E || nid === OUT) edge++;
+    else seam++;
+  };
+  check(x - 1, y);
+  check(x + 1, y);
+  check(x, y - 1);
+  check(x, y + 1);
+  return edge * -0.028 + seam * -0.014;
 }
 // box-blur the shade layer so light/shadow read as soft gradients, not blocky
 // steps — the core "hybrid" move toward the painterly reference art.
@@ -873,7 +956,7 @@ export default function RoostrAvatarPixel({
     const ctx = cv.getContext("2d");
     if (!ctx) return;
 
-    // 1) paint native-res pixels via ImageData (fast at 256²)
+    // 1) paint native-res pixels via ImageData (fast at 320²)
     const off =
       offRef.current ?? (offRef.current = document.createElement("canvas"));
     off.width = GRID;
@@ -926,7 +1009,9 @@ export default function RoostrAvatarPixel({
           fill = OUTLINE;
         } else {
           const t = (x + y) / (2 * GRID);
-          const amt = 0.16 - t * 0.36 + sh[p] * 0.085;
+          const material = materialTexture(id, x, y, seed);
+          const boundary = edgeShade(grid.ids, x, y, id);
+          const amt = 0.16 - t * 0.36 + sh[p] * 0.085 + material + boundary;
           fill = shade(baseHex(id), Math.max(-0.55, Math.min(0.45, amt)));
           // iridescent green/blue sheen banding on tail feathers — only when the
           // tail's material effect calls for it (design-space).
@@ -945,27 +1030,26 @@ export default function RoostrAvatarPixel({
       }
     octx.putImageData(img, 0, 0);
 
-    // 2) display: a light blur softens the high-res pixels — hybrid look
+    // 2) display: high-res pixel art, crisp enough to read as deliberate detail.
     cv.width = GRID;
     cv.height = GRID;
     ctx.clearRect(0, 0, GRID, GRID);
-    ctx.filter = "blur(0.4px)";
+    ctx.imageSmoothingEnabled = false;
     ctx.drawImage(off, 0, 0);
-    ctx.filter = "none";
-  }, [grid, hex, tailSheen]);
+  }, [grid, hex, seed, tailSheen]);
 
   return (
     <canvas
       ref={ref}
-      width={256}
-      height={256}
+      width={GRID}
+      height={GRID}
       role="img"
       aria-label={`${breed.name.en} roostr avatar`}
       style={{
         width: "100%",
         height: "100%",
         aspectRatio: "1 / 1",
-        imageRendering: "auto",
+        imageRendering: "pixelated",
         display: "block",
       }}
     />

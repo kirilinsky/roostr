@@ -158,6 +158,17 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   seasonal bird hatches COMMON; "exotic" = a rare BREED identity available only in the window, not a
   birth-rarity tier). Season window = server start/end timestamps (server-gated, no client trust).
   Distribution TBD (event hatch / drops). Exact breeds/genes/stats/dates TBD.
+- V20 — HUD + RESOURCE ANIMATIONS. The top-right HUD ([ResourceBar](src/components/ResourceBar.tsx))
+  is the single live view of wallet balances (coin/sci/egg/feather). (a) **Icons = images, never
+  emoji** for those four resources — reuse the HUD art (`/corn-coin.png`, `/sci.png`, `/eggs.png`,
+  `/feather.png`) everywhere a resource amount is shown (HUD, profile stat tiles, station slot cost,
+  …). Emoji only for things with no asset (🐔 roosters, 📕 breeds, 👥 friends). (b) Numeric balances
+  render through `AnimatedNumber`: it tweens old→new (easeOutCubic ~520ms) and PULSES (scale + accent)
+  on ANY change — grow (claim) or shrink (hatch/spend). (c) Any client mutation that changes a wallet
+  balance MUST `router.refresh()` after success so the server-rendered HUD re-reads it and animates
+  (e.g. hatch, station claim, slot buy). A local-only state update that skips the refresh leaves the
+  HUD stale — that is the bug class this invariant forbids. Station claims also float a "+N" over the
+  buffer; the buffer bar eases on rollback.
 
 ## §T — Tasks
 

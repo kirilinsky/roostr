@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { keyframes } from "@emotion/react";
 import Box from "@mui/material/Box";
@@ -27,6 +28,7 @@ export default function IncubatorView({
   admin: boolean;
 }) {
   const t = useT();
+  const router = useRouter();
   const [eggs, setEggs] = useState(initialEggs);
   const [result, setResult] = useState<RolledRoostr | null>(null);
   const [pending, setPending] = useState(false);
@@ -50,6 +52,8 @@ export default function IncubatorView({
       }
       if (res.eggsLeft !== null) setEggs(res.eggsLeft);
       setResult(res.roostr);
+      // Re-render the layout so the HUD egg balance reflects the spend (animated).
+      router.refresh();
     } finally {
       setPending(false);
     }

@@ -23,11 +23,9 @@ function AnimatedNumber({ value }: { value: number }) {
     const to = value;
     prev.current = value;
     if (from === to) return;
-    let bumpTimer: ReturnType<typeof setTimeout> | undefined;
-    if (to > from) {
-      setBump(true);
-      bumpTimer = setTimeout(() => setBump(false), 480);
-    }
+    // Pulse on any change — grow (claim) or shrink (hatch/spend).
+    setBump(true);
+    const bumpTimer = setTimeout(() => setBump(false), 480);
     const dur = 520;
     let startTs: number | null = null;
     let raf = 0;
