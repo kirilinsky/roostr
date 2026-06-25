@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -82,12 +83,18 @@ export default async function OwnProfile({
   const referrals = await getReferredUsers(user.id);
   const hasRequests = incoming.length > 0 || outgoing.length > 0;
 
-  const stats = [
-    { icon: "🥚", value: metrics.eggsHatched ?? 0, label: t("profile.eggsHatched") },
+  // Resource stats use the same icon art as the HUD (img); the rest use an emoji.
+  const stats: {
+    img?: string;
+    icon?: string;
+    value: number;
+    label: string;
+  }[] = [
+    { img: "/eggs.png", value: metrics.eggsHatched ?? 0, label: t("profile.eggsHatched") },
     { icon: "🐔", value: metrics.roostrsOwned ?? 0, label: t("profile.roostrsOwned") },
     { icon: "📕", value: metrics.breedsDiscovered ?? 0, label: t("profile.breedsDiscovered") },
-    { icon: "🌽", value: metrics.coinsEarned ?? 0, label: t("profile.coinsEarned") },
-    { icon: "🔬", value: metrics.sciEarned ?? 0, label: t("profile.sciEarned") },
+    { img: "/corn-coin.png", value: metrics.coinsEarned ?? 0, label: t("profile.coinsEarned") },
+    { img: "/sci.png", value: metrics.sciEarned ?? 0, label: t("profile.sciEarned") },
     { icon: "👥", value: metrics.friends ?? 0, label: t("profile.friends") },
   ];
 
@@ -189,6 +196,7 @@ export default async function OwnProfile({
         {stats.map((s) => (
           <StatTile
             key={s.label}
+            img={s.img}
             icon={s.icon}
             value={s.value.toLocaleString()}
             label={s.label}
@@ -319,11 +327,13 @@ function PanelCard({
 }
 
 function StatTile({
+  img,
   icon,
   value,
   label,
 }: {
-  icon: string;
+  img?: string;
+  icon?: string;
   value: string;
   label: string;
 }) {
@@ -336,7 +346,21 @@ function StatTile({
           textAlign: "center",
         }}
       >
-        <Typography sx={{ fontSize: 22, lineHeight: 1 }}>{icon}</Typography>
+        <Box sx={{ height: 22, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          {img ? (
+            <Image
+              src={img}
+              alt=""
+              width={24}
+              height={24}
+              style={{ height: 22, width: "auto" }}
+            />
+          ) : (
+            <Typography component="span" sx={{ fontSize: 22, lineHeight: 1 }}>
+              {icon}
+            </Typography>
+          )}
+        </Box>
         <Typography
           sx={{
             fontWeight: 800,
