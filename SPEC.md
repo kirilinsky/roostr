@@ -193,6 +193,23 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   `savePreparedInlineMessage` + `shareMessage`. BOTH issue the SAME JWT session cookie
   (`signSession` + `upsertUser`); the identity SOURCE and the UI shell are the only
   divergence. Detection: `WebApp.initData` present → Mini App path; else → web/OAuth.
+- V23 — ARENA / BATTLES (IDEAS ONLY — not a plan yet; format/formulas/numbers all TBD). The combat
+  system that fills the `/arena` screen (T8) and that other systems already hook into: the referral
+  FIRST-BATTLE reward (V17c / T35) and rarity DROPS (V18) fire from here. Two independent axes, both
+  ALWAYS server-resolved on server state (no client trust, like V13/V14):
+  • OPPONENT — ship PvE FIRST, PvP LATER. PvE = fight BOTS (server-generated opponents, tunable
+    difficulty) so the loop works from day one without a live player pool; PvP = real opponents once
+    there's population (matchmaking / fairness TBD). Same resolution engine for both — a bot is just an
+    opponent roster the server builds.
+  • FORMAT — two modes: 1v1 (single-rooster duel) and TEAM (squad vs squad, LIKELY 3v3 — size TBD).
+  Resolution derives from a rooster's combat profile (the 12 skills + HP, so genes/tier matter, per the
+  upgrade ladder; tier already governs reward size) against the opponent's, plus BOUNDED RNG; feathers
+  are the per-fight energy cost (the Feathers invariant). Rewards = coins (scale with tier) + occasional
+  rarity drop (V18). OPEN QUESTIONS to decide before this becomes a plan: instant-resolve sim vs
+  turn-based; how a bird's stats map to a fight outcome (single roll vs round loop); PvP matchmaking /
+  MMR + anti-smurf; TEAM rules — exact size, whether queued/fighting birds get LOCKED (status, like
+  working/raiding/listed per V13), 3v3 turn order / targeting, squad synergy; bot difficulty curve;
+  energy cost + cooldown per mode; loss penalty (if any). Decide the format here, then split into §T.
 
 ## §T — Tasks
 
