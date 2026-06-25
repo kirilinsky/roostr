@@ -17,7 +17,6 @@ import {
 } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 import { MONO_FONT } from "@/lib/tokens";
-import { contrastText } from "@/lib/contrast";
 
 const FAMILY_NAME = Object.fromEntries(FAMILIES.map((f) => [f.id, f.name]));
 
@@ -80,7 +79,7 @@ export default async function PediaGenesPage() {
                         fontSize: 11,
                         fontWeight: 700,
                         bgcolor: color,
-                        color: contrastText(color),
+                        color: "text.primary",
                       }}
                     />
                   </Box>

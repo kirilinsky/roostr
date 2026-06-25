@@ -382,7 +382,7 @@
       "weakness": "Recovery",
       "role": "Showman",
       "statMods": {
-        "Crow": 2,
+        "Crow": 3,
         "Recovery": -1,
         "Stealth": -2
       }
@@ -498,9 +498,10 @@
       "weakness": "Speed",
       "role": "Farmer",
       "statMods": {
-        "Fertility": 2,
+        "Fertility": 3,
         "Intellect": 1,
-        "Speed": -1
+        "Speed": -1,
+        "Damage": -1
       },
       "no": 25
     },

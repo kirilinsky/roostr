@@ -2035,9 +2035,12 @@ export async function assignWorker(
         slotsOwned: STATIONS[kind].baseSlots,
       });
     }
-    // lock the bird (only if still active — guards a double-assign race) and stamp
-    // the work assignment (kind + since) into meta for the collection badge.
-    await db
+    // Lock the bird as the AUTHORITY for "is it working": CAS status active→working,
+    // RETURNING the row. A bird can join only ONE station — two concurrent assigns
+    // (e.g. defense + lab on the same bird) both append above, but only ONE wins this
+    // CAS; the loser sees 0 rows and ROLLS BACK its append, so the bird is never
+    // double-counted across stations. (neon-http has no interactive tx → CAS + undo.)
+    const locked = await db
       .update(roostrs)
       .set({
         status: "working",
@@ -2049,7 +2052,17 @@ export async function assignWorker(
           eq(roostrs.ownerId, userId),
           eq(roostrs.status, "active"),
         ),
-      );
+      )
+      .returning({ id: roostrs.id });
+    if (locked.length === 0) {
+      // Lost the lock (bird grabbed by another station, or no longer active) — undo
+      // our append so it doesn't linger in this station's roster while owned elsewhere.
+      await db
+        .update(workStations)
+        .set({ roostrIds: ids })
+        .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)));
+      return { ok: false, error: "locked" };
+    }
     return { ok: true };
   } catch (e) {
     console.error("assignWorker failed:", e);
