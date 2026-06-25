@@ -46,6 +46,10 @@ export default function AppShell({
   eggsBalance,
   sciBalance,
   defenseBalance,
+  sciPerHour,
+  eggsPerDay,
+  perHourLabel,
+  perDayLabel,
   energy,
   feathersLabel,
   eggsLabel,
@@ -64,6 +68,10 @@ export default function AppShell({
   eggsBalance?: number;
   sciBalance?: number;
   defenseBalance?: number;
+  sciPerHour?: number;
+  eggsPerDay?: number;
+  perHourLabel?: string;
+  perDayLabel?: string;
   energy?: EnergyState;
   feathersLabel?: string;
   eggsLabel?: string;
@@ -273,6 +281,10 @@ export default function AppShell({
         eggsBalance={eggsBalance}
         sciBalance={sciBalance}
         defenseBalance={defenseBalance}
+        sciPerHour={sciPerHour}
+        eggsPerDay={eggsPerDay}
+        perHourLabel={perHourLabel}
+        perDayLabel={perDayLabel}
         energy={energy}
         feathersLabel={feathersLabel}
         eggsLabel={eggsLabel}

@@ -13,7 +13,7 @@ import { getSession } from "@/lib/auth";
 import {
   getUserById,
   countUnreadNotifications,
-  getDefenseValue,
+  getHudStationStats,
 } from "@/db/queries";
 import { isAdmin } from "@/lib/admin";
 import { headlineFont, bodyFont } from "@/app/fonts";
@@ -85,8 +85,13 @@ export default async function RootLayout({
   const notificationCount = session
     ? await countUnreadNotifications(session.id)
     : 0;
-  // Live base-defense value (Σ Crow of guards on watch) for the HUD.
-  const defenseValue = session ? await getDefenseValue(session.id) : 0;
+  // Consolidated HUD station stats: base defense (Σ Crow) + live sci/day (lab) and
+  // egg/day (farm) income. Hourly = day/24, rounded; shown only when ≥ 1.
+  const hud = session
+    ? await getHudStationStats(session.id)
+    : { defenseValue: 0, sciPerDay: 0, eggPerDay: 0 };
+  const sciPerHour = Math.round(hud.sciPerDay / 24);
+  const eggPerDay = Math.round(hud.eggPerDay);
 
   // Game nav is for logged-in players only; guests do not get the app sidebar.
   const mainNav: NavItem[] = loggedIn
@@ -132,7 +137,11 @@ export default async function RootLayout({
                     coinBalance={user ? (dbUser?.coins ?? 0) : undefined}
                     eggsBalance={user ? (dbUser?.eggs ?? 0) : undefined}
                     sciBalance={user ? (dbUser?.sci ?? 0) : undefined}
-                    defenseBalance={user ? defenseValue : undefined}
+                    defenseBalance={user ? hud.defenseValue : undefined}
+                    sciPerHour={user ? sciPerHour : undefined}
+                    eggsPerDay={user ? eggPerDay : undefined}
+                    perHourLabel={t("resource.perHour")}
+                    perDayLabel={t("resource.perDay")}
                     energy={user ? { current: 10, max: 10 } : undefined}
                     feathersLabel={t("resource.feathers")}
                     eggsLabel={t("resource.eggs")}

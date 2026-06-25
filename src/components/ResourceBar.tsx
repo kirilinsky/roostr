@@ -63,11 +63,15 @@ function Counter({
   emoji,
   label,
   value,
+  rate,
+  rateUnit,
 }: {
   src?: string;
   emoji?: string;
   label: string;
   value: number | string;
+  rate?: number; // rounded income — shown as a small "+N{unit}" tag when ≥ 1
+  rateUnit?: string;
 }) {
   return (
     <Box
@@ -102,6 +106,22 @@ function Counter({
       >
         {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
       </Typography>
+      {typeof rate === "number" && rate >= 1 && (
+        <Typography
+          component="span"
+          sx={{
+            fontWeight: 800,
+            fontVariantNumeric: "tabular-nums",
+            color: "primary.main",
+            lineHeight: 1,
+            fontSize: { xs: "0.58rem", md: "0.65rem" },
+          }}
+          noWrap
+        >
+          +{rate}
+          {rateUnit ?? "/h"}
+        </Typography>
+      )}
     </Box>
   );
 }
@@ -114,6 +134,10 @@ export default function ResourceBar({
   eggsBalance,
   sciBalance,
   defenseBalance,
+  sciPerHour,
+  eggsPerDay,
+  perHourLabel,
+  perDayLabel,
   energy,
   feathersLabel,
   eggsLabel,
@@ -125,6 +149,10 @@ export default function ResourceBar({
   eggsBalance?: number;
   sciBalance?: number;
   defenseBalance?: number;
+  sciPerHour?: number;
+  eggsPerDay?: number;
+  perHourLabel?: string;
+  perDayLabel?: string;
   energy?: EnergyState;
   feathersLabel?: string;
   eggsLabel?: string;
@@ -175,6 +203,8 @@ export default function ResourceBar({
               src="/sci.png"
               label={sciLabel ?? "Science"}
               value={sciBalance}
+              rate={sciPerHour}
+              rateUnit={perHourLabel}
             />
           )}
           {typeof eggsBalance === "number" && (
@@ -182,6 +212,8 @@ export default function ResourceBar({
               src="/eggs.png"
               label={eggsLabel ?? "Eggs"}
               value={eggsBalance}
+              rate={eggsPerDay}
+              rateUnit={perDayLabel}
             />
           )}
           {energy && (
@@ -191,7 +223,7 @@ export default function ResourceBar({
               value={`${energy.current}/${energy.max}`}
             />
           )}
-          {/* Defense — TBA (raids/защита). Shows 0 until the system ships. */}
+          {/* Base defense — live Σ Crow of guards on watch (0 when none assigned). */}
           {typeof coinBalance === "number" && (
             <Counter
               src="/defense.png"

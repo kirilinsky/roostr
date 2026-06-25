@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import type { SxProps, Theme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Card from "@mui/material/Card";
@@ -35,12 +36,19 @@ const WALLET: ResourceKind[] = ["coin", "sci", "egg"];
 function SurfaceCard({
   children,
   minHeight,
+  sx,
 }: {
   children: ReactNode;
   minHeight?: number;
+  sx?: SxProps<Theme>;
 }) {
   return (
-    <Card variant="surface" sx={{ height: "100%", minHeight }}>
+    <Card
+      variant="surface"
+      sx={
+        [{ height: "100%", minHeight }, ...(sx ? [sx] : [])] as SxProps<Theme>
+      }
+    >
       <CardContent sx={{ height: "100%", p: 2, "&:last-child": { pb: 2 } }}>
         {children}
       </CardContent>
@@ -193,47 +201,6 @@ export default async function BankPage() {
                 gap: 1.25,
               }}
             >
-              {/* Block 2 — money actions (top up + transfer to friend, both soon) */}
-              <SurfaceCard minHeight={154}>
-                <Stack spacing={1.25} sx={{ height: "100%" }}>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                  >
-                    <Typography variant="overline" color="text.secondary">
-                      {t("bank.actions")}
-                    </Typography>
-                    <Chip
-                      label={t("pedia.soon")}
-                      size="small"
-                      variant="outlined"
-                      sx={{ borderRadius: 0.75 }}
-                    />
-                  </Stack>
-                  <Button
-                    variant="text"
-                    color="neutral"
-                    size="small"
-                    disabled
-                    fullWidth
-                    sx={{ justifyContent: "flex-start", opacity: 0.6 }}
-                  >
-                    {t("bank.topup")}
-                  </Button>
-                  <Button
-                    variant="text"
-                    color="neutral"
-                    size="small"
-                    disabled
-                    fullWidth
-                    sx={{ justifyContent: "flex-start", opacity: 0.6 }}
-                  >
-                    {t("bank.transfer")}
-                  </Button>
-                </Stack>
-              </SurfaceCard>
-
               {/* Block 3 — collectible rarities (soon) */}
               <SurfaceCard minHeight={154}>
                 <Stack
@@ -333,6 +300,52 @@ export default async function BankPage() {
                       {defenseValue.toLocaleString()}
                     </Typography>
                   </Box>
+                </Stack>
+              </SurfaceCard>
+
+              {/* Money actions (top up + transfer, both soon) — last, full width */}
+              <SurfaceCard sx={{ gridColumn: { sm: "1 / -1" } }}>
+                <Stack spacing={1.25} sx={{ height: "100%" }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Typography variant="overline" color="text.secondary">
+                      {t("bank.actions")}
+                    </Typography>
+                    <Chip
+                      label={t("pedia.soon")}
+                      size="small"
+                      variant="outlined"
+                      sx={{ borderRadius: 0.75 }}
+                    />
+                  </Stack>
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={1}
+                  >
+                    <Button
+                      variant="text"
+                      color="neutral"
+                      size="small"
+                      disabled
+                      fullWidth
+                      sx={{ justifyContent: "flex-start", opacity: 0.6 }}
+                    >
+                      {t("bank.topup")}
+                    </Button>
+                    <Button
+                      variant="text"
+                      color="neutral"
+                      size="small"
+                      disabled
+                      fullWidth
+                      sx={{ justifyContent: "flex-start", opacity: 0.6 }}
+                    >
+                      {t("bank.transfer")}
+                    </Button>
+                  </Stack>
                 </Stack>
               </SurfaceCard>
             </Box>

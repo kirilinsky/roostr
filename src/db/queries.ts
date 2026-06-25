@@ -1955,6 +1955,50 @@ export async function getDefenseValue(userId: number): Promise<number> {
   }
 }
 
+// One consolidated read for the resource HUD: base defense (Σ Crow) + the live
+// sci/day (lab) and egg/day (farm) income rates. Single stations query + a single
+// batched roostr fetch — cheaper than three getStationView round-trips per page.
+export async function getHudStationStats(
+  userId: number,
+): Promise<{ defenseValue: number; sciPerDay: number; eggPerDay: number }> {
+  const zero = { defenseValue: 0, sciPerDay: 0, eggPerDay: 0 };
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return zero;
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select()
+      .from(workStations)
+      .where(eq(workStations.userId, userId));
+    if (rows.length === 0) return zero;
+    const byId = new Map(
+      (await roostrsByIds(rows.flatMap((r) => r.roostrIds))).map((r) => [
+        r.id,
+        r,
+      ]),
+    );
+    const out = { ...zero };
+    for (const row of rows) {
+      const kind = row.kind as StationKind;
+      const def = STATIONS[kind];
+      if (!def) continue;
+      const workers = row.roostrIds
+        .map((id) => byId.get(id))
+        .filter((r): r is NonNullable<typeof r> => !!r);
+      const total = totalStat(workers, kind);
+      if (kind === "lab") out.sciPerDay = def.ratePerDay(total, workers.length);
+      else if (kind === "farm")
+        out.eggPerDay = def.ratePerDay(total, workers.length);
+      else if (kind === "defense") out.defenseValue = total; // Σ Crow
+    }
+    return out;
+  } catch (e) {
+    console.error("getHudStationStats failed:", e);
+    return zero;
+  }
+}
+
 export async function getStationView(userId: number, kind: StationKind) {
   const empty = {
     slotsOwned: STATIONS[kind].baseSlots,
