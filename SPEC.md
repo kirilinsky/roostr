@@ -182,6 +182,17 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   "quests" group listing claimable quests; ready quests add to the bell badge
   PERSISTENTLY (cleared by claiming, not by visiting) as a reward nudge. Referral
   milestones (invite 1/3/5) form the chain tail to push the referral loop.
+- V22 — DUAL CLIENT (planned): TWO front-ends over ONE shared backend. The DB, queries,
+  server actions and game logic are SINGLE-SOURCE — never forked per client. Only the
+  presentation shell + the auth entrypoint differ. (a) WEB = the current responsive
+  Next.js app, login via Telegram OAuth (`oauth.telegram.org` id_token). (b) TELEGRAM
+  MINI APP = a MOBILE-ONLY UI (no desktop layout; tailored for the in-Telegram webview),
+  loaded with `telegram-web-app.js`, authed by validating `WebApp.initData` server-side
+  (HMAC-SHA256 data-check vs the BOT TOKEN + `auth_date` freshness), referral via
+  `start_param`, respecting TG theme / safe-area / viewport, native share via
+  `savePreparedInlineMessage` + `shareMessage`. BOTH issue the SAME JWT session cookie
+  (`signSession` + `upsertUser`); the identity SOURCE and the UI shell are the only
+  divergence. Detection: `WebApp.initData` present → Mini App path; else → web/OAuth.
 
 ## §T — Tasks
 
@@ -229,6 +240,10 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T40 | . | widen news CTA: reward types beyond eggs — `claim_coin` / `claim_science` / `claim_feather` (optional), reuse claim-once CAS + `grantResource` ledger; admin form picks type+amount | C |
 | T41 | x | onboarding quests v1: linear chain (`QUESTS.json`) on profile metrics + new metrics (`stationWorkers`/`stationClaims`/`referralsCount`), `quest_claims` table, server-validated manual claim + ledger reward, `QuestBoard` on profile, notifications "quests" group + persistent badge, referral-milestone tail (1/3/5) | V21,C |
 | T42 | . | quest metric for gene upgrades (needs T23 gene-level persistence) + "upgrade a gene" quest; perf: cache `getProfileMetrics`/`countReadyQuests` so the layout badge doesn't recompute on every nav | V21,C |
+| T43 | . | Mini App auth: `telegram-web-app.js` SDK + `TelegramWebAppInit` (ready/expand, posts `initData`), server `initData` HMAC validation (`src/lib/telegram-initdata.ts`) + route `/api/auth/telegram/webapp` → `signSession`/`upsertUser`; env `TELEGRAM_BOT_TOKEN`; dual-path (initData inside TG, OAuth in browser); referral via `start_param` | V22,V17 |
+| T44 | . | Mini App mobile-only UI shell: a separate mobile-tailored layout/components (no desktop chrome — no sidebar/footer as-is), TG theme + safe-area/viewport insets, reuse all pages/data; web responsive shell stays unchanged | V22,V1 |
+| T45 | . | native Mini App share with media: bot endpoint calling `savePreparedInlineMessage` + client `shareMessage(id)` — rich photo share inside TG (supersedes the og:image link-preview for in-app sharing) | V22 |
+| T46 | x | Roostrdex completion rewards: full group discovered → coins (size×30), whole dex → +5 eggs; claim-once `dex_rewards` table, auto-granted on dex visit (`grantDexRewards`) + toast + HUD refresh; formula in `lib/dexRewards.ts`; filter shows per-group progress (N/M, ✓) + reward preview (motivation) | C |
 
 ## §B — Bugs
 

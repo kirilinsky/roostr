@@ -47,7 +47,7 @@ export default async function BankPage() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
       <Stack spacing={2.5}>
         <Typography variant="h4" component="h1">
           {t("bank.title")}
@@ -176,6 +176,97 @@ export default async function BankPage() {
                 >
                   {t("bank.raritiesDesc")}
                 </Typography>
+              </CardContent>
+            </Card>
+
+            {/* Block 4 — feathers (soon) */}
+            <Card>
+              <CardContent>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={1}
+                >
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1.5}
+                    sx={{ minWidth: 0 }}
+                  >
+                    <Image
+                      src="/feather.png"
+                      alt={t("resource.feathers")}
+                      width={28}
+                      height={28}
+                      style={{ height: 28, width: "auto" }}
+                    />
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="overline"
+                        color="text.secondary"
+                        sx={{ display: "block", lineHeight: 1.2 }}
+                      >
+                        {t("resource.feathers")}
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                        {balances.feather.toLocaleString()}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Chip
+                    label={t("pedia.soon")}
+                    size="small"
+                    variant="outlined"
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+
+            {/* Block 5 — defense (soon, TBA raids/защита) */}
+            <Card>
+              <CardContent>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  spacing={1}
+                >
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1.5}
+                    sx={{ minWidth: 0 }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: 26,
+                        lineHeight: 1,
+                        width: 28,
+                        textAlign: "center",
+                      }}
+                    >
+                      🛡️
+                    </Typography>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="overline"
+                        color="text.secondary"
+                        sx={{ display: "block", lineHeight: 1.2 }}
+                      >
+                        {t("nav.defense")}
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                        0
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Chip
+                    label={t("pedia.soon")}
+                    size="small"
+                    variant="outlined"
+                  />
+                </Stack>
               </CardContent>
             </Card>
           </Stack>

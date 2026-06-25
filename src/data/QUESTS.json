@@ -56,6 +56,20 @@
     "href": "/farm"
   },
   {
+    "id": "farm-expand",
+    "order": 4.5,
+    "icon": "🏗️",
+    "name": { "en": "Expand the farm", "ru": "Расширь ферму" },
+    "desc": {
+      "en": "Buy a +1 worker slot on the Farm to run more roosters.",
+      "ru": "Купи +1 слот воркера на Ферме — больше петухов в деле."
+    },
+    "metric": "farmSlots",
+    "value": 3,
+    "reward": { "resource": "sci", "amount": 50 },
+    "href": "/farm"
+  },
+  {
     "id": "station-claim",
     "order": 5,
     "icon": "🧺",
@@ -109,6 +123,20 @@
     "value": 1,
     "reward": { "resource": "egg", "amount": 1 },
     "href": "/pedia/mechanics/referrals"
+  },
+  {
+    "id": "lab-expand",
+    "order": 8.5,
+    "icon": "🔧",
+    "name": { "en": "Expand the lab", "ru": "Расширь лабу" },
+    "desc": {
+      "en": "Buy a +1 worker slot in the Lab to brew more science.",
+      "ru": "Купи +1 слот воркера в Лаборатории — больше науки."
+    },
+    "metric": "labSlots",
+    "value": 3,
+    "reward": { "resource": "coin", "amount": 50 },
+    "href": "/lab"
   },
   {
     "id": "referral-three",

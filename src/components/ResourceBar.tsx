@@ -60,10 +60,12 @@ function AnimatedNumber({ value }: { value: number }) {
 
 function Counter({
   src,
+  emoji,
   label,
   value,
 }: {
-  src: string;
+  src?: string;
+  emoji?: string;
   label: string;
   value: number | string;
 }) {
@@ -76,13 +78,19 @@ function Counter({
         gap: { xs: 0.25, md: 0.5 },
       }}
     >
-      <Image
-        src={src}
-        alt={label}
-        width={18}
-        height={18}
-        style={{ height: 16, width: "auto" }}
-      />
+      {emoji ? (
+        <Box component="span" sx={{ fontSize: 16, lineHeight: 1 }}>
+          {emoji}
+        </Box>
+      ) : (
+        <Image
+          src={src ?? ""}
+          alt={label}
+          width={18}
+          height={18}
+          style={{ height: 16, width: "auto" }}
+        />
+      )}
       <Typography
         component="div"
         sx={{
@@ -181,13 +189,17 @@ export default function ResourceBar({
               value={`${energy.current}/${energy.max}`}
             />
           )}
+          {/* Defense — TBA (raids/защита). Shows 0 until the system ships. */}
+          {typeof coinBalance === "number" && (
+            <Counter emoji="🛡️" label="Defense" value={0} />
+          )}
         </Stack>
       </Card>
 
       {notificationsLabel && (
         <Badge
           badgeContent={notificationCount}
-          color="secondary"
+          color="error"
           overlap="circular"
           sx={{ "& .MuiBadge-badge": { fontWeight: 800 } }}
         >

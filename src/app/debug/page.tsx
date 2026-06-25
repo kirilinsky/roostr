@@ -89,7 +89,7 @@ export default function DebugPage() {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
       <Stack spacing={3} alignItems="center">
         <Typography variant="h4" component="h1">
           {t("debug.title")}

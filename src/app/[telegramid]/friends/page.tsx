@@ -29,7 +29,7 @@ export default async function ProfileFriendsPage({
   const isOwn = session?.id === id;
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
       <Stack spacing={3}>
         <Button
           component={Link}

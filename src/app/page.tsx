@@ -148,7 +148,7 @@ export default async function HomePage({
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
       <Stack spacing={5} alignItems="center" textAlign="center">
         {banner}
         <Stack spacing={1.5} alignItems="center">

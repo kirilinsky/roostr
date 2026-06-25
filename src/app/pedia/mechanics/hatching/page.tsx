@@ -26,7 +26,7 @@ export default async function PediaHatchingPage() {
   const { t } = await getTranslations();
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
       <Stack spacing={2.5}>
         <Button
           component={Link}

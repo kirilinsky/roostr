@@ -144,6 +144,22 @@ export const questClaims = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.questId] })],
 );
 
+// Roostrdex completion rewards already granted (claim-once). `rewardKey` is
+// "group:<groupId>" (all breeds of a group discovered) or "full" (the whole dex).
+export const dexRewards = pgTable(
+  "dex_rewards",
+  {
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rewardKey: text("reward_key").notNull(),
+    grantedAt: timestamp("granted_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.rewardKey] })],
+);
+
 export const roostrs = pgTable("roostrs", {
   id: uuid("id").primaryKey().defaultRandom(),
   ownerId: bigint("owner_id", { mode: "number" })

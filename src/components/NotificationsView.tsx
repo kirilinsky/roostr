@@ -16,12 +16,16 @@ import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
+import { alpha, type Theme } from "@mui/material/styles";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import {
   acceptFriendRequestAction,
   declineFriendRequestAction,
 } from "@/app/[telegramid]/actions";
-import { claimNewsAction } from "@/app/notifications/actions";
+import {
+  claimNewsAction,
+  markNotificationsSeenAction,
+} from "@/app/notifications/actions";
 import { claimQuestAction } from "@/app/quests/actions";
 import { BREEDS_CATALOG } from "@/lib/breeds";
 import { PROFILE_ACHIEVEMENTS, ROOSTER_ACHIEVEMENTS } from "@/lib/achievements";
@@ -147,10 +151,54 @@ export default function NotificationsView({
     </Stack>
   );
 
+  // Per-tab badge counts = UNREAD informational items + actionable items (pending
+  // requests / claimable quests / full stations always count).
+  const unreadNews = news.filter((n) => n.unread).length;
+  const unreadFriends = newFriends.filter((f) => f.unread).length;
+  const unreadAch = achievements.filter((a) => a.unread).length;
+  const unreadDex = discoveries.filter((d) => d.unread).length;
+  const tabCounts: Record<string, number> = {
+    news: unreadNews,
+    quests: readyQuests.length,
+    friends: requests.length + unreadFriends,
+    achievements: unreadAch,
+    farm: fullStations.includes("farm") ? 1 : 0,
+    lab: fullStations.includes("lab") ? 1 : 0,
+    roostrdex: unreadDex,
+  };
+  // "Mark all read" only matters for the informational (cursor-based) categories.
+  const anyUnread = unreadNews + unreadFriends + unreadAch + unreadDex > 0;
+  const markRead = () => act(() => markNotificationsSeenAction());
+
+  // Accent an unread row (left bar + faint tint) so read vs unread is obvious
+  // without hiding read ones.
+  const unreadSx = (unread?: boolean) =>
+    unread
+      ? {
+          pl: 1,
+          borderRadius: 1,
+          bgcolor: (theme: Theme) => alpha(theme.palette.secondary.main, 0.08),
+          boxShadow: (theme: Theme) =>
+            `inset 3px 0 0 ${theme.palette.secondary.main}`,
+        }
+      : {};
+
   return (
     // minWidth:0 lets this flex column shrink below the tab-strip content width
     // (otherwise the scrollable Tabs force horizontal overflow on narrow screens).
     <Stack spacing={2} sx={{ minWidth: 0 }}>
+      {anyUnread && (
+        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button
+            size="small"
+            color="neutral"
+            disabled={busy}
+            onClick={markRead}
+          >
+            ✓ {t("notifications.markAllRead")}
+          </Button>
+        </Box>
+      )}
       <Tabs
         value={tab}
         onChange={(_, v) => selectTab(v)}
@@ -169,9 +217,42 @@ export default function NotificationsView({
           },
         }}
       >
-        {TABS.map((x) => (
-          <Tab key={x.key} value={x.key} label={t(x.labelKey)} />
-        ))}
+        {TABS.map((x) => {
+          const n = tabCounts[x.key] ?? 0;
+          return (
+            <Tab
+              key={x.key}
+              value={x.key}
+              label={
+                <Box
+                  component="span"
+                  sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}
+                >
+                  {t(x.labelKey)}
+                  {n > 0 && (
+                    <Box
+                      component="span"
+                      sx={{
+                        minWidth: 18,
+                        height: 18,
+                        px: 0.5,
+                        borderRadius: "9px",
+                        bgcolor: "secondary.main",
+                        color: "secondary.contrastText",
+                        fontSize: "0.68rem",
+                        fontWeight: 800,
+                        lineHeight: "18px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {n}
+                    </Box>
+                  )}
+                </Box>
+              }
+            />
+          );
+        })}
       </Tabs>
 
       {tab === "news" ? (
@@ -186,7 +267,10 @@ export default function NotificationsView({
                 <ListItem
                   key={n.id}
                   divider
-                  sx={{ px: 0, gap: 1.5, flexWrap: "wrap", alignItems: "flex-start" }}
+                  sx={[
+                    { px: 0, gap: 1.5, flexWrap: "wrap", alignItems: "flex-start" },
+                    unreadSx(n.unread),
+                  ]}
                 >
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>
@@ -295,7 +379,10 @@ export default function NotificationsView({
                     <ListItem
                       key={`nf-${f.id}`}
                       divider
-                      sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
+                      sx={[
+                        { px: 0, gap: 1.5, flexWrap: "wrap" },
+                        unreadSx(f.unread),
+                      ]}
                     >
                       <Avatar
                         component={Link}
@@ -393,7 +480,7 @@ export default function NotificationsView({
                 <ListItem
                   key={d.breedId}
                   divider
-                  sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
+                  sx={[{ px: 0, gap: 1.5, flexWrap: "wrap" }, unreadSx(d.unread)]}
                 >
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -439,7 +526,10 @@ export default function NotificationsView({
                   <ListItem
                     key={a.achievementId}
                     divider
-                    sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
+                    sx={[
+                      { px: 0, gap: 1.5, flexWrap: "wrap" },
+                      unreadSx(a.unread),
+                    ]}
                   >
                     <Box sx={{ minWidth: 0, flex: 1 }}>
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>

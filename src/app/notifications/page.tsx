@@ -2,7 +2,6 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import NotificationsView from "@/components/NotificationsView";
-import MarkNotificationsSeen from "@/components/MarkNotificationsSeen";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import {
@@ -32,8 +31,7 @@ export default async function NotificationsPage() {
   const quests = session ? readyQuests(await getQuestStates(session.id)) : [];
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
-      {session && <MarkNotificationsSeen />}
+    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
       <Stack spacing={3}>
         <Typography variant="h4" component="h1">
           {t("notifications.title")}

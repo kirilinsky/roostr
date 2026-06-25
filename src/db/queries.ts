@@ -330,12 +330,19 @@ export async function getProfileMetrics(
     metrics.tiersOwned = tiers.size;
 
     // --- Quest-supporting metrics (also usable by achievements) ---
-    // Workers currently on stations (sum of roster sizes across farm+lab).
+    // Stations: workers currently assigned (sum across farm+lab) + slots owned per
+    // station (base 2; >2 means a slot expansion was bought).
     const ws = await db
-      .select({ ids: workStations.roostrIds })
+      .select({
+        kind: workStations.kind,
+        ids: workStations.roostrIds,
+        slots: workStations.slotsOwned,
+      })
       .from(workStations)
       .where(eq(workStations.userId, userId));
     metrics.stationWorkers = ws.reduce((n, r) => n + (r.ids?.length ?? 0), 0);
+    metrics.farmSlots = ws.find((r) => r.kind === "farm")?.slots ?? BASE_SLOTS;
+    metrics.labSlots = ws.find((r) => r.kind === "lab")?.slots ?? BASE_SLOTS;
 
     // Times the player has claimed from a station (ledger rows kind farm|lab).
     const [sc] = await db
@@ -508,10 +515,12 @@ export interface AchievementNotification {
   scope: string; // "profile" | "rooster"
   roostrId: string | null; // bird to link to (rooster scope)
   unlockedAt: string;
+  unread?: boolean;
 }
 
-// Achievements unlocked AFTER the read-cursor → "you earned X" notifications.
-// Newest first. Definitions (icon/name) are resolved client-side by id.
+// Recent achievement unlocks → "you earned X" notifications, newest first. Read +
+// unread are BOTH returned (read ones aren't hidden); `unread` flags those newer
+// than the read cursor. Definitions (icon/name) are resolved client-side by id.
 export async function getNewAchievements(
   userId: number,
 ): Promise<AchievementNotification[]> {
@@ -519,19 +528,14 @@ export async function getNewAchievements(
   try {
     const { db } = await import("@/db");
     const { achievementUnlocks, users } = await import("@/db/schema");
-    const { and, desc, eq, gt } = await import("drizzle-orm");
+    const { desc, eq } = await import("drizzle-orm");
     const [u] = await db
       .select({ seen: users.notificationsSeenAt })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
     const seen = u?.seen ?? null;
-    const filter = seen
-      ? and(
-          eq(achievementUnlocks.userId, userId),
-          gt(achievementUnlocks.unlockedAt, seen),
-        )
-      : eq(achievementUnlocks.userId, userId);
+    // Recent unlocks (read + unread); unread = newer than the cursor.
     const rows = await db
       .select({
         achievementId: achievementUnlocks.achievementId,
@@ -540,7 +544,7 @@ export async function getNewAchievements(
         unlockedAt: achievementUnlocks.unlockedAt,
       })
       .from(achievementUnlocks)
-      .where(filter)
+      .where(eq(achievementUnlocks.userId, userId))
       .orderBy(desc(achievementUnlocks.unlockedAt))
       .limit(50);
     return rows.map((r) => ({
@@ -548,6 +552,7 @@ export async function getNewAchievements(
       scope: r.scope,
       roostrId: r.roostrId,
       unlockedAt: r.unlockedAt.toISOString(),
+      unread: seen ? r.unlockedAt > seen : true,
     }));
   } catch (e) {
     console.error("getNewAchievements failed:", e);
@@ -745,6 +750,64 @@ export async function getDiscoveredBreeds(userId: number): Promise<string[]> {
   }
 }
 
+// --- Roostrdex completion rewards (formula in lib/dexRewards.ts) ---
+
+export interface DexRewardGrant {
+  key: string; // "group:<id>" | "full"
+  resource: ResourceKind;
+  amount: number;
+}
+
+// Grant any newly-completed Roostrdex rewards (a fully-discovered group → coins
+// scaled by group size; the whole dex → eggs). Claim-once via CAS on `dex_rewards`.
+// Idempotent — safe to call on every dex visit; returns only the NEW grants (toast).
+export async function grantDexRewards(
+  userId: number,
+): Promise<DexRewardGrant[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { BREEDS_CATALOG } = await import("@/lib/breeds");
+    const { groupReward, FULL_DEX_REWARD } = await import("@/lib/dexRewards");
+    const discovered = new Set(await getDiscoveredBreeds(userId));
+
+    // Group → breed ids.
+    const groups: Record<string, string[]> = {};
+    for (const b of BREEDS_CATALOG) (groups[b.group] ??= []).push(b.id);
+
+    const earned: DexRewardGrant[] = [];
+    for (const [g, ids] of Object.entries(groups)) {
+      if (ids.every((id) => discovered.has(id))) {
+        earned.push({ key: `group:${g}`, ...groupReward(ids.length) });
+      }
+    }
+    if (BREEDS_CATALOG.every((b) => discovered.has(b.id))) {
+      earned.push({ key: "full", ...FULL_DEX_REWARD });
+    }
+    if (!earned.length) return [];
+
+    const { db } = await import("@/db");
+    const { dexRewards } = await import("@/db/schema");
+    const inserted = await db
+      .insert(dexRewards)
+      .values(earned.map((e) => ({ userId, rewardKey: e.key })))
+      .onConflictDoNothing()
+      .returning({ rewardKey: dexRewards.rewardKey });
+    const fresh = new Set(inserted.map((r) => r.rewardKey));
+
+    const granted: DexRewardGrant[] = [];
+    for (const e of earned) {
+      if (fresh.has(e.key)) {
+        await grantResource(userId, e.resource, e.amount, "dex", e.key);
+        granted.push(e);
+      }
+    }
+    return granted;
+  } catch (e) {
+    console.error("grantDexRewards failed:", e);
+    return [];
+  }
+}
+
 // Returns the friendship row (with createdAt = since) or null.
 export async function getFriendship(a: number, b: number) {
   if (!process.env.DATABASE_URL || a === b) return null;
@@ -879,6 +942,7 @@ export interface FriendRequestSummary {
   lastName: string | null;
   photoUrl: string | null;
   createdAt: Date;
+  unread?: boolean; // for derived "new friend" notifications (vs the read cursor)
 }
 
 // Incoming requests for a user (the notifications feed), newest first.
@@ -1128,6 +1192,7 @@ export async function getStationAlerts(
 export interface DiscoverySummary {
   breedId: string;
   discoveredAt: string;
+  unread?: boolean;
 }
 
 // A user's Roostrdex discoveries, newest first — surfaced as "new entry" notifs.
@@ -1138,8 +1203,14 @@ export async function getRecentDiscoveries(
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
   try {
     const { db } = await import("@/db");
-    const { breedDiscoveries } = await import("@/db/schema");
+    const { breedDiscoveries, users } = await import("@/db/schema");
     const { desc, eq } = await import("drizzle-orm");
+    const [u] = await db
+      .select({ seen: users.notificationsSeenAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const seen = u?.seen ?? null;
     const rows = await db
       .select({
         breedId: breedDiscoveries.breedId,
@@ -1152,6 +1223,7 @@ export async function getRecentDiscoveries(
     return rows.map((r) => ({
       breedId: r.breedId,
       discoveredAt: r.discoveredAt.toISOString(),
+      unread: seen ? r.discoveredAt > seen : true,
     }));
   } catch (e) {
     console.error("getRecentDiscoveries failed:", e);
@@ -1169,7 +1241,7 @@ export async function getNewFriends(
   try {
     const { db } = await import("@/db");
     const { friendships, users } = await import("@/db/schema");
-    const { and, desc, eq, gt, or, sql } = await import("drizzle-orm");
+    const { desc, eq, or, sql } = await import("drizzle-orm");
     const [u] = await db
       .select({ seen: users.notificationsSeenAt })
       .from(users)
@@ -1180,8 +1252,8 @@ export async function getNewFriends(
       eq(friendships.userAId, userId),
       eq(friendships.userBId, userId),
     );
-    const filter = seen ? and(mine, gt(friendships.createdAt, seen)) : mine;
-    return await db
+    // Return RECENT friendships (read + unread); flag those newer than the cursor.
+    const rows = await db
       .select({
         id: users.id,
         username: users.username,
@@ -1195,8 +1267,13 @@ export async function getNewFriends(
         users,
         sql`${users.id} = case when ${friendships.userAId} = ${userId} then ${friendships.userBId} else ${friendships.userAId} end`,
       )
-      .where(filter)
-      .orderBy(desc(friendships.createdAt));
+      .where(mine)
+      .orderBy(desc(friendships.createdAt))
+      .limit(30);
+    return rows.map((r) => ({
+      ...r,
+      unread: seen ? r.createdAt > seen : true,
+    }));
   } catch (e) {
     console.error("getNewFriends failed:", e);
     return [];
@@ -1214,6 +1291,7 @@ export interface NewsItem {
   ctaAmount: number | null;
   createdAt: string;
   claimed: boolean; // has THIS user claimed the CTA?
+  unread?: boolean;
 }
 
 // Active news newest-first, flagged with whether the user already claimed the CTA.
@@ -1224,8 +1302,14 @@ export async function getNews(
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
   try {
     const { db } = await import("@/db");
-    const { news, newsClaims } = await import("@/db/schema");
+    const { news, newsClaims, users } = await import("@/db/schema");
     const { and, desc, eq, sql } = await import("drizzle-orm");
+    const [u] = await db
+      .select({ seen: users.notificationsSeenAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const seen = u?.seen ?? null;
     const rows = await db
       .select({
         id: news.id,
@@ -1256,6 +1340,7 @@ export async function getNews(
       ctaAmount: r.ctaAmount,
       createdAt: r.createdAt.toISOString(),
       claimed: !!r.claimed,
+      unread: seen ? r.createdAt > seen : true,
     }));
   } catch (e) {
     console.error("getNews failed:", e);

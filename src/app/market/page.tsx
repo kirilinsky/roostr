@@ -32,7 +32,7 @@ export default async function MarketPage() {
   }));
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
+    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
       <Stack spacing={3}>
         <Typography variant="h4" component="h1">
           {t("nav.market")}

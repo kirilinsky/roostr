@@ -23,14 +23,27 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://roostr-two.vercel.ap
 // og:title must be present. Artwork: /public/og.jpg.
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
+  applicationName: "Roostr",
   title: "Roostr",
   description: "Collect, breed & battle Telegram roosters.",
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "Roostr — collectible Telegram roosters",
     description: "Collect, breed & battle roosters. Join the flock!",
+    url: "/",
     siteName: "Roostr",
     type: "website",
-    images: [{ url: "/og.jpg", width: 1731, height: 909, alt: "Roostr" }],
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1731,
+        height: 909,
+        alt: "Roostr",
+        type: "image/jpeg",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

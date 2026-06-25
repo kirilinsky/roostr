@@ -28,18 +28,14 @@ export default async function IncubatorPage() {
   const eggs = dbUser?.eggs ?? 0;
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
-      <Stack spacing={4} alignItems="center" textAlign="center">
-        <Stack spacing={1} alignItems="center">
-          <Typography variant="h4" component="h1">
-            {t("incubator.title")}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t("incubator.subtitle")}
-          </Typography>
+    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
+      <Stack spacing={3}>
+        <Typography variant="h4" component="h1">
+          {t("incubator.title")}
+        </Typography>
+        <Stack alignItems="center">
+          <IncubatorView initialEggs={eggs} admin={admin} />
         </Stack>
-
-        <IncubatorView initialEggs={eggs} admin={admin} />
       </Stack>
     </Container>
   );
