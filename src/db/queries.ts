@@ -1334,19 +1334,33 @@ export async function getGlobalStats(): Promise<GlobalStats> {
   try {
     const { db } = await import("@/db");
     const { users, roostrs, resourceTxns } = await import("@/db/schema");
-    const { and, eq, gt, sql } = await import("drizzle-orm");
+    const { and, eq, gt, sql, notInArray } = await import("drizzle-orm");
+    const { ADMIN_IDS } = await import("@/lib/admin");
 
-    const [p] = await db.select({ n: sql<number>`count(*)` }).from(users);
+    // Exclude admin/dev accounts — their faucet grants would skew the public promo
+    // totals. (notInArray on an empty list is a no-op guard.)
+    const adminIds = [...ADMIN_IDS];
+    const notAdmin = (col: Parameters<typeof notInArray>[0]) =>
+      adminIds.length ? notInArray(col, adminIds) : undefined;
+
+    const [p] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(users)
+      .where(notAdmin(users.id));
     const [h] = await db
       .select({ n: sql<number>`count(*)` })
       .from(roostrs)
-      .where(eq(roostrs.origin, "hatch"));
+      .where(and(eq(roostrs.origin, "hatch"), notAdmin(roostrs.ownerId)));
     const earned = (resource: "coin" | "sci") =>
       db
         .select({ s: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)` })
         .from(resourceTxns)
         .where(
-          and(eq(resourceTxns.resource, resource), gt(resourceTxns.amount, 0)),
+          and(
+            eq(resourceTxns.resource, resource),
+            gt(resourceTxns.amount, 0),
+            notAdmin(resourceTxns.userId),
+          ),
         );
     const [coin] = await earned("coin");
     const [sci] = await earned("sci");
@@ -1355,7 +1369,8 @@ export async function getGlobalStats(): Promise<GlobalStats> {
       .select({
         s: sql<number>`coalesce(sum(${users.wins} + ${users.losses} + ${users.draws}), 0)`,
       })
-      .from(users);
+      .from(users)
+      .where(notAdmin(users.id));
 
     return {
       players: Number(p?.n ?? 0),
