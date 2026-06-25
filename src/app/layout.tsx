@@ -27,12 +27,14 @@ export const metadata: Metadata = {
   title: "Roostr",
   description: "Collect, breed & battle Telegram roosters.",
   alternates: {
-    canonical: "/",
+    // Trailing-slash form so og:url / canonical resolve to one consistent key
+    // (`…app/`) — avoids Telegram caching the slash and no-slash variants apart.
+    canonical: `${APP_URL}/`,
   },
   openGraph: {
     title: "Roostr — collectible Telegram roosters",
     description: "Collect, breed & battle roosters. Join the flock!",
-    url: "/",
+    url: `${APP_URL}/`,
     siteName: "Roostr",
     type: "website",
     images: [

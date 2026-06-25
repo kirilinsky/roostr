@@ -10,6 +10,7 @@ export default async function DefensePage() {
       titleKey="nav.defense"
       current={current}
       target={LAUNCH_AT_PLAYERS}
+      bg="/bg/defense.png"
     />
   );
 }

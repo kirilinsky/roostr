@@ -10,6 +10,7 @@ export default async function RaidsPage() {
       titleKey="nav.raids"
       current={current}
       target={LAUNCH_AT_PLAYERS}
+      bg="/bg/raids.png"
     />
   );
 }
