@@ -1312,6 +1312,64 @@ export async function countUsers(): Promise<number> {
   }
 }
 
+export interface GlobalStats {
+  players: number;
+  roostrsHatched: number;
+  coinsEarned: number;
+  sciEarned: number;
+  battles: number;
+}
+
+// Aggregate, project-wide promo numbers for the guest landing page. Lifetime totals
+// (earned = positive ledger rows). Best-effort: any failure returns zeros.
+export async function getGlobalStats(): Promise<GlobalStats> {
+  const empty: GlobalStats = {
+    players: 0,
+    roostrsHatched: 0,
+    coinsEarned: 0,
+    sciEarned: 0,
+    battles: 0,
+  };
+  if (!process.env.DATABASE_URL) return empty;
+  try {
+    const { db } = await import("@/db");
+    const { users, roostrs, resourceTxns } = await import("@/db/schema");
+    const { and, eq, gt, sql } = await import("drizzle-orm");
+
+    const [p] = await db.select({ n: sql<number>`count(*)` }).from(users);
+    const [h] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(roostrs)
+      .where(eq(roostrs.origin, "hatch"));
+    const earned = (resource: "coin" | "sci") =>
+      db
+        .select({ s: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)` })
+        .from(resourceTxns)
+        .where(
+          and(eq(resourceTxns.resource, resource), gt(resourceTxns.amount, 0)),
+        );
+    const [coin] = await earned("coin");
+    const [sci] = await earned("sci");
+    // Each battle is recorded on both participants → halve the summed records.
+    const [b] = await db
+      .select({
+        s: sql<number>`coalesce(sum(${users.wins} + ${users.losses} + ${users.draws}), 0)`,
+      })
+      .from(users);
+
+    return {
+      players: Number(p?.n ?? 0),
+      roostrsHatched: Number(h?.n ?? 0),
+      coinsEarned: Number(coin?.s ?? 0),
+      sciEarned: Number(sci?.s ?? 0),
+      battles: Math.floor(Number(b?.s ?? 0) / 2),
+    };
+  } catch (e) {
+    console.error("getGlobalStats failed:", e);
+    return empty;
+  }
+}
+
 // Public profile lookup by Telegram id. Returns null if absent / DB unavailable.
 export async function getUserById(id: number) {
   if (!process.env.DATABASE_URL || !Number.isFinite(id)) return null;
