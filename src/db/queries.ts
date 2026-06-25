@@ -4,7 +4,6 @@ import { hydrateRoostr, type RolledRoostr } from "@/lib/roostr";
 import {
   STATIONS,
   settlePending,
-  BASE_SLOTS,
   maxSlots,
   nextSlotPrice,
   type StationKind,
@@ -320,14 +319,18 @@ export async function getProfileMetrics(
     const owned = await getCollectionRoostrs(userId);
     metrics.roostrsOwned = owned.length;
     let highest = 0;
+    let tierB = 0;
     const tiers = new Set<number>();
     for (const row of owned) {
-      const rank = TIERS.findIndex((t) => t.id === hydrateRoostr(row).tier.id);
+      const tierId = hydrateRoostr(row).tier.id;
+      const rank = TIERS.findIndex((t) => t.id === tierId);
       if (rank > highest) highest = rank;
       if (rank >= 0) tiers.add(rank);
+      if (tierId === "B") tierB++;
     }
     metrics.highestTier = highest;
     metrics.tiersOwned = tiers.size;
+    metrics.tierBCount = tierB;
 
     // --- Quest-supporting metrics (also usable by achievements) ---
     // Stations: workers currently assigned (sum across farm+lab) + slots owned per
@@ -341,8 +344,13 @@ export async function getProfileMetrics(
       .from(workStations)
       .where(eq(workStations.userId, userId));
     metrics.stationWorkers = ws.reduce((n, r) => n + (r.ids?.length ?? 0), 0);
-    metrics.farmSlots = ws.find((r) => r.kind === "farm")?.slots ?? BASE_SLOTS;
-    metrics.labSlots = ws.find((r) => r.kind === "lab")?.slots ?? BASE_SLOTS;
+    metrics.farmSlots =
+      ws.find((r) => r.kind === "farm")?.slots ?? STATIONS.farm.baseSlots;
+    metrics.labSlots =
+      ws.find((r) => r.kind === "lab")?.slots ?? STATIONS.lab.baseSlots;
+    metrics.defenseGuards =
+      ws.find((r) => r.kind === "defense")?.ids?.length ?? 0;
+    metrics.defenseValue = await getDefenseValue(userId); // Σ Crow on watch
 
     // Times the player has claimed from a station (ledger rows kind farm|lab).
     const [sc] = await db
@@ -1150,7 +1158,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
 }
 
 export interface StationAlert {
-  kind: StationKind;
+  kind: "farm" | "lab"; // accrual stations only (defense never buffers)
   fullAt: number; // ms timestamp the buffer reached its cap
 }
 
@@ -1166,7 +1174,7 @@ export async function getStationAlerts(
   const out: StationAlert[] = [];
   try {
     const now = Date.now();
-    for (const kind of ["farm", "lab"] as StationKind[]) {
+    for (const kind of ["farm", "lab"] as ("farm" | "lab")[]) {
       const view = await getStationView(userId, kind);
       if (view.workers.length === 0) continue; // no workers → never fills
       const def = STATIONS[kind];
@@ -1930,9 +1938,26 @@ export async function settleStation(
 
 // Read-only station snapshot for the page. `pending`/`lastSettleAtMs` let the
 // client tick the buffer live (it recomputes settlePending against Date.now()).
+// Live base-defense value = Σ Crow of the roosters currently on watch. No accrual —
+// it exists only while guards are assigned to the defense station.
+export async function getDefenseValue(userId: number): Promise<number> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
+  try {
+    const { hydrateRoostr } = await import("@/lib/roostr");
+    const view = await getStationView(userId, "defense");
+    return view.workers.reduce(
+      (s, r) => s + (hydrateRoostr(r).stats.Crow ?? 0),
+      0,
+    );
+  } catch (e) {
+    console.error("getDefenseValue failed:", e);
+    return 0;
+  }
+}
+
 export async function getStationView(userId: number, kind: StationKind) {
   const empty = {
-    slotsOwned: BASE_SLOTS,
+    slotsOwned: STATIONS[kind].baseSlots,
     pending: 0,
     lastSettleAtMs: Date.now(),
     workers: [] as Awaited<ReturnType<typeof loadByIds>>,
@@ -1992,7 +2017,7 @@ export async function assignWorker(
       .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
       .limit(1);
     const ids = st?.roostrIds ?? [];
-    const slots = st?.slotsOwned ?? BASE_SLOTS;
+    const slots = st?.slotsOwned ?? STATIONS[kind].baseSlots;
     if (ids.includes(roostrId)) return { ok: true };
     if (ids.length >= slots) return { ok: false, error: "full" };
 
@@ -2002,9 +2027,13 @@ export async function assignWorker(
         .set({ roostrIds: [...ids, roostrId] })
         .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)));
     } else {
-      await db
-        .insert(workStations)
-        .values({ userId, kind, roostrIds: [roostrId] });
+      // Seed slotsOwned from the kind's base (defense = 1, not the column default 2).
+      await db.insert(workStations).values({
+        userId,
+        kind,
+        roostrIds: [roostrId],
+        slotsOwned: STATIONS[kind].baseSlots,
+      });
     }
     // lock the bird (only if still active — guards a double-assign race) and stamp
     // the work assignment (kind + since) into meta for the collection badge.
@@ -2098,7 +2127,7 @@ export async function buyStationSlot(
       .from(workStations)
       .where(and(eq(workStations.userId, userId), eq(workStations.kind, kind)))
       .limit(1);
-    const current = st?.slotsOwned ?? BASE_SLOTS;
+    const current = st?.slotsOwned ?? STATIONS[kind].baseSlots;
     const price = nextSlotPrice(kind, current);
     if (price === null || current >= maxSlots(kind))
       return { ok: false, error: "maxed" };

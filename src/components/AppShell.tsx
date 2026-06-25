@@ -45,6 +45,7 @@ export default function AppShell({
   coinBalance,
   eggsBalance,
   sciBalance,
+  defenseBalance,
   energy,
   feathersLabel,
   eggsLabel,
@@ -62,6 +63,7 @@ export default function AppShell({
   coinBalance?: number;
   eggsBalance?: number;
   sciBalance?: number;
+  defenseBalance?: number;
   energy?: EnergyState;
   feathersLabel?: string;
   eggsLabel?: string;
@@ -270,6 +272,7 @@ export default function AppShell({
         coinBalance={coinBalance}
         eggsBalance={eggsBalance}
         sciBalance={sciBalance}
+        defenseBalance={defenseBalance}
         energy={energy}
         feathersLabel={feathersLabel}
         eggsLabel={eggsLabel}

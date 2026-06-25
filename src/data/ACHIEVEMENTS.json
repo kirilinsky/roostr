@@ -618,6 +618,66 @@
       },
       "metric": "farmEggsPerDay",
       "value": 3
+    },
+    {
+      "id": "first-guard",
+      "icon": "🛡️",
+      "tier": "common",
+      "name": {
+        "en": "On Guard",
+        "ru": "На посту"
+      },
+      "desc": {
+        "en": "Post your first rooster to the Defense.",
+        "ru": "Поставь первого петуха в Дозор."
+      },
+      "metric": "defenseGuards",
+      "value": 1
+    },
+    {
+      "id": "night-watch",
+      "icon": "👮",
+      "tier": "rare",
+      "name": {
+        "en": "Night Watch",
+        "ru": "Ночной дозор"
+      },
+      "desc": {
+        "en": "Keep 3 guards on watch at once.",
+        "ru": "Держи троих охранников в дозоре одновременно."
+      },
+      "metric": "defenseGuards",
+      "value": 3
+    },
+    {
+      "id": "fortress",
+      "icon": "🏰",
+      "tier": "collectible",
+      "name": {
+        "en": "Fortress",
+        "ru": "Крепость"
+      },
+      "desc": {
+        "en": "Raise your base defense to 20.",
+        "ru": "Подними защиту базы до 20."
+      },
+      "metric": "defenseValue",
+      "value": 20
+    },
+    {
+      "id": "hateful-eight",
+      "icon": "8️⃣",
+      "tier": "rare",
+      "name": {
+        "en": "The Hateful Eight",
+        "ru": "Омерзительная восьмёрка"
+      },
+      "desc": {
+        "en": "Own 8 roosters of tier B.",
+        "ru": "Имей 8 петухов тира B."
+      },
+      "metric": "tierBCount",
+      "value": 8
     }
   ],
   "rooster": [
@@ -785,6 +845,36 @@
       },
       "metric": "minStat",
       "value": 10
+    },
+    {
+      "id": "eternal-guard",
+      "icon": "🗿",
+      "tier": "rare",
+      "name": {
+        "en": "Eternal Sentinel",
+        "ru": "Вечный страж"
+      },
+      "desc": {
+        "en": "Keep a rooster on the Defense watch for 35 days straight.",
+        "ru": "Продержи петуха в Дозоре 35 дней без перерыва."
+      },
+      "metric": "guardDays",
+      "value": 35
+    },
+    {
+      "id": "hot-potato",
+      "icon": "🥔",
+      "tier": "rare",
+      "name": {
+        "en": "Hot Potato",
+        "ru": "Горячая картошка"
+      },
+      "desc": {
+        "en": "A rooster that has had more than 4 owners.",
+        "ru": "Петух, у которого было больше 4 хозяев."
+      },
+      "metric": "owners",
+      "value": 5
     }
   ]
 }

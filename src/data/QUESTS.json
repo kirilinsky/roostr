@@ -153,6 +153,20 @@
     "href": "/pedia/mechanics/referrals"
   },
   {
+    "id": "defense-guard",
+    "order": 9.5,
+    "icon": "🛡️",
+    "name": { "en": "Stand watch", "ru": "Заступи в дозор" },
+    "desc": {
+      "en": "Assign a rooster to the Defense — its Crow guards your base.",
+      "ru": "Поставь петуха в Дозор — его Крик защищает базу."
+    },
+    "metric": "defenseGuards",
+    "value": 1,
+    "reward": { "resource": "sci", "amount": 50 },
+    "href": "/defense"
+  },
+  {
     "id": "referral-five",
     "order": 10,
     "icon": "👑",

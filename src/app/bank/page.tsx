@@ -14,6 +14,7 @@ import { getSession } from "@/lib/auth";
 import {
   getUserById,
   getResourceTxns,
+  getDefenseValue,
   type ResourceKind,
   type ResourceTxn,
 } from "@/db/queries";
@@ -111,6 +112,8 @@ export default async function BankPage() {
     egg: dbUser?.eggs ?? 0,
     feather: dbUser?.feathers ?? 0,
   };
+  // Live base defense (Σ Crow of guards on watch).
+  const defenseValue = session ? await getDefenseValue(session.id) : 0;
 
   return (
     <Container
@@ -209,31 +212,22 @@ export default async function BankPage() {
                     />
                   </Stack>
                   <Button
-                    variant="contained"
+                    variant="text"
+                    color="neutral"
+                    size="small"
                     disabled
                     fullWidth
-                    endIcon={
-                      <Chip
-                        label={t("pedia.soon")}
-                        size="small"
-                        variant="outlined"
-                      />
-                    }
+                    sx={{ justifyContent: "flex-start", opacity: 0.6 }}
                   >
                     {t("bank.topup")}
                   </Button>
                   <Button
-                    variant="outlined"
+                    variant="text"
                     color="neutral"
+                    size="small"
                     disabled
                     fullWidth
-                    endIcon={
-                      <Chip
-                        label={t("pedia.soon")}
-                        size="small"
-                        variant="outlined"
-                      />
-                    }
+                    sx={{ justifyContent: "flex-start", opacity: 0.6 }}
                   >
                     {t("bank.transfer")}
                   </Button>
@@ -312,46 +306,33 @@ export default async function BankPage() {
                 </Stack>
               </SurfaceCard>
 
-              {/* Block 5 — defense (soon, TBA raids/защита) */}
+              {/* Block 5 — base defense (live Σ Crow of guards on watch) */}
               <SurfaceCard minHeight={132}>
                 <Stack
                   direction="row"
                   alignItems="center"
-                  justifyContent="space-between"
-                  spacing={1}
+                  spacing={1.5}
+                  sx={{ minWidth: 0 }}
                 >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1.5}
-                    sx={{ minWidth: 0 }}
-                  >
-                    <Image
-                      src="/defense.png"
-                      alt={t("nav.defense")}
-                      width={28}
-                      height={28}
-                      style={{ height: 28, width: "auto" }}
-                    />
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        variant="overline"
-                        color="text.secondary"
-                        sx={{ display: "block", lineHeight: 1.2 }}
-                      >
-                        {t("nav.defense")}
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                        0
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Chip
-                    label={t("pedia.soon")}
-                    size="small"
-                    variant="outlined"
-                    sx={{ borderRadius: 0.75 }}
+                  <Image
+                    src="/defense.png"
+                    alt={t("nav.defense")}
+                    width={28}
+                    height={28}
+                    style={{ height: 28, width: "auto" }}
                   />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      variant="overline"
+                      color="text.secondary"
+                      sx={{ display: "block", lineHeight: 1.2 }}
+                    >
+                      {t("nav.defense")}
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                      {defenseValue.toLocaleString()}
+                    </Typography>
+                  </Box>
                 </Stack>
               </SurfaceCard>
             </Box>

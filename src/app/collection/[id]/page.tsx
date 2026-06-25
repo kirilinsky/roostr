@@ -12,6 +12,7 @@ import {
   getUserById,
   getAchievementUnlocks,
   recordAchievementUnlocks,
+  getRoostrHistory,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import {
@@ -39,10 +40,21 @@ export default async function RoostrDetailPage({
   const coins = isOwner ? (await getUserById(session.id))?.coins ?? 0 : 0;
   const roostr = hydrateRoostr(row);
 
+  // Distinct owners ever (genesis + every transfer side) → "Hot Potato".
+  const history = await getRoostrHistory(id);
+  const ownerSet = new Set<number>();
+  for (const h of history) {
+    if (h.fromUserId) ownerSet.add(h.fromUserId);
+    if (h.toUserId) ownerSet.add(h.toUserId);
+  }
+
   // Rooster (per-bird) achievements: evaluate against THIS bird. They're stored
   // account-level (unlocked once any owned bird qualifies; ids don't collide with
   // profile ones). Persist + toast only for the owner; display the earned ones.
-  const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, roosterMetricsFrom(roostr));
+  const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, {
+    ...roosterMetricsFrom(roostr),
+    owners: ownerSet.size,
+  });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =
     isOwner && session && satisfiedIds.length

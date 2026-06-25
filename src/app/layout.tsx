@@ -10,7 +10,11 @@ import ReferralCapture from "@/components/ReferralCapture";
 import { I18nProvider } from "@/i18n/I18nProvider";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
-import { getUserById, countUnreadNotifications } from "@/db/queries";
+import {
+  getUserById,
+  countUnreadNotifications,
+  getDefenseValue,
+} from "@/db/queries";
 import { isAdmin } from "@/lib/admin";
 import { headlineFont, bodyFont } from "@/app/fonts";
 
@@ -81,6 +85,8 @@ export default async function RootLayout({
   const notificationCount = session
     ? await countUnreadNotifications(session.id)
     : 0;
+  // Live base-defense value (Σ Crow of guards on watch) for the HUD.
+  const defenseValue = session ? await getDefenseValue(session.id) : 0;
 
   // Game nav is for logged-in players only; guests do not get the app sidebar.
   const mainNav: NavItem[] = loggedIn
@@ -126,6 +132,7 @@ export default async function RootLayout({
                     coinBalance={user ? (dbUser?.coins ?? 0) : undefined}
                     eggsBalance={user ? (dbUser?.eggs ?? 0) : undefined}
                     sciBalance={user ? (dbUser?.sci ?? 0) : undefined}
+                    defenseBalance={user ? defenseValue : undefined}
                     energy={user ? { current: 10, max: 10 } : undefined}
                     feathersLabel={t("resource.feathers")}
                     eggsLabel={t("resource.eggs")}

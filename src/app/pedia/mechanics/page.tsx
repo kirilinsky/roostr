@@ -70,6 +70,13 @@ const ARTICLES = [
     live: true,
   },
   {
+    href: "/pedia/mechanics/defense",
+    icon: "🛡️",
+    titleKey: "pedia.mech.defense.title",
+    descKey: "pedia.mech.defense.desc",
+    live: true,
+  },
+  {
     href: "/pedia/mechanics/roostrdex",
     icon: "📕",
     titleKey: "pedia.mech.dex.title",

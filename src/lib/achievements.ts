@@ -79,9 +79,15 @@ export function roosterMetricsFrom(r: {
   wins: number;
   losses: number;
   stats: Record<string, number>;
+  work?: { kind: string; since: number } | null;
 }): Record<string, number> {
   const levels = Object.values(r.geneLevels);
   const statVals = Object.values(r.stats);
+  // Continuous days currently on the defense watch (resets if pulled/reassigned).
+  const guardDays =
+    r.work && r.work.kind === "defense"
+      ? Math.floor((Date.now() - r.work.since) / 86_400_000)
+      : 0;
   return {
     geneCount: r.genes.length,
     maxGeneLevel: levels.length ? Math.max(...levels) : r.genes.length ? 1 : 0,
@@ -90,6 +96,7 @@ export function roosterMetricsFrom(r: {
     losses: r.losses,
     soloGene: r.genes.length === 1 ? 1 : 0,
     minStat: statVals.length ? Math.min(...statVals) : 0,
+    guardDays,
   };
 }
 

@@ -14,7 +14,11 @@ import type { StationKind } from "@/lib/stations";
 
 // Shared server actions for any work station (lab / farm / future). Session-scoped
 // — a user only mutates their own station.
-const PATH: Record<StationKind, string> = { lab: "/lab", farm: "/farm" };
+const PATH: Record<StationKind, string> = {
+  lab: "/lab",
+  farm: "/farm",
+  defense: "/defense",
+};
 
 export async function assignWorkerAction(
   kind: StationKind,

@@ -113,6 +113,7 @@ export default function ResourceBar({
   coinBalance,
   eggsBalance,
   sciBalance,
+  defenseBalance,
   energy,
   feathersLabel,
   eggsLabel,
@@ -123,6 +124,7 @@ export default function ResourceBar({
   coinBalance?: number;
   eggsBalance?: number;
   sciBalance?: number;
+  defenseBalance?: number;
   energy?: EnergyState;
   feathersLabel?: string;
   eggsLabel?: string;
@@ -191,7 +193,11 @@ export default function ResourceBar({
           )}
           {/* Defense — TBA (raids/защита). Shows 0 until the system ships. */}
           {typeof coinBalance === "number" && (
-            <Counter src="/defense.png" label="Defense" value={0} />
+            <Counter
+              src="/defense.png"
+              label="Defense"
+              value={defenseBalance ?? 0}
+            />
           )}
         </Stack>
       </Card>

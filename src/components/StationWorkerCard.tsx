@@ -58,7 +58,7 @@ export default function StationWorkerCard({
 }: {
   roostr: HydratedRoostr;
   statId: Skill;
-  rateHr: number;
+  rateHr?: number; // omit for live/no-accrual stations (defense) — stat IS the effect
   onRemove: () => void;
   busy: boolean;
 }) {
@@ -130,12 +130,16 @@ export default function StationWorkerCard({
           value={String(statValue)}
           color="secondary.main"
         />
-        <Divider />
-        <Row
-          label={t("station.rate")}
-          value={`+${rateHr.toFixed(1)}/${t("station.hourShort")}`}
-          color="primary.main"
-        />
+        {rateHr !== undefined && (
+          <>
+            <Divider />
+            <Row
+              label={t("station.rate")}
+              value={`+${rateHr.toFixed(1)}/${t("station.hourShort")}`}
+              color="primary.main"
+            />
+          </>
+        )}
         <Button
           variant="contained"
           color="error"

@@ -55,6 +55,10 @@ export default async function PediaBankPage() {
           title={t("pedia.mech.bank.historyTitle")}
           body={t("pedia.mech.bank.history")}
         />
+        <Section
+          title={t("pedia.mech.bank.defenseTitle")}
+          body={t("pedia.mech.bank.defense")}
+        />
 
         <Card sx={{ p: 2 }}>
           <Stack

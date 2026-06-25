@@ -21,7 +21,6 @@ import {
   settlePending,
   maxSlots,
   nextSlotPrice,
-  type StationKind,
 } from "@/lib/stations";
 import {
   assignWorkerAction,
@@ -47,7 +46,7 @@ const SLOT_ICON: Record<ResourceKind, string> = {
 // Per-kind UI config — the engine (rate/stat/resource/cap) lives in lib/stations;
 // this only maps visuals + i18n keys. Add a station = one entry here + in STATIONS.
 const UI: Record<
-  StationKind,
+  "farm" | "lab",
   {
     metric: CardMetric;
     bg: string;
@@ -107,7 +106,7 @@ export default function StationView({
   lastSettleAtMs,
   slotsOwned,
 }: {
-  kind: StationKind;
+  kind: "farm" | "lab";
   workers: HydratedRoostr[];
   available: HydratedRoostr[];
   pending: number;
