@@ -17,7 +17,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
-import TelegramLoginButton from "@/components/TelegramLoginButton";
 import DevLoginButtons from "@/components/DevLoginButtons";
 import Footer from "@/components/Footer";
 import ResourceBar from "@/components/ResourceBar";
@@ -52,10 +51,8 @@ export default function AppShell({
   sciLabel,
   notificationsLabel,
   notificationCount,
-  telegramLoginConfigured,
   mainNav,
   bottomNav,
-  loginLabel,
   viewProfileLabel,
   aboutLabel,
   supportLabel,
@@ -71,10 +68,8 @@ export default function AppShell({
   sciLabel?: string;
   notificationsLabel?: string;
   notificationCount?: number;
-  telegramLoginConfigured: boolean;
   mainNav: NavItem[];
   bottomNav: NavItem[];
-  loginLabel: string;
   viewProfileLabel: string;
   aboutLabel: string;
   supportLabel: string;
@@ -83,6 +78,23 @@ export default function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const close = () => setMobileOpen(false);
+
+  if (!user) {
+    return (
+      <Box
+        component="main"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100dvh",
+          minWidth: 0,
+        }}
+      >
+        <Box sx={{ flexGrow: 1, minWidth: 0 }}>{children}</Box>
+        <Footer aboutLabel={aboutLabel} supportLabel={supportLabel} />
+      </Box>
+    );
+  }
 
   // Sidebar nav, dialed a bit more "Neo-Arcade pixel": square blocks (no rounding),
   // headline (pixel) font labels in uppercase, and a hard 3px inset bar (no blur)
@@ -192,66 +204,49 @@ export default function AppShell({
         </Box>
       </Box>
 
-      {/* Mini profile / login */}
+      {/* Mini profile */}
       <Box sx={{ p: 2 }}>
-        {user ? (
-          <Box
-            component={Link}
-            href={`/${user.id}`}
-            onClick={close}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              p: 1,
-              borderRadius: 1,
-              border: 1,
-              borderColor: "divider",
-              textDecoration: "none",
-              color: "inherit",
-              transition: "background-color .15s, border-color .15s",
-              "&:hover": {
-                bgcolor: "action.hover",
-                borderColor: "primary.main",
-              },
-            }}
+        <Box
+          component={Link}
+          href={`/${user.id}`}
+          onClick={close}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            p: 1,
+            borderRadius: 1,
+            border: 1,
+            borderColor: "divider",
+            textDecoration: "none",
+            color: "inherit",
+            transition: "background-color .15s, border-color .15s",
+            "&:hover": {
+              bgcolor: "action.hover",
+              borderColor: "primary.main",
+            },
+          }}
+        >
+          <Avatar
+            src={user.photoUrl}
+            alt={user.name}
+            sx={{ width: 40, height: 40 }}
           >
-            <Avatar
-              src={user.photoUrl}
-              alt={user.name}
-              sx={{ width: 40, height: 40 }}
-            >
-              {user.name.charAt(0) || "?"}
-            </Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography variant="subtitle1" noWrap>
-                {user.name}
-              </Typography>
-              <Typography
-                variant="caption"
-                noWrap
-                sx={{ display: "block", color: "primary.main", fontWeight: 600 }}
-              >
-                {viewProfileLabel} ›
-              </Typography>
-            </Box>
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 1.5,
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              {loginLabel}
+            {user.name.charAt(0) || "?"}
+          </Avatar>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="subtitle1" noWrap>
+              {user.name}
             </Typography>
-            <TelegramLoginButton configured={telegramLoginConfigured} />
+            <Typography
+              variant="caption"
+              noWrap
+              sx={{ display: "block", color: "primary.main", fontWeight: 600 }}
+            >
+              {viewProfileLabel} ›
+            </Typography>
           </Box>
-        )}
+        </Box>
       </Box>
 
       {/* Dev-only fake auth (localhost). No-op in production. */}
@@ -271,19 +266,17 @@ export default function AppShell({
   return (
     <Box sx={{ display: "flex", minHeight: "100dvh" }}>
       {/* Resource HUD — fixed top-right, visible on every page */}
-      {user && (
-        <ResourceBar
-          coinBalance={coinBalance}
-          eggsBalance={eggsBalance}
-          sciBalance={sciBalance}
-          energy={energy}
-          feathersLabel={feathersLabel}
-          eggsLabel={eggsLabel}
-          notificationsLabel={notificationsLabel}
-          notificationCount={notificationCount}
-          sciLabel={sciLabel}
-        />
-      )}
+      <ResourceBar
+        coinBalance={coinBalance}
+        eggsBalance={eggsBalance}
+        sciBalance={sciBalance}
+        energy={energy}
+        feathersLabel={feathersLabel}
+        eggsLabel={eggsLabel}
+        notificationsLabel={notificationsLabel}
+        notificationCount={notificationCount}
+        sciLabel={sciLabel}
+      />
 
       {/* Mobile top bar */}
       <AppBar

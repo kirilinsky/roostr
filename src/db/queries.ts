@@ -269,10 +269,15 @@ export async function getProfileMetrics(
   if (!process.env.DATABASE_URL) return metrics;
   try {
     const { db } = await import("@/db");
-    const { resourceTxns, friendships, users, breedDiscoveries } = await import(
-      "@/db/schema"
-    );
-    const { and, eq, gt, or, sql } = await import("drizzle-orm");
+    const {
+      resourceTxns,
+      friendships,
+      users,
+      breedDiscoveries,
+      workStations,
+      referrals,
+    } = await import("@/db/schema");
+    const { and, eq, gt, inArray, or, sql } = await import("drizzle-orm");
     const { hydrateRoostr, TIERS } = await import("@/lib/roostr");
 
     // Lifetime science earned (positive sci ledger rows — lab claims).
@@ -323,10 +328,119 @@ export async function getProfileMetrics(
     }
     metrics.highestTier = highest;
     metrics.tiersOwned = tiers.size;
+
+    // --- Quest-supporting metrics (also usable by achievements) ---
+    // Workers currently on stations (sum of roster sizes across farm+lab).
+    const ws = await db
+      .select({ ids: workStations.roostrIds })
+      .from(workStations)
+      .where(eq(workStations.userId, userId));
+    metrics.stationWorkers = ws.reduce((n, r) => n + (r.ids?.length ?? 0), 0);
+
+    // Times the player has claimed from a station (ledger rows kind farm|lab).
+    const [sc] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(resourceTxns)
+      .where(
+        and(
+          eq(resourceTxns.userId, userId),
+          inArray(resourceTxns.kind, ["farm", "lab"]),
+          gt(resourceTxns.amount, 0),
+        ),
+      );
+    metrics.stationClaims = Number(sc?.n ?? 0);
+
+    // Players this user has referred (signed up via their invite link).
+    const [rf] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(referrals)
+      .where(eq(referrals.referrerId, userId));
+    metrics.referralsCount = Number(rf?.n ?? 0);
   } catch (e) {
     console.error("getProfileMetrics failed:", e);
   }
   return metrics;
+}
+
+// --- Onboarding quests (linear chain, manual claim) ---
+
+// Set of quest ids this user has already claimed.
+export async function getQuestClaims(userId: number): Promise<Set<string>> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return new Set();
+  try {
+    const { db } = await import("@/db");
+    const { questClaims } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({ questId: questClaims.questId })
+      .from(questClaims)
+      .where(eq(questClaims.userId, userId));
+    return new Set(rows.map((r) => r.questId));
+  } catch (e) {
+    console.error("getQuestClaims failed:", e);
+    return new Set();
+  }
+}
+
+// Full quest-chain state for a user (metrics + claims → evaluated states).
+export async function getQuestStates(userId: number) {
+  const { evaluateQuests } = await import("@/lib/quests");
+  const [metrics, claimed] = await Promise.all([
+    getProfileMetrics(userId),
+    getQuestClaims(userId),
+  ]);
+  return evaluateQuests(metrics, claimed);
+}
+
+// How many quests are claimable right now (unlocked + met + unclaimed) → nudges.
+export async function countReadyQuests(userId: number): Promise<number> {
+  try {
+    const { readyQuests } = await import("@/lib/quests");
+    return readyQuests(await getQuestStates(userId)).length;
+  } catch (e) {
+    console.error("countReadyQuests failed:", e);
+    return 0;
+  }
+}
+
+// Claim a quest's reward — server-validated: the quest must be READY (unlocked by
+// the chain + condition met + not already claimed). Claim-once via CAS on the PK,
+// then grant the reward through the audited ledger.
+export async function claimQuest(
+  userId: number,
+  questId: string,
+): Promise<{ ok: boolean; resource?: string; amount?: number }> {
+  if (!process.env.DATABASE_URL) return { ok: false };
+  try {
+    const { QUEST_BY_ID } = await import("@/lib/quests");
+    const def = QUEST_BY_ID[questId];
+    if (!def) return { ok: false };
+    // Re-derive state on the server; only a READY quest may be claimed.
+    const states = await getQuestStates(userId);
+    const state = states.find((s) => s.def.id === questId);
+    if (!state || state.status !== "ready") return { ok: false };
+
+    const { db } = await import("@/db");
+    const { questClaims } = await import("@/db/schema");
+    const claimed = await db
+      .insert(questClaims)
+      .values({ userId, questId })
+      .onConflictDoNothing()
+      .returning({ questId: questClaims.questId });
+    if (claimed.length === 0) return { ok: false }; // already claimed (race)
+
+    await grantResource(
+      userId,
+      def.reward.resource,
+      def.reward.amount,
+      "quest",
+      questId,
+    );
+    return { ok: true, resource: def.reward.resource, amount: def.reward.amount };
+  } catch (e) {
+    console.error("claimQuest failed:", e);
+    return { ok: false };
+  }
 }
 
 // Persisted achievement unlocks for a user: id → ISO unlock date. The presence
@@ -948,6 +1062,9 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       .select({ n: sql<number>`count(*)` })
       .from(achievementUnlocks)
       .where(achFilter);
+    // Quests ready to claim — a persistent reward nudge (cleared by claiming, not by
+    // visiting). Anti-plateau: "you have rewards waiting".
+    const readyQ = await countReadyQuests(userId);
     // Plus: stations that filled up AFTER the read-cursor ("come claim it").
     const seenMs = seen ? seen.getTime() : 0;
     const stationUnread = (await getStationAlerts(userId)).filter(
@@ -959,6 +1076,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       Number(nf?.n ?? 0) +
       Number(nw?.n ?? 0) +
       Number(ach?.n ?? 0) +
+      readyQ +
       stationUnread
     );
   } catch (e) {

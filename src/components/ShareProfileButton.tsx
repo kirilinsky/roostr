@@ -4,8 +4,8 @@ import { useState } from "react";
 import Button from "@mui/material/Button";
 import { addReferralParam } from "@/lib/referrals";
 
-// Strip any trailing slash so `${BASE_URL}/${id}` never produces a double slash
-// (NEXT_PUBLIC_APP_URL is often set with a trailing "/").
+// Strip any trailing slash so we never produce a double slash (NEXT_PUBLIC_APP_URL
+// is often set with a trailing "/").
 const BASE_URL = (
   process.env.NEXT_PUBLIC_APP_URL ?? "https://roostr-two.vercel.app"
 ).replace(/\/+$/, "");
@@ -20,7 +20,9 @@ export default function ShareProfileButton({
   copiedLabel: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const url = addReferralParam(`${BASE_URL}/${telegramId}`, telegramId);
+  // Invite link points to the HOME page (better landing — it shows the referral
+  // welcome pitch for logged-out visitors), carrying ?ref=<inviter>.
+  const url = addReferralParam(`${BASE_URL}/`, telegramId);
 
   async function copy() {
     try {

@@ -12,7 +12,9 @@ import {
   getRecentDiscoveries,
   getNews,
   getNewAchievements,
+  getQuestStates,
 } from "@/db/queries";
+import { readyQuests } from "@/lib/quests";
 
 // Notifications feed. For now the only event type is an incoming friend request
 // (accept → friends + request cleared; decline → request cleared). Filter tabs
@@ -27,6 +29,7 @@ export default async function NotificationsPage() {
   const discoveries = session ? await getRecentDiscoveries(session.id) : [];
   const news = session ? await getNews(session.id) : [];
   const achievements = session ? await getNewAchievements(session.id) : [];
+  const quests = session ? readyQuests(await getQuestStates(session.id)) : [];
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
@@ -42,6 +45,7 @@ export default async function NotificationsPage() {
           discoveries={discoveries}
           news={news}
           achievements={achievements}
+          readyQuests={quests}
           selfId={session?.id ?? null}
         />
       </Stack>

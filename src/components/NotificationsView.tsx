@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -21,9 +22,12 @@ import {
   declineFriendRequestAction,
 } from "@/app/[telegramid]/actions";
 import { claimNewsAction } from "@/app/notifications/actions";
+import { claimQuestAction } from "@/app/quests/actions";
 import { BREEDS_CATALOG } from "@/lib/breeds";
 import { PROFILE_ACHIEVEMENTS, ROOSTER_ACHIEVEMENTS } from "@/lib/achievements";
+import { REWARD_IMG } from "@/components/QuestBoard";
 import type { Achievement } from "@/lib/achievements";
+import type { QuestState } from "@/lib/quests";
 import type {
   FriendRequestSummary,
   DiscoverySummary,
@@ -44,6 +48,7 @@ const ACH_BY_ID: Record<string, Achievement> = Object.fromEntries(
 // the rest are placeholders for future notification types.
 const TABS = [
   { key: "news", labelKey: "notifications.news" },
+  { key: "quests", labelKey: "notifications.quests" },
   { key: "friends", labelKey: "nav.friends" },
   { key: "battles", labelKey: "pedia.mech.battle.title" },
   { key: "market", labelKey: "nav.market" },
@@ -62,6 +67,7 @@ export default function NotificationsView({
   discoveries = [],
   news = [],
   achievements = [],
+  readyQuests = [],
   selfId = null,
 }: {
   requests: FriendRequestSummary[];
@@ -70,6 +76,7 @@ export default function NotificationsView({
   discoveries?: DiscoverySummary[]; // new Roostrdex entries
   news?: NewsItem[]; // system / promo announcements (CTA claim)
   achievements?: AchievementNotification[]; // newly-unlocked achievements
+  readyQuests?: QuestState[]; // quests whose reward can be claimed now
   selfId?: number | null; // viewer id → profile-achievement link target
 }) {
   const t = useT();
@@ -94,13 +101,15 @@ export default function NotificationsView({
   const activeCount =
     tab === "news"
       ? news.length
-      : tab === "friends"
-        ? requests.length
-        : tab === "roostrdex"
-          ? discoveries.length
-          : tab === "achievements"
-            ? achievements.length
-            : 0;
+      : tab === "quests"
+        ? readyQuests.length
+        : tab === "friends"
+          ? requests.length
+          : tab === "roostrdex"
+            ? discoveries.length
+            : tab === "achievements"
+              ? achievements.length
+              : 0;
   const pageCount = Math.ceil(activeCount / PAGE_SIZE);
   const slice = <T,>(arr: T[]) =>
     arr.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -223,6 +232,51 @@ export default function NotificationsView({
             </List>
             {pager}
           </>
+        )
+      ) : tab === "quests" ? (
+        readyQuests.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+            {t("notifications.empty")}
+          </Typography>
+        ) : (
+          <List disablePadding>
+            {readyQuests.map((q) => (
+              <ListItem
+                key={q.def.id}
+                divider
+                sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
+              >
+                <Typography sx={{ fontSize: 22, lineHeight: 1 }}>
+                  {q.def.icon}
+                </Typography>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {q.def.name[locale]}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t("quests.readyNote")}
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="secondary"
+                  disabled={busy}
+                  onClick={() => act(() => claimQuestAction(q.def.id))}
+                  sx={{ display: "inline-flex", alignItems: "center", gap: 0.4 }}
+                >
+                  {t("quests.claim")} +{q.def.reward.amount}
+                  <Image
+                    src={REWARD_IMG[q.def.reward.resource]}
+                    alt=""
+                    width={16}
+                    height={16}
+                    style={{ height: 14, width: "auto" }}
+                  />
+                </Button>
+              </ListItem>
+            ))}
+          </List>
         )
       ) : tab === "friends" ? (
         newFriends.length === 0 && requests.length === 0 ? (

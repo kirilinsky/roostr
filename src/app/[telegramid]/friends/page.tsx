@@ -47,7 +47,7 @@ export default async function ProfileFriendsPage({
         {isOwn && (
           <ShareProfileButton
             telegramId={id}
-            label={t("friends.share")}
+            label={t("referral.copyLink")}
             copiedLabel={t("friends.copied")}
           />
         )}

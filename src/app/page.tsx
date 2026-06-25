@@ -7,8 +7,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TelegramLoginButton from "@/components/TelegramLoginButton";
+import ReferralBanner from "@/components/ReferralBanner";
 import { getSession } from "@/lib/auth";
 import { getGlobalStats } from "@/db/queries";
+import { parseReferralId } from "@/lib/referrals";
 import { getTranslations } from "@/i18n/server";
 
 // One stat in the guest promo grid. Resource amounts use HUD art (V20); the rest
@@ -67,7 +69,11 @@ function PromoStat({
   );
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await getSession();
   const { t } = await getTranslations();
 
@@ -100,6 +106,21 @@ export default async function HomePage() {
       process.env.TELEGRAM_CLIENT_ID ?? process.env.NEXT_PUBLIC_TELEGRAM_CLIENT_ID
     ) && !!process.env.TELEGRAM_CLIENT_SECRET;
 
+  // Arrived via an invite link (?ref=…) → lead with the welcome-gift pitch, same as
+  // a referred visitor landing on a profile page.
+  const sp = await searchParams;
+  const refId = parseReferralId(Array.isArray(sp.ref) ? sp.ref[0] : sp.ref);
+  const banner =
+    refId !== null ? (
+      <Box sx={{ width: "100%", maxWidth: 520 }}>
+        <ReferralBanner
+          configured={telegramLoginConfigured}
+          title={t("referral.bonusTitle")}
+          text={t("referral.bonusCta")}
+        />
+      </Box>
+    ) : null;
+
   const stats = [
     { key: "players", icon: "👥", value: g.players, label: t("home.statPlayers") },
     { key: "hatched", icon: "🐔", value: g.roostrsHatched, label: t("home.statHatched") },
@@ -115,6 +136,7 @@ export default async function HomePage() {
     return (
       <Container maxWidth="sm" sx={{ py: 8 }}>
         <Stack spacing={2} alignItems="center" textAlign="center">
+          {banner}
           <Typography variant="h4" component="h1">
             🐓 Roostr
           </Typography>
@@ -128,6 +150,7 @@ export default async function HomePage() {
   return (
     <Container maxWidth="md" sx={{ py: { xs: 6, md: 10 } }}>
       <Stack spacing={5} alignItems="center" textAlign="center">
+        {banner}
         <Stack spacing={1.5} alignItems="center">
           <Typography
             variant="h2"

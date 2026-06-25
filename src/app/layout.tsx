@@ -14,9 +14,30 @@ import { getUserById, countUnreadNotifications } from "@/db/queries";
 import { isAdmin } from "@/lib/admin";
 import { headlineFont, bodyFont } from "@/app/fonts";
 
+// Absolute base so relative OG image paths resolve for crawlers (Telegram fetches
+// server-side with no JS and needs absolute HTTPS URLs).
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://roostr-two.vercel.app";
+
+// Telegram renders a link-preview card from these OpenGraph tags when our links are
+// shared (profile / invite). Requirements: HTTPS, PNG/JPEG, <1MB, ~1200×630, and an
+// og:title must be present. Artwork: /public/og.jpg.
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "Roostr",
-  description: "Telegram-authed collectibles",
+  description: "Collect, breed & battle Telegram roosters.",
+  openGraph: {
+    title: "Roostr — collectible Telegram roosters",
+    description: "Collect, breed & battle roosters. Join the flock!",
+    siteName: "Roostr",
+    type: "website",
+    images: [{ url: "/og.jpg", width: 1731, height: 909, alt: "Roostr" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Roostr — collectible Telegram roosters",
+    description: "Collect, breed & battle roosters. Join the flock!",
+    images: ["/og.jpg"],
+  },
 };
 
 export default async function RootLayout({
@@ -26,9 +47,6 @@ export default async function RootLayout({
 }) {
   const { locale, t } = await getTranslations();
   const session = await getSession();
-  const telegramLoginConfigured =
-    !!(process.env.TELEGRAM_CLIENT_ID ?? process.env.NEXT_PUBLIC_TELEGRAM_CLIENT_ID) &&
-    !!process.env.TELEGRAM_CLIENT_SECRET;
 
   const user: ShellUser | null = session
     ? {
@@ -49,7 +67,7 @@ export default async function RootLayout({
     ? await countUnreadNotifications(session.id)
     : 0;
 
-  // Game nav is for logged-in players only; guests see just public links + login.
+  // Game nav is for logged-in players only; guests do not get the app sidebar.
   const mainNav: NavItem[] = loggedIn
     ? [
         { href: "/incubator", label: t("nav.incubator"), icon: "🥚" },
@@ -99,10 +117,8 @@ export default async function RootLayout({
                     sciLabel={t("resource.sci")}
                     notificationsLabel={user ? t("notifications.title") : undefined}
                     notificationCount={notificationCount}
-                    telegramLoginConfigured={telegramLoginConfigured}
                     mainNav={mainNav}
                     bottomNav={bottomNav}
-                    loginLabel={t("nav.login")}
                     viewProfileLabel={t("nav.viewProfile")}
                     aboutLabel={t("nav.about")}
                     supportLabel={t("nav.support")}

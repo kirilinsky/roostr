@@ -126,6 +126,24 @@ export const newsClaims = pgTable(
   (t) => [primaryKey({ columns: [t.newsId, t.userId] })],
 );
 
+// Onboarding quests: one row per (user, quest) that CLAIMED its reward. Quest defs
+// live in src/data/QUESTS.json; completion is derived from profile metrics, the
+// reward is granted once via the ledger on claim (CAS on this PK). Linear chain:
+// quest N unlocks when quest N-1 is claimed.
+export const questClaims = pgTable(
+  "quest_claims",
+  {
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    questId: text("quest_id").notNull(),
+    claimedAt: timestamp("claimed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.questId] })],
+);
+
 export const roostrs = pgTable("roostrs", {
   id: uuid("id").primaryKey().defaultRandom(),
   ownerId: bigint("owner_id", { mode: "number" })

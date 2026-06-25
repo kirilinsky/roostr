@@ -11,7 +11,9 @@ import AchievementBadge from "@/components/AchievementBadge";
 import AchievementToaster from "@/components/AchievementToaster";
 import LogoutButton from "@/components/LogoutButton";
 import ShareProfileButton from "@/components/ShareProfileButton";
+import ShareProfileTelegramButton from "@/components/ShareProfileTelegramButton";
 import ProfileFriendRequests from "@/components/ProfileFriendRequests";
+import QuestBoard from "@/components/QuestBoard";
 import { PROFILE_ACHIEVEMENTS, evaluate } from "@/lib/achievements";
 import { getTranslations } from "@/i18n/server";
 import {
@@ -22,6 +24,7 @@ import {
   getIncomingFriendRequests,
   getOutgoingFriendRequests,
   getReferredUsers,
+  getQuestStates,
 } from "@/db/queries";
 
 // The signed-in player's OWN profile body: identity + stats + achievements +
@@ -82,6 +85,8 @@ export default async function OwnProfile({
   const outgoing = await getOutgoingFriendRequests(user.id);
   const referrals = await getReferredUsers(user.id);
   const hasRequests = incoming.length > 0 || outgoing.length > 0;
+  const questStates = await getQuestStates(user.id);
+  const questsActive = questStates.some((q) => q.status !== "claimed");
 
   // Resource stats use the same icon art as the HUD (img); the rest use an emoji.
   const stats: {
@@ -139,13 +144,22 @@ export default async function OwnProfile({
               </Box>
             </Stack>
             <Stack
-              direction={{ xs: "row", sm: "column" }}
+              direction="column"
               spacing={1}
-              sx={{ flexShrink: 0, "& > *": { flex: { xs: 1, sm: "initial" } } }}
+              sx={{
+                flexShrink: 0,
+                width: { xs: "100%", sm: "auto" },
+                "& > *": { width: { xs: "100%", sm: "auto" } },
+              }}
             >
+              <ShareProfileTelegramButton
+                telegramId={user.id}
+                label={t("profile.shareTelegram")}
+                text={t("profile.shareText")}
+              />
               <ShareProfileButton
                 telegramId={user.id}
-                label={t("friends.share")}
+                label={t("referral.copyLink")}
                 copiedLabel={t("friends.copied")}
               />
               <LogoutButton />
@@ -154,8 +168,9 @@ export default async function OwnProfile({
         </CardContent>
       </Card>
 
-      {/* Brand-new player (no roosters yet) → nudge to the first-steps guide. */}
-      {metrics.roostrsOwned === 0 && (
+      {/* Quests — onboarding chain that teaches mechanics + pays out (anti-plateau).
+          Hidden once every quest is claimed to declutter veteran profiles. */}
+      {questsActive && (
         <Card
           sx={{
             borderColor: "secondary.main",
@@ -164,20 +179,24 @@ export default async function OwnProfile({
           }}
         >
           <CardContent>
-            <Stack spacing={1.5}>
-              <Typography variant="h6">🚀 {t("profile.startTitle")}</Typography>
-              <Typography color="text.secondary">
-                {t("profile.startHint")}
-              </Typography>
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ mb: 1.5 }}
+            >
+              <Typography variant="h6">🎯 {t("quests.title")}</Typography>
               <Button
                 component={Link}
                 href="/pedia/first-steps"
-                variant="contained"
-                sx={{ alignSelf: "flex-start" }}
+                size="small"
+                color="neutral"
               >
                 {t("pedia.firstSteps.title")}
               </Button>
             </Stack>
+            <QuestBoard states={questStates} />
           </CardContent>
         </Card>
       )}

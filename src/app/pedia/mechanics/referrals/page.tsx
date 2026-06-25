@@ -83,7 +83,7 @@ export default async function PediaReferralsPage() {
                 </Typography>
                 <ShareProfileButton
                   telegramId={session.id}
-                  label={t("friends.share")}
+                  label={t("referral.copyLink")}
                   copiedLabel={t("friends.copied")}
                 />
               </Stack>

@@ -169,6 +169,19 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   (e.g. hatch, station claim, slot buy). A local-only state update that skips the refresh leaves the
   HUD stale — that is the bug class this invariant forbids. Station claims also float a "+N" over the
   buffer; the buffer bar eases on rollback.
+- V21 — ONBOARDING QUESTS (anti-plateau). A LINEAR chain of newcomer tasks that teach
+  mechanics and pay out. Defs are data-driven in `src/data/QUESTS.json` (`id, order,
+  icon, name{en,ru}, desc{en,ru}, metric, value, reward{resource,amount}, href?`).
+  Completion is DERIVED from `getProfileMetrics` (`metric ≥ value`) — same engine as
+  achievements; a quest needs a real wired metric or it never completes. Reward is
+  granted MANUALLY: condition met → "ready" → user clicks Claim → `claimQuest`
+  SERVER-validates the state is `ready`, CAS-inserts `quest_claims` (PK userId+questId,
+  claim-once), then `grantResource(reward, kind:"quest")`. LINEAR unlock: quest N is
+  reachable only once quest N-1 is CLAIMED (enforced server-side in `evaluateQuests` +
+  `claimQuest`). Surfaced on the OWN PROFILE (`QuestBoard`) and as a notifications
+  "quests" group listing claimable quests; ready quests add to the bell badge
+  PERSISTENTLY (cleared by claiming, not by visiting) as a reward nudge. Referral
+  milestones (invite 1/3/5) form the chain tail to push the referral loop.
 
 ## §T — Tasks
 
@@ -214,6 +227,8 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | T38 | . | settings: TON wallet field — persist a player's TON address to `users.tonAddress` (already in schema), toward the §G "mint TON NFT later" goal | C,G |
 | T39 | x | notifications "News": stored bilingual (en/ru) system/promo feed (`news` + `news_claims`), unread vs `notificationsSeenAt`; admin publisher on /debug; CTA `claim_egg` grants N eggs once per user (CAS on `news_claims` PK + ledger) | C |
 | T40 | . | widen news CTA: reward types beyond eggs — `claim_coin` / `claim_science` / `claim_feather` (optional), reuse claim-once CAS + `grantResource` ledger; admin form picks type+amount | C |
+| T41 | x | onboarding quests v1: linear chain (`QUESTS.json`) on profile metrics + new metrics (`stationWorkers`/`stationClaims`/`referralsCount`), `quest_claims` table, server-validated manual claim + ledger reward, `QuestBoard` on profile, notifications "quests" group + persistent badge, referral-milestone tail (1/3/5) | V21,C |
+| T42 | . | quest metric for gene upgrades (needs T23 gene-level persistence) + "upgrade a gene" quest; perf: cache `getProfileMetrics`/`countReadyQuests` so the layout badge doesn't recompute on every nav | V21,C |
 
 ## §B — Bugs
 
