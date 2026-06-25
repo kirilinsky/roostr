@@ -56,14 +56,18 @@ function SurfaceCard({
   );
 }
 
+// Uniform balance/stat tile. `value` optional (rarities has none); `soonLabel`
+// renders a small "soon" footnote for not-yet-shipped resources.
 function BalanceTile({
   icon,
   label,
   value,
+  soonLabel,
 }: {
-  icon: string;
+  icon?: string;
   label: string;
-  value: number;
+  value?: number | string;
+  soonLabel?: string;
 }) {
   return (
     <SurfaceCard minHeight={132}>
@@ -72,14 +76,19 @@ function BalanceTile({
           direction="row"
           alignItems="center"
           justifyContent="space-between"
+          spacing={1}
         >
-          <Image
-            src={icon}
-            alt={label}
-            width={34}
-            height={34}
-            style={{ height: 34, width: "auto" }}
-          />
+          {icon ? (
+            <Image
+              src={icon}
+              alt={label}
+              width={34}
+              height={34}
+              style={{ height: 34, width: "auto" }}
+            />
+          ) : (
+            <Box />
+          )}
           <Typography
             variant="caption"
             color="text.secondary"
@@ -90,17 +99,28 @@ function BalanceTile({
           </Typography>
         </Stack>
         <Box sx={{ flexGrow: 1 }} />
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 900,
-            lineHeight: 1,
-            fontSize: { xs: "1.35rem", sm: "1.75rem", md: "2rem" },
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {value.toLocaleString()}
-        </Typography>
+        {value !== undefined && (
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 900,
+              lineHeight: 1,
+              fontSize: { xs: "1.35rem", sm: "1.75rem", md: "2rem" },
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {typeof value === "number" ? value.toLocaleString() : value}
+          </Typography>
+        )}
+        {soonLabel && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ fontSize: "0.65rem", opacity: 0.7, lineHeight: 1 }}
+          >
+            {soonLabel}
+          </Typography>
+        )}
       </Stack>
     </SurfaceCard>
   );
@@ -194,117 +214,35 @@ export default async function BankPage() {
             <Box
               sx={{
                 display: "grid",
+                // Same 3-up grid as the wallet tiles above → identical tile size.
                 gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
+                  xs: "repeat(3, minmax(0, 1fr))",
+                  sm: "repeat(3, minmax(0, 1fr))",
                 },
                 gap: 1.25,
               }}
             >
-              {/* Block 3 — collectible rarities (soon) */}
-              <SurfaceCard minHeight={154}>
-                <Stack
-                  spacing={1}
-                  sx={{ height: "100%", justifyContent: "space-between" }}
-                >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    spacing={1}
-                  >
-                    <Typography variant="overline" color="text.secondary">
-                      {t("bank.rarities")}
-                    </Typography>
-                    <Chip
-                      label={t("pedia.soon")}
-                      size="small"
-                      variant="outlined"
-                      sx={{ borderRadius: 0.75 }}
-                    />
-                  </Stack>
-                  <Typography variant="body2" color="text.secondary">
-                    {t("bank.raritiesDesc")}
-                  </Typography>
-                  <Box />
-                </Stack>
-              </SurfaceCard>
-
-              {/* Block 4 — feathers (soon) */}
-              <SurfaceCard minHeight={132}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  spacing={1}
-                >
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    spacing={1.5}
-                    sx={{ minWidth: 0 }}
-                  >
-                    <Image
-                      src="/feather.png"
-                      alt={t("resource.feathers")}
-                      width={34}
-                      height={34}
-                      style={{ height: 34, width: "auto" }}
-                    />
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        variant="overline"
-                        color="text.secondary"
-                        sx={{ display: "block", lineHeight: 1.2 }}
-                      >
-                        {t("resource.feathers")}
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                        {balances.feather.toLocaleString()}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Chip
-                    label={t("pedia.soon")}
-                    size="small"
-                    variant="outlined"
-                    sx={{ borderRadius: 0.75 }}
-                  />
-                </Stack>
-              </SurfaceCard>
-
-              {/* Block 5 — base defense (live Σ Crow of guards on watch) */}
-              <SurfaceCard minHeight={132}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1.5}
-                  sx={{ minWidth: 0 }}
-                >
-                  <Image
-                    src="/defense.png"
-                    alt={t("nav.defense")}
-                    width={28}
-                    height={28}
-                    style={{ height: 28, width: "auto" }}
-                  />
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography
-                      variant="overline"
-                      color="text.secondary"
-                      sx={{ display: "block", lineHeight: 1.2 }}
-                    >
-                      {t("nav.defense")}
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                      {defenseValue.toLocaleString()}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </SurfaceCard>
+              {/* Rarities (soon) — collectible tokens, not shipped yet. */}
+              <BalanceTile
+                label={t("bank.rarities")}
+                soonLabel={t("pedia.soon")}
+              />
+              {/* Feathers (battle energy, soon). */}
+              <BalanceTile
+                icon="/feather.png"
+                label={t("resource.feathers")}
+                value={balances.feather}
+                soonLabel={t("pedia.soon")}
+              />
+              {/* Base defense — live Σ Crow of guards on watch. */}
+              <BalanceTile
+                icon="/defense.png"
+                label={t("nav.defense")}
+                value={defenseValue}
+              />
 
               {/* Money actions (top up + transfer, both soon) — last, full width */}
-              <SurfaceCard sx={{ gridColumn: { sm: "1 / -1" } }}>
+              <SurfaceCard sx={{ gridColumn: "1 / -1" }}>
                 <Stack spacing={1.25} sx={{ height: "100%" }}>
                   <Stack
                     direction="row"

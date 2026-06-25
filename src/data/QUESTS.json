@@ -10,7 +10,7 @@
     },
     "metric": "eggsHatched",
     "value": 1,
-    "reward": { "resource": "coin", "amount": 50 },
+    "reward": { "resource": "coin", "amount": 55 },
     "href": "/incubator"
   },
   {
@@ -66,7 +66,7 @@
     },
     "metric": "farmSlots",
     "value": 3,
-    "reward": { "resource": "sci", "amount": 50 },
+    "reward": { "resource": "sci", "amount": 55 },
     "href": "/farm"
   },
   {
@@ -80,7 +80,7 @@
     },
     "metric": "stationClaims",
     "value": 1,
-    "reward": { "resource": "sci", "amount": 20 },
+    "reward": { "resource": "sci", "amount": 25 },
     "href": "/farm"
   },
   {
@@ -94,7 +94,7 @@
     },
     "metric": "sciEarned",
     "value": 50,
-    "reward": { "resource": "coin", "amount": 100 },
+    "reward": { "resource": "coin", "amount": 125 },
     "href": "/lab"
   },
   {
@@ -108,7 +108,7 @@
     },
     "metric": "friends",
     "value": 1,
-    "reward": { "resource": "coin", "amount": 50 }
+    "reward": { "resource": "coin", "amount": 55 }
   },
   {
     "id": "first-referral",
@@ -121,7 +121,7 @@
     },
     "metric": "referralsCount",
     "value": 1,
-    "reward": { "resource": "egg", "amount": 1 },
+    "reward": { "resource": "egg", "amount": 2 },
     "href": "/pedia/mechanics/referrals"
   },
   {
@@ -135,7 +135,7 @@
     },
     "metric": "labSlots",
     "value": 3,
-    "reward": { "resource": "coin", "amount": 50 },
+    "reward": { "resource": "coin", "amount": 55 },
     "href": "/lab"
   },
   {
@@ -149,7 +149,7 @@
     },
     "metric": "referralsCount",
     "value": 3,
-    "reward": { "resource": "coin", "amount": 200 },
+    "reward": { "resource": "coin", "amount": 250 },
     "href": "/pedia/mechanics/referrals"
   },
   {
@@ -163,7 +163,7 @@
     },
     "metric": "defenseGuards",
     "value": 1,
-    "reward": { "resource": "sci", "amount": 50 },
+    "reward": { "resource": "sci", "amount": 55 },
     "href": "/defense"
   },
   {
@@ -177,7 +177,7 @@
     },
     "metric": "referralsCount",
     "value": 5,
-    "reward": { "resource": "egg", "amount": 3 },
+    "reward": { "resource": "egg", "amount": 4 },
     "href": "/pedia/mechanics/referrals"
   }
 ]

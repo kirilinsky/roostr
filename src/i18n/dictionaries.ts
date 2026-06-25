@@ -210,6 +210,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "txn.news": "News reward",
     "txn.quest": "Quest reward",
     "txn.dex": "Roostrdex reward",
+    "txn.slot": "Station slot",
     "referral.bonusTitle": "You've been invited!",
     "referral.bonusCta": "Sign up and get a bonus egg + 50 starter coins.",
 
@@ -708,6 +709,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "txn.news": "Награда из новостей",
     "txn.quest": "Награда за квест",
     "txn.dex": "Награда Рустрдекса",
+    "txn.slot": "Слот расширения работников",
     "referral.bonusTitle": "Тебя пригласили!",
     "referral.bonusCta": "Зарегистрируйся и получи бонусное яйцо + 50 стартовых монет.",
 
