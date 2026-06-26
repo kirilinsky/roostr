@@ -14,6 +14,7 @@ import {
   getQuestStates,
   getIncomingGifts,
   getSenderGiftUpdates,
+  expireStaleGifts,
 } from "@/db/queries";
 import { readyQuests } from "@/lib/quests";
 
@@ -31,6 +32,9 @@ export default async function NotificationsPage() {
   const news = session ? await getNews(session.id) : [];
   const achievements = session ? await getNewAchievements(session.id) : [];
   const quests = session ? readyQuests(await getQuestStates(session.id)) : [];
+  // Return any pending gifts that have sat unanswered past the expiry window
+  // before reading the feed, so expired ones show as "returned" not "pending".
+  if (session) await expireStaleGifts();
   const incomingGifts = session ? await getIncomingGifts(session.id) : [];
   const giftUpdates = session ? await getSenderGiftUpdates(session.id) : [];
 

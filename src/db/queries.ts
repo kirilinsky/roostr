@@ -380,6 +380,14 @@ export async function getProfileMetrics(
       .where(eq(referrals.referrerId, userId));
     metrics.referralsCount = Number(rf?.n ?? 0);
 
+    // Gifts SENT (any outcome) → drives the "send a gift" onboarding quest. Counts
+    // the act of gifting, not whether the recipient accepted.
+    const [gSent] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(gifts)
+      .where(eq(gifts.fromUserId, userId));
+    metrics.giftsSent = Number(gSent?.n ?? 0);
+
     // Gifts: birds this user successfully gave away / received (accepted only).
     const [gOut] = await db
       .select({ n: sql<number>`count(*)` })
@@ -637,6 +645,43 @@ const displayName = (u: {
   [u.firstName, u.lastName].filter(Boolean).join(" ") ||
   (u.username ? `@${u.username}` : String(u.id));
 
+// A pending gift the recipient never answers auto-returns to the sender after
+// this many days (the sender CAN'T cancel, so this prevents a bird being locked
+// in limbo forever — see expireStaleGifts).
+export const GIFT_EXPIRY_DAYS = 7;
+
+// Lazy sweep (no cron): flip any pending gift older than GIFT_EXPIRY_DAYS to
+// "expired" and return its bird to the sender (status active; owner never changed
+// while pending). Idempotent + cheap when nothing is stale. Called from the gift /
+// notifications / collection surfaces so the state is fresh when anyone looks.
+export async function expireStaleGifts(): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { gifts, roostrs } = await import("@/db/schema");
+    const { and, eq, inArray, lt } = await import("drizzle-orm");
+    const threshold = new Date(Date.now() - GIFT_EXPIRY_DAYS * 86_400_000);
+    const stale = await db
+      .select({ id: gifts.id, roostrId: gifts.roostrId })
+      .from(gifts)
+      .where(and(eq(gifts.status, "pending"), lt(gifts.createdAt, threshold)));
+    if (stale.length === 0) return;
+    const ids = stale.map((s) => s.id);
+    const roostrIds = stale.map((s) => s.roostrId);
+    await db
+      .update(gifts)
+      .set({ status: "expired", resolvedAt: new Date() })
+      .where(inArray(gifts.id, ids));
+    // Only unlock birds still parked in "gifting" (don't clobber any other status).
+    await db
+      .update(roostrs)
+      .set({ status: "active" })
+      .where(and(inArray(roostrs.id, roostrIds), eq(roostrs.status, "gifting")));
+  } catch (e) {
+    console.error("expireStaleGifts failed:", e);
+  }
+}
+
 // Gift an ACTIVE bird to a friend. Locks the bird (status="gifting") via CAS so
 // it can't be double-gifted/sold, then writes a pending gift row. Friends-only.
 export async function createGift(
@@ -666,21 +711,35 @@ export async function createGift(
       )
       .returning({ id: roostrs.id });
     if (locked.length === 0) return { ok: false, reason: "unavailable" };
-    const [g] = await db
-      .insert(gifts)
-      .values({ roostrId, fromUserId, toUserId })
-      .returning({ id: gifts.id });
-    return { ok: true, giftId: g?.id };
+    // The bird is now locked to "gifting". If writing the gift row fails, we MUST
+    // undo the lock or the bird is orphaned in limbo forever (no sender cancel).
+    try {
+      const [g] = await db
+        .insert(gifts)
+        .values({ roostrId, fromUserId, toUserId })
+        .returning({ id: gifts.id });
+      return { ok: true, giftId: g?.id };
+    } catch (insErr) {
+      await db
+        .update(roostrs)
+        .set({ status: "active" })
+        .where(and(eq(roostrs.id, roostrId), eq(roostrs.status, "gifting")));
+      console.error("createGift insert failed, lock reverted:", insErr);
+      return { ok: false, reason: "error" };
+    }
   } catch (e) {
     console.error("createGift failed:", e);
     return { ok: false, reason: "error" };
   }
 }
 
-// The single pending gift for a bird (null if none). Drives the /gift/[id] page.
+// The single pending gift for a bird (null if none). Drives the /gift/[id] page
+// + the accept/decline guards, so sweep expiries first — an 8-day-old gift must
+// read as gone here (can't be accepted; the bird is back with the sender).
 export async function getPendingGiftForRoostr(roostrId: string) {
   if (!process.env.DATABASE_URL) return null;
   try {
+    await expireStaleGifts();
     const { db } = await import("@/db");
     const { gifts } = await import("@/db/schema");
     const { and, eq } = await import("drizzle-orm");
@@ -870,7 +929,7 @@ export async function getSenderGiftUpdates(
       .where(
         and(
           eq(gifts.fromUserId, userId),
-          inArray(gifts.status, ["accepted", "declined"]),
+          inArray(gifts.status, ["accepted", "declined", "expired"]),
           isNotNull(gifts.resolvedAt),
         ),
       )

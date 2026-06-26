@@ -5,7 +5,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CollectionView from "@/components/CollectionView";
 import { getSession } from "@/lib/auth";
-import { getCollectionRoostrs } from "@/db/queries";
+import { getCollectionRoostrs, expireStaleGifts } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 
@@ -26,6 +26,9 @@ export default async function CollectionPage() {
     );
   }
 
+  // Expire stale pending gifts first, so a bird that was sent but never answered
+  // is back in the roster (status active) instead of stuck in "gifting" limbo.
+  await expireStaleGifts();
   const rows = await getCollectionRoostrs(session.id);
   const roostrs = rows.map(hydrateRoostr);
 

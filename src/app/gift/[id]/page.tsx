@@ -11,6 +11,7 @@ import {
   getPendingGiftForRoostr,
   getUserById,
   GIFT_TAX,
+  GIFT_EXPIRY_DAYS,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
@@ -41,6 +42,12 @@ export default async function GiftPage({
     (sender?.username ? `@${sender.username}` : String(gift.fromUserId));
   const coins = (await getUserById(session.id))?.coins ?? 0;
   const roostr = hydrateRoostr(row);
+  // Days left before this unanswered gift auto-returns to the sender.
+  const daysLeft = Math.max(
+    0,
+    GIFT_EXPIRY_DAYS -
+      Math.floor((Date.now() - gift.createdAt.getTime()) / 86_400_000),
+  );
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
@@ -48,6 +55,9 @@ export default async function GiftPage({
         <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "secondary.main" }}>
           <Typography variant="body1" sx={{ fontWeight: 700 }}>
             🎁 {t("gift.sentYou", { name: senderName })}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            ⌛ {t("gift.expiresIn", { days: daysLeft })}
           </Typography>
         </Card>
 

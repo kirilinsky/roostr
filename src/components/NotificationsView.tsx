@@ -483,13 +483,24 @@ export default function NotificationsView({
               </List>
             )}
 
-            {/* Resolution of gifts I sent — accepted / declined notices. */}
+            {/* Resolution of gifts I sent — accepted / declined / expired notices. */}
             {giftUpdates.length > 0 && (
               <List disablePadding>
                 {giftUpdates.map((g) => {
                   const breed = BREED_NAME[g.breedId]?.[locale] ?? g.breedId;
                   const bird = g.nickname || breed;
-                  const accepted = g.status === "accepted";
+                  const icon =
+                    g.status === "accepted"
+                      ? "🎉"
+                      : g.status === "expired"
+                        ? "⌛"
+                        : "💔";
+                  const msgKey =
+                    g.status === "accepted"
+                      ? "notifications.giftAccepted"
+                      : g.status === "expired"
+                        ? "notifications.giftExpired"
+                        : "notifications.giftDeclined";
                   return (
                     <ListItem
                       key={`giftres-${g.id}`}
@@ -501,13 +512,7 @@ export default function NotificationsView({
                     >
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {accepted ? "🎉" : "💔"}{" "}
-                          {t(
-                            accepted
-                              ? "notifications.giftAccepted"
-                              : "notifications.giftDeclined",
-                            { name: g.toName, bird },
-                          )}
+                          {icon} {t(msgKey, { name: g.toName, bird })}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                           {new Date(g.resolvedAt).toLocaleDateString(locale)}

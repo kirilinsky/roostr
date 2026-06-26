@@ -139,6 +139,20 @@
     "href": "/lab"
   },
   {
+    "id": "gift-friend",
+    "order": 8.7,
+    "icon": "🎁",
+    "name": { "en": "Share the flock", "ru": "Поделись стаей" },
+    "desc": {
+      "en": "Send one of your roosters to a friend as a gift.",
+      "ru": "Отправь одного из своих петухов другу в подарок."
+    },
+    "metric": "giftsSent",
+    "value": 1,
+    "reward": { "resource": "egg", "amount": 1 },
+    "href": "/collection"
+  },
+  {
     "id": "referral-three",
     "order": 9,
     "icon": "📣",
