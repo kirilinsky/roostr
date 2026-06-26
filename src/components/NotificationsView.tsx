@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Avatar from "@mui/material/Avatar";
+import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import Chip from "@mui/material/Chip";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import Pagination from "@mui/material/Pagination";
@@ -183,6 +185,29 @@ export default function NotificationsView({
         }
       : {};
 
+  // Square magenta count pill — shared by the desktop tab strip and the mobile
+  // dropdown items so both surfaces show the same per-category badge.
+  const countBadge = (n: number) =>
+    n > 0 ? (
+      <Box
+        component="span"
+        sx={{
+          minWidth: 18,
+          height: 18,
+          px: 0.5,
+          borderRadius: 0,
+          bgcolor: "secondary.main",
+          color: "secondary.contrastText",
+          fontSize: "0.68rem",
+          fontWeight: 800,
+          lineHeight: "18px",
+          textAlign: "center",
+        }}
+      >
+        {n}
+      </Box>
+    ) : null;
+
   return (
     // minWidth:0 lets this flex column shrink below the tab-strip content width
     // (otherwise the scrollable Tabs force horizontal overflow on narrow screens).
@@ -199,21 +224,55 @@ export default function NotificationsView({
           </Button>
         </Box>
       )}
+      {/* Mobile: a 9-item scrollable tab strip is too fiddly to tap and hides
+          which categories have unread items. A wrapping chip bar shows every
+          category at once, each with its own unread badge. Desktop keeps tabs. */}
+      <Box
+        sx={{
+          display: { xs: "flex", md: "none" },
+          flexWrap: "wrap",
+          gap: 1,
+          pt: 0.5,
+        }}
+      >
+        {TABS.map((x) => {
+          const n = tabCounts[x.key] ?? 0;
+          const selected = tab === x.key;
+          return (
+            <Badge
+              key={x.key}
+              badgeContent={n}
+              color="secondary"
+              overlap="rectangular"
+            >
+              <Chip
+                label={t(x.labelKey)}
+                clickable
+                onClick={() => selectTab(x.key)}
+                color={selected ? "primary" : "default"}
+                variant={selected ? "filled" : "outlined"}
+                size="small"
+              />
+            </Badge>
+          );
+        })}
+      </Box>
+
       <Tabs
         value={tab}
         onChange={(_, v) => selectTab(v)}
         variant="scrollable"
         scrollButtons="auto"
-        allowScrollButtonsMobile
         sx={{
+          display: { xs: "none", md: "flex" },
           minHeight: 40,
           maxWidth: "100%",
           minWidth: 0,
           "& .MuiTab-root": {
             minHeight: 40,
-            minWidth: { xs: "auto", md: 90 },
-            px: { xs: 1, md: 2 },
-            fontSize: { xs: "0.78rem", md: "0.875rem" },
+            minWidth: 90,
+            px: 2,
+            fontSize: "0.875rem",
           },
         }}
       >
@@ -229,25 +288,7 @@ export default function NotificationsView({
                   sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}
                 >
                   {t(x.labelKey)}
-                  {n > 0 && (
-                    <Box
-                      component="span"
-                      sx={{
-                        minWidth: 18,
-                        height: 18,
-                        px: 0.5,
-                        borderRadius: 0,
-                        bgcolor: "secondary.main",
-                        color: "secondary.contrastText",
-                        fontSize: "0.68rem",
-                        fontWeight: 800,
-                        lineHeight: "18px",
-                        textAlign: "center",
-                      }}
-                    >
-                      {n}
-                    </Box>
-                  )}
+                  {countBadge(n)}
                 </Box>
               }
             />

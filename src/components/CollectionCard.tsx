@@ -160,36 +160,35 @@ export default function CollectionCard({
             })}
           />
         )}
-      </Box>
-
-      {/* name + origin flag + tier·rating */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-        <Box sx={{ minWidth: 0 }}>
-          {/* custom nickname stands out (secondary tint); breed-name default stays neutral */}
-          <Typography
-            variant="subtitle2"
-            sx={{
-              fontWeight: 700,
-              color: roostr.nickname ? "secondary.main" : "inherit",
-            }}
-            noWrap
-          >
-            {countryFlag(roostr.breed.region.iso)} {name}
-          </Typography>
-          {!compact && (
-            <Typography variant="caption" color="text.secondary" noWrap component="div">
-              {roostr.nickname ? `${breedName} · ` : ""}
-              {groupName(roostr.breed.group, locale)}
-            </Typography>
-          )}
-        </Box>
+        {/* tier · rating — overlaid bottom-right so the name row below stays
+            full width (chip used to share the name row and truncate it). */}
         <Chip
           label={`${roostr.tier.id} · ${roostr.rating}`}
           size="small"
-          variant="outlined"
-          sx={{ flexShrink: 0, fontWeight: 800 }}
+          sx={{ position: "absolute", bottom: 6, right: 6, fontWeight: 800, bgcolor: "background.paper" }}
         />
-      </Stack>
+      </Box>
+
+      {/* name + origin flag — full width (tier·rating now overlays the avatar) */}
+      <Box sx={{ minWidth: 0 }}>
+        {/* custom nickname stands out (secondary tint); breed-name default stays neutral */}
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 700,
+            color: roostr.nickname ? "secondary.main" : "inherit",
+          }}
+          noWrap
+        >
+          {countryFlag(roostr.breed.region.iso)} {name}
+        </Typography>
+        {!compact && (
+          <Typography variant="caption" color="text.secondary" noWrap component="div">
+            {roostr.nickname ? `${breedName} · ` : ""}
+            {groupName(roostr.breed.group, locale)}
+          </Typography>
+        )}
+      </Box>
 
       {/* footer: stat lean (Intellect or by-category) on the left, battle record
           on the right — one row, space-between */}
