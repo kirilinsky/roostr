@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import BreedArt from "@/components/BreedArt";
 import { MONO_FONT } from "@/lib/tokens";
 
@@ -82,29 +83,33 @@ export default function BreedDexCard(props: BreedDexCardProps) {
   if (!discovered) {
     return (
       <Box
-        sx={{
-          border: 2,
+        sx={(theme) => ({
+          height: "100%",
+          border: 1,
           borderColor: "divider",
-          borderRadius: 0,
+          borderRadius: 1,
           overflow: "hidden",
-          bgcolor: "background.paper",
+          bgcolor: alpha(theme.palette.background.paper, 0.84),
           display: "flex",
           flexDirection: "column",
-        }}
+          boxShadow: "none",
+        })}
       >
         <Box
-          sx={{
-            px: 1,
-            py: 0.5,
+          sx={(theme) => ({
+            px: 1.25,
+            py: 0.75,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            bgcolor: "action.hover",
-          }}
+            borderBottom: 1,
+            borderColor: "divider",
+            bgcolor: alpha(theme.palette.action.hover, 0.72),
+          })}
         >
           <Typography
             variant="caption"
-            sx={{ fontFamily: MONO_FONT, color: "text.disabled" }}
+            sx={{ fontFamily: MONO_FONT, color: "text.disabled", fontWeight: 800 }}
           >
             #???
           </Typography>
@@ -121,15 +126,40 @@ export default function BreedDexCard(props: BreedDexCardProps) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 64,
+            position: "relative",
+            fontSize: 56,
             fontWeight: 900,
-            color: "text.disabled",
-            backgroundImage: `repeating-linear-gradient(45deg, ${theme.palette.divider} 0 10px, transparent 10px 20px)`,
+            color: alpha(theme.palette.text.primary, 0.18),
+            background: [
+              `radial-gradient(circle at 50% 42%, ${alpha(theme.palette.text.primary, 0.08)}, transparent 42%)`,
+              `linear-gradient(180deg, ${alpha(theme.palette.action.hover, 0.38)}, ${alpha(theme.palette.background.default, 0.82)})`,
+            ].join(", "),
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              width: "46%",
+              height: "58%",
+              borderRadius: "48% 48% 42% 42%",
+              bgcolor: alpha(theme.palette.text.primary, 0.08),
+              transform: "translateY(6%)",
+            },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              width: 54,
+              height: 54,
+              borderRadius: "50%",
+              border: "1px solid",
+              borderColor: alpha(theme.palette.text.primary, 0.12),
+              bgcolor: alpha(theme.palette.background.paper, 0.56),
+            },
           })}
         >
-          ?
+          <Box component="span" sx={{ position: "relative", zIndex: 1 }}>
+            ?
+          </Box>
         </Box>
-        <Box sx={{ p: 1.5 }}>
+        <Box sx={{ p: 1.5, flexGrow: 1 }}>
           <Typography sx={{ fontWeight: 800, color: "text.disabled" }} noWrap>
             {unknownLabel}
           </Typography>
@@ -142,27 +172,30 @@ export default function BreedDexCard(props: BreedDexCardProps) {
 
   return (
     <Box
-      sx={{
-        border: 2,
-        borderColor: "neutral.main",
-        borderRadius: 0,
+      sx={(theme) => ({
+        height: "100%",
+        border: 1,
+        borderColor: "divider",
+        borderRadius: 1,
         overflow: "hidden",
         bgcolor: "background.paper",
         display: "flex",
         flexDirection: "column",
-      }}
+        boxShadow: `0 4px 14px ${alpha(theme.palette.common.black, 0.05)}`,
+      })}
     >
       {/* Group band, tinted by the breed group's token */}
       <Box
         sx={(theme) => {
           const c = theme.palette[ref.key][ref.variant];
           return {
-            px: 1,
-            py: 0.5,
+            px: 1.25,
+            py: 0.75,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            bgcolor: c,
+            gap: 1,
+            bgcolor: alpha(c, 0.95),
             color: theme.palette.getContrastText(c),
           };
         }}
@@ -182,7 +215,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
       {/* Breed art — /breeds/<id>.png, 🐓 fallback while assets fill in */}
       <BreedArt id={props.breedId} />
 
-      <Box sx={{ p: 1.5 }}>
+      <Box sx={{ p: 1.5, flexGrow: 1 }}>
         <Typography sx={{ fontWeight: 800, mb: 0.75 }} noWrap>
           {props.name}
         </Typography>

@@ -13,6 +13,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import BreedDexCard from "@/components/BreedDexCard";
 import { useIsAdmin } from "@/components/AdminProvider";
 import { useToast } from "@/components/ToastProvider";
@@ -115,9 +116,9 @@ export default function RoostrdexPage() {
     <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
       <Stack spacing={3}>
         <Stack
-          direction="row"
+          direction={{ xs: "column", sm: "row" }}
           justifyContent="space-between"
-          alignItems="flex-start"
+          alignItems={{ xs: "flex-start", sm: "flex-start" }}
           spacing={2}
         >
           <Stack spacing={0.5}>
@@ -142,13 +143,14 @@ export default function RoostrdexPage() {
 
         {/* Progress */}
         <Box
-          sx={{
-            border: 2,
-            borderColor: "neutral.main",
-            borderRadius: 0,
-            p: 2,
-            bgcolor: "background.paper",
-          }}
+          sx={(theme) => ({
+            border: 1,
+            borderColor: "divider",
+            borderRadius: 1,
+            p: { xs: 2, md: 2.5 },
+            bgcolor: alpha(theme.palette.background.paper, 0.88),
+            boxShadow: "none",
+          })}
         >
           <Stack
             direction="row"
@@ -166,7 +168,7 @@ export default function RoostrdexPage() {
           <LinearProgress
             variant="determinate"
             value={pct}
-            sx={{ height: 12, borderRadius: 0 }}
+            sx={{ height: 12, borderRadius: 0.75 }}
           />
           <Stack
             direction="row"
@@ -188,7 +190,15 @@ export default function RoostrdexPage() {
 
         {/* Selected group blurb */}
         {filter !== ALL && (
-          <Box sx={{ borderRadius: 0, p: 2, bgcolor: "background.paper" }}>
+          <Box
+            sx={(theme) => ({
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 1,
+              p: 2,
+              bgcolor: alpha(theme.palette.background.paper, 0.88),
+            })}
+          >
             <Typography sx={{ fontWeight: 800 }}>
               {groupName(filter, locale)}
             </Typography>
@@ -218,14 +228,25 @@ export default function RoostrdexPage() {
           sx={{
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
-            gap: 2,
+            gap: 2.5,
           }}
         >
-          <Box sx={{ width: { md: 200 }, flexShrink: 0 }}>
+          <Box
+            sx={(theme) => ({
+              width: { md: 220 },
+              flexShrink: 0,
+              alignSelf: "flex-start",
+              border: 1,
+              borderColor: "divider",
+              borderRadius: 1,
+              p: 1,
+              bgcolor: alpha(theme.palette.background.paper, 0.88),
+            })}
+          >
             <Typography
               variant="overline"
               color="text.secondary"
-              sx={{ display: "block", mb: 0.5 }}
+              sx={{ display: "block", px: 1, mb: 0.5 }}
             >
               {t("roostrdex.filter")}
             </Typography>
@@ -234,7 +255,11 @@ export default function RoostrdexPage() {
                 <ListItemButton
                   selected={filter === ALL}
                   onClick={() => setFilter(ALL)}
-                  sx={{ gap: 1 }}
+                  sx={{
+                    gap: 1,
+                    borderRadius: 0.75,
+                    "&.Mui-selected": { fontWeight: 800 },
+                  }}
                 >
                   <ListItemText
                     primary={t("roostrdex.all")}
@@ -250,7 +275,11 @@ export default function RoostrdexPage() {
                     <ListItemButton
                       selected={filter === g}
                       onClick={() => setFilter(g)}
-                      sx={{ gap: 1 }}
+                      sx={{
+                        gap: 1,
+                        borderRadius: 0.75,
+                        "&.Mui-selected": { fontWeight: 800 },
+                      }}
                     >
                       <ListItemText
                         primary={groupName(g, locale)}
@@ -268,8 +297,9 @@ export default function RoostrdexPage() {
             sx={{
               flexGrow: 1,
               display: "grid",
-              gap: 2,
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: 1.5,
+              gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))",
+              alignItems: "stretch",
             }}
           >
             {visible.map(({ breed, dexNo }) => {
