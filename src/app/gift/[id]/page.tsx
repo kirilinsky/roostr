@@ -10,6 +10,7 @@ import {
   getRoostr,
   getPendingGiftForRoostr,
   getUserById,
+  GIFT_TAX,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
@@ -38,6 +39,7 @@ export default async function GiftPage({
   const senderName =
     [sender?.firstName, sender?.lastName].filter(Boolean).join(" ") ||
     (sender?.username ? `@${sender.username}` : String(gift.fromUserId));
+  const coins = (await getUserById(session.id))?.coins ?? 0;
   const roostr = hydrateRoostr(row);
 
   return (
@@ -49,7 +51,7 @@ export default async function GiftPage({
           </Typography>
         </Card>
 
-        <GiftActions roostrId={id} />
+        <GiftActions roostrId={id} tax={GIFT_TAX} coins={coins} />
 
         <RoostrDetail
           roostr={roostr}

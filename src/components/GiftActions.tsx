@@ -9,28 +9,37 @@ import Typography from "@mui/material/Typography";
 import { acceptGiftAction, declineGiftAction } from "@/app/gift/[id]/actions";
 import { useT } from "@/i18n/I18nProvider";
 
-// Accept / decline controls on the /gift/[id] page. Accept → bird becomes mine
-// (go to its collection page). Decline → it returns to the sender (back to feed).
-export default function GiftActions({ roostrId }: { roostrId: string }) {
+// Accept / decline controls on the /gift/[id] page. Accept costs a flat coin tax
+// (anti-bot) → bird becomes mine. Decline → it returns to the sender (back to feed).
+export default function GiftActions({
+  roostrId,
+  tax,
+  coins,
+}: {
+  roostrId: string;
+  tax: number;
+  coins: number;
+}) {
   const t = useT();
   const router = useRouter();
   const [busy, startTransition] = useTransition();
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const canAfford = coins >= tax;
 
   const accept = () =>
     startTransition(async () => {
-      setError(false);
+      setError(null);
       const res = await acceptGiftAction(roostrId);
       if (res.ok) router.push(`/collection/${roostrId}`);
-      else setError(true);
+      else setError(res.reason === "coins" ? "coins" : "error");
     });
 
   const decline = () =>
     startTransition(async () => {
-      setError(false);
+      setError(null);
       const res = await declineGiftAction(roostrId);
       if (res.ok) router.push("/notifications");
-      else setError(true);
+      else setError("error");
     });
 
   return (
@@ -39,14 +48,24 @@ export default function GiftActions({ roostrId }: { roostrId: string }) {
         <Typography variant="body2" sx={{ fontWeight: 700 }}>
           🎁 {t("gift.decide")}
         </Typography>
+        {/* Anti-bot tax notice — accepting costs `tax` corn coins. */}
+        <Typography variant="caption" color="text.secondary">
+          {t("gift.taxNote", { tax })}
+        </Typography>
         {error && (
           <Typography variant="caption" color="error">
-            {t("gift.error")}
+            {error === "coins"
+              ? t("gift.notEnoughCoins", { tax })
+              : t("gift.error")}
           </Typography>
         )}
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          <Button variant="contained" onClick={accept} disabled={busy}>
-            ✓ {t("gift.accept")}
+          <Button
+            variant="contained"
+            onClick={accept}
+            disabled={busy || !canAfford}
+          >
+            ✓ {t("gift.accept")} · {tax} 🌽
           </Button>
           <Button
             variant="outlined"
@@ -57,6 +76,11 @@ export default function GiftActions({ roostrId }: { roostrId: string }) {
             ✕ {t("gift.decline")}
           </Button>
         </Stack>
+        {!canAfford && (
+          <Typography variant="caption" color="error">
+            {t("gift.notEnoughCoins", { tax })}
+          </Typography>
+        )}
       </Stack>
     </Card>
   );

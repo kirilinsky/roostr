@@ -4,18 +4,18 @@ import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
 import { acceptGift, declineGift, getPendingGiftForRoostr } from "@/db/queries";
 
-export type GiftDecision = { ok: boolean };
+export type GiftDecision = { ok: boolean; reason?: string };
 
-// Accept the pending gift for this bird → ownership moves to me. Recipient-guarded
-// inside acceptGift (CAS on the pending row addressed to the session user).
+// Accept the pending gift for this bird → pay the tax, ownership moves to me.
+// Recipient-guarded inside acceptGift (CAS on the pending row addressed to me).
 export async function acceptGiftAction(roostrId: string): Promise<GiftDecision> {
   const session = await getSession();
-  if (!session) return { ok: false };
+  if (!session) return { ok: false, reason: "auth" };
   const gift = await getPendingGiftForRoostr(roostrId);
-  if (!gift || gift.toUserId !== session.id) return { ok: false };
+  if (!gift || gift.toUserId !== session.id) return { ok: false, reason: "unavailable" };
 
   const res = await acceptGift(gift.id, session.id);
-  if (!res.ok) return { ok: false };
+  if (!res.ok) return { ok: false, reason: res.reason };
 
   revalidatePath("/collection");
   revalidatePath(`/collection/${roostrId}`);

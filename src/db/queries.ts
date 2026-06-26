@@ -696,16 +696,25 @@ export async function getPendingGiftForRoostr(roostrId: string) {
   }
 }
 
-// Accept a pending gift → ownership moves, bird unlocks, transfer + meta.gifted.
+// Flat tax the RECIPIENT pays to accept a gift — a tiny coin sink that makes
+// bot gift-farming non-free (anti-abuse). Surfaced in the accept UI.
+export const GIFT_TAX = 5;
+
+// Accept a pending gift → pay the tax, ownership moves, bird unlocks, transfer +
+// meta.gifted. Tax is spent FIRST (atomic); if the gift was already resolved in a
+// race, the tax is refunded.
 export async function acceptGift(
   giftId: string,
   userId: number,
-): Promise<{ ok: boolean }> {
-  if (!process.env.DATABASE_URL) return { ok: false };
+): Promise<{ ok: boolean; reason?: string }> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
   try {
     const { db } = await import("@/db");
     const { gifts, roostrs } = await import("@/db/schema");
     const { and, eq } = await import("drizzle-orm");
+    // Anti-bot tax — atomic spend; fails cleanly if the recipient can't afford it.
+    const paid = await spendCoins(userId, GIFT_TAX, "gift_tax", giftId);
+    if (paid === null) return { ok: false, reason: "coins" };
     // CAS: claim the pending gift addressed to me.
     const claimed = await db
       .update(gifts)
@@ -719,7 +728,11 @@ export async function acceptGift(
       )
       .returning({ roostrId: gifts.roostrId, fromUserId: gifts.fromUserId });
     const row = claimed[0];
-    if (!row) return { ok: false };
+    if (!row) {
+      // Gift vanished (already accepted/declined) — refund the tax we just took.
+      await grantCoins(userId, GIFT_TAX, "refund", giftId);
+      return { ok: false, reason: "unavailable" };
+    }
     // Move ownership + unlock + flag "this bird was gifted" (rooster achievement).
     const [r] = await db
       .select({ meta: roostrs.meta })
