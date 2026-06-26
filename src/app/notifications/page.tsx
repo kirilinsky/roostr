@@ -12,6 +12,8 @@ import {
   getNews,
   getNewAchievements,
   getQuestStates,
+  getIncomingGifts,
+  getSenderGiftUpdates,
 } from "@/db/queries";
 import { readyQuests } from "@/lib/quests";
 
@@ -29,6 +31,8 @@ export default async function NotificationsPage() {
   const news = session ? await getNews(session.id) : [];
   const achievements = session ? await getNewAchievements(session.id) : [];
   const quests = session ? readyQuests(await getQuestStates(session.id)) : [];
+  const incomingGifts = session ? await getIncomingGifts(session.id) : [];
+  const giftUpdates = session ? await getSenderGiftUpdates(session.id) : [];
 
   return (
     <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
@@ -44,6 +48,8 @@ export default async function NotificationsPage() {
           news={news}
           achievements={achievements}
           readyQuests={quests}
+          incomingGifts={incomingGifts}
+          giftUpdates={giftUpdates}
           selfId={session?.id ?? null}
         />
       </Stack>

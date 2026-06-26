@@ -13,6 +13,7 @@ import {
   getAchievementUnlocks,
   recordAchievementUnlocks,
   getRoostrHistory,
+  getFriends,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import {
@@ -38,6 +39,8 @@ export default async function RoostrDetailPage({
   const session = await getSession();
   const isOwner = !!session && session.id === row.ownerId;
   const coins = isOwner ? (await getUserById(session.id))?.coins ?? 0 : 0;
+  // Friends list powers the gift picker (owner only — only the owner can gift).
+  const friends = isOwner && session ? await getFriends(session.id) : [];
   const roostr = hydrateRoostr(row);
 
   // Distinct owners ever (genesis + every transfer side) → "Hot Potato".
@@ -55,10 +58,15 @@ export default async function RoostrDetailPage({
   const renameCount = Number(
     (row.meta as { renameCount?: number } | null)?.renameCount ?? 0,
   );
+  // Gift flags live on the bird's meta (set on accept / decline) → the
+  // "gifted" and "rejected" rooster achievements.
+  const meta = (row.meta as { gifted?: boolean; giftRejected?: boolean } | null) ?? {};
   const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, {
     ...roosterMetricsFrom(roostr),
     owners: ownerSet.size,
     renameCount,
+    wasGifted: meta.gifted ? 1 : 0,
+    wasRejected: meta.giftRejected ? 1 : 0,
   });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =
@@ -85,6 +93,7 @@ export default async function RoostrDetailPage({
         coins={coins}
         isOwner={isOwner}
         locked={row.status !== "active"}
+        friends={friends}
       />
 
       {earned.length > 0 && (

@@ -21,6 +21,7 @@ import StatInfoModal from "@/components/StatInfoModal";
 import ArchetypeInfoModal from "@/components/ArchetypeInfoModal";
 import Popup from "@/components/Popup";
 import SellRoostrForm from "@/components/SellRoostrForm";
+import GiftRoostrButton, { type GiftFriend } from "@/components/GiftRoostrButton";
 import { countryFlag } from "@/lib/flag";
 import { groupName } from "@/lib/breeds";
 import { tierBackground } from "@/lib/tierBg";
@@ -71,12 +72,14 @@ export default function RoostrDetail({
   coins,
   isOwner,
   locked = false,
+  friends = [],
 }: {
   roostr: HydratedRoostr;
   roostrId: string;
   coins: number;
   isOwner: boolean;
   locked?: boolean;
+  friends?: GiftFriend[];
 }) {
   // The owner can manage (sell / upgrade) only an ACTIVE bird; a listed/sold one
   // is locked.
@@ -572,14 +575,7 @@ export default function RoostrDetail({
             <Button variant="contained" onClick={() => setSellOpen(true)}>
               {t("detail.sell")}
             </Button>
-            <Button
-              variant="outlined"
-              color="neutral"
-              disabled
-              endIcon={<Chip label={t("pedia.soon")} size="small" variant="outlined" />}
-            >
-              {t("detail.gift")}
-            </Button>
+            <GiftRoostrButton roostrId={roostrId} friends={friends} />
             <Button
               variant="outlined"
               color="neutral"

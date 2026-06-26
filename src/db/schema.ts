@@ -394,6 +394,38 @@ export const friendRequests = pgTable(
   ],
 );
 
+// Rooster gifts (directed, accept/decline). Sender gifts an ACTIVE bird to a
+// friend → the bird locks (`roostrs.status="gifting"`) and a PENDING row is
+// written here. Recipient ACCEPTS (owner changes + a `roostr_transfers` gift row
+// + `meta.gifted`) or DECLINES (bird returns to sender unchanged + `meta.giftRejected`).
+// One pending gift per bird at a time (enforced by the lock). Status:
+// pending | accepted | declined | cancelled.
+export const gifts = pgTable(
+  "gifts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    roostrId: uuid("roostr_id")
+      .notNull()
+      .references(() => roostrs.id, { onDelete: "cascade" }),
+    fromUserId: bigint("from_user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: bigint("to_user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }), // accept/decline time
+  },
+  (t) => [
+    index("gifts_to_user_id_idx").on(t.toUserId),
+    index("gifts_from_user_id_idx").on(t.fromUserId),
+    index("gifts_roostr_id_idx").on(t.roostrId),
+  ],
+);
+
 // Work stations — the shared accrual engine's persistent state (one row per
 // user × station kind: lab, farm, …). See src/lib/stations.ts. A rooster placed
 // here gets roostrs.status="working" (locked from the roster/pickers). Accrual is

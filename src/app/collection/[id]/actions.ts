@@ -15,6 +15,7 @@ import {
   setNickname,
   spendCoins,
   grantCoins,
+  createGift,
 } from "@/db/queries";
 
 export type UpgradeResult =
@@ -119,4 +120,26 @@ export async function clearNicknameAction(
 
   revalidatePath(`/collection/${roostrId}`);
   return { ok: true, nickname: null };
+}
+
+export type GiftResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+// Gift an active bird to a friend: owner + friendship + status all server-checked
+// in createGift (CAS lock to "gifting"). The recipient then accepts/declines.
+export async function giftRoostrAction(
+  roostrId: string,
+  toUserId: number,
+): Promise<GiftResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "auth" };
+
+  const res = await createGift(roostrId, session.id, toUserId);
+  if (!res.ok) return { ok: false, error: res.reason ?? "error" };
+
+  revalidatePath(`/collection/${roostrId}`);
+  revalidatePath("/collection");
+  revalidatePath("/notifications");
+  return { ok: true };
 }

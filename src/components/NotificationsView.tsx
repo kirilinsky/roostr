@@ -40,6 +40,8 @@ import type {
   DiscoverySummary,
   NewsItem,
   AchievementNotification,
+  IncomingGift,
+  GiftUpdate,
 } from "@/db/queries";
 
 const BREED_NAME: Record<string, { en: string; ru: string }> =
@@ -75,6 +77,8 @@ export default function NotificationsView({
   news = [],
   achievements = [],
   readyQuests = [],
+  incomingGifts = [],
+  giftUpdates = [],
   selfId = null,
 }: {
   requests: FriendRequestSummary[];
@@ -84,6 +88,8 @@ export default function NotificationsView({
   news?: NewsItem[]; // system / promo announcements (CTA claim)
   achievements?: AchievementNotification[]; // newly-unlocked achievements
   readyQuests?: QuestState[]; // quests whose reward can be claimed now
+  incomingGifts?: IncomingGift[]; // pending gifts addressed to me
+  giftUpdates?: GiftUpdate[]; // resolution of gifts I sent (accepted/declined)
   selfId?: number | null; // viewer id → profile-achievement link target
 }) {
   const t = useT();
@@ -160,10 +166,14 @@ export default function NotificationsView({
   const unreadFriends = newFriends.filter((f) => f.unread).length;
   const unreadAch = achievements.filter((a) => a.unread).length;
   const unreadDex = discoveries.filter((d) => d.unread).length;
+  // Gifts live in the friends tab: pending ones to me + the resolution of ones I sent.
+  const unreadGifts = incomingGifts.filter((g) => g.unread).length;
+  const unreadGiftUpdates = giftUpdates.filter((g) => g.unread).length;
   const tabCounts: Record<string, number> = {
     news: unreadNews,
     quests: readyQuests.length,
-    friends: requests.length + unreadFriends,
+    friends:
+      requests.length + unreadFriends + unreadGifts + unreadGiftUpdates,
     achievements: unreadAch,
     farm: fullStations.includes("farm") ? 1 : 0,
     lab: fullStations.includes("lab") ? 1 : 0,
@@ -417,12 +427,99 @@ export default function NotificationsView({
           </List>
         )
       ) : tab === "friends" ? (
-        newFriends.length === 0 && requests.length === 0 ? (
+        newFriends.length === 0 &&
+        requests.length === 0 &&
+        incomingGifts.length === 0 &&
+        giftUpdates.length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
             {t("notifications.empty")}
           </Typography>
         ) : (
           <Stack spacing={2}>
+            {/* Pending gifts addressed to me — view to accept/decline. */}
+            {incomingGifts.length > 0 && (
+              <List disablePadding>
+                {incomingGifts.map((g) => {
+                  const breed = BREED_NAME[g.breedId]?.[locale] ?? g.breedId;
+                  const bird = g.nickname || breed;
+                  return (
+                    <ListItem
+                      key={`gift-${g.id}`}
+                      divider
+                      sx={[
+                        { px: 0, gap: 1.5, flexWrap: "wrap" },
+                        unreadSx(g.unread),
+                      ]}
+                    >
+                      <Avatar
+                        src={g.fromPhoto ?? undefined}
+                        alt={g.fromName}
+                      >
+                        {g.fromName.charAt(0)}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          🎁 {t("notifications.giftFrom", { name: g.fromName, bird })}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(g.createdAt).toLocaleDateString(locale)}
+                        </Typography>
+                      </Box>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Button
+                          component={Link}
+                          href={`/gift/${g.roostrId}`}
+                          size="small"
+                          variant="contained"
+                          onClick={() => markReadAsync(`gift:${g.id}`)}
+                        >
+                          {t("notifications.view")}
+                        </Button>
+                        {g.unread && readBtn(`gift:${g.id}`)}
+                      </Stack>
+                    </ListItem>
+                  );
+                })}
+              </List>
+            )}
+
+            {/* Resolution of gifts I sent — accepted / declined notices. */}
+            {giftUpdates.length > 0 && (
+              <List disablePadding>
+                {giftUpdates.map((g) => {
+                  const breed = BREED_NAME[g.breedId]?.[locale] ?? g.breedId;
+                  const bird = g.nickname || breed;
+                  const accepted = g.status === "accepted";
+                  return (
+                    <ListItem
+                      key={`giftres-${g.id}`}
+                      divider
+                      sx={[
+                        { px: 0, gap: 1.5, flexWrap: "wrap" },
+                        unreadSx(g.unread),
+                      ]}
+                    >
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {accepted ? "🎉" : "💔"}{" "}
+                          {t(
+                            accepted
+                              ? "notifications.giftAccepted"
+                              : "notifications.giftDeclined",
+                            { name: g.toName, bird },
+                          )}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(g.resolvedAt).toLocaleDateString(locale)}
+                        </Typography>
+                      </Box>
+                      {g.unread && readBtn(`giftres:${g.id}`)}
+                    </ListItem>
+                  );
+                })}
+              </List>
+            )}
+
             {newFriends.length > 0 && (
               <List disablePadding>
                 {newFriends.map((f) => {

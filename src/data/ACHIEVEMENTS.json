@@ -905,6 +905,36 @@
       },
       "metric": "renameCount",
       "value": 5
+    },
+    {
+      "id": "gift-horse",
+      "icon": "🎁",
+      "tier": "common",
+      "name": {
+        "en": "Gift Horse",
+        "ru": "Дарёный конь"
+      },
+      "desc": {
+        "en": "This rooster was given to you as a gift.",
+        "ru": "Этого петуха подарили."
+      },
+      "metric": "wasGifted",
+      "value": 1
+    },
+    {
+      "id": "gift-rejected",
+      "icon": "💔",
+      "tier": "medium",
+      "name": {
+        "en": "Thanks, No Thanks",
+        "ru": "Спасибо, не надо :("
+      },
+      "desc": {
+        "en": "A gift of this rooster was declined.",
+        "ru": "Этого петуха отвергли при дарении."
+      },
+      "metric": "wasRejected",
+      "value": 1
     }
   ]
 }

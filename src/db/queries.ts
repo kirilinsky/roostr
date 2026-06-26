@@ -275,6 +275,7 @@ export async function getProfileMetrics(
       breedDiscoveries,
       workStations,
       referrals,
+      gifts,
     } = await import("@/db/schema");
     const { and, eq, gt, inArray, or, sql } = await import("drizzle-orm");
     const { hydrateRoostr, TIERS } = await import("@/lib/roostr");
@@ -378,6 +379,18 @@ export async function getProfileMetrics(
       .from(referrals)
       .where(eq(referrals.referrerId, userId));
     metrics.referralsCount = Number(rf?.n ?? 0);
+
+    // Gifts: birds this user successfully gave away / received (accepted only).
+    const [gOut] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(gifts)
+      .where(and(eq(gifts.fromUserId, userId), eq(gifts.status, "accepted")));
+    metrics.roostrsGifted = Number(gOut?.n ?? 0);
+    const [gIn] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(gifts)
+      .where(and(eq(gifts.toUserId, userId), eq(gifts.status, "accepted")));
+    metrics.giftsReceived = Number(gIn?.n ?? 0);
   } catch (e) {
     console.error("getProfileMetrics failed:", e);
   }
@@ -584,6 +597,286 @@ export async function getRoostrHistory(roostrId: string) {
       .orderBy(asc(roostrTransfers.at));
   } catch (e) {
     console.error("getRoostrHistory failed:", e);
+    return [];
+  }
+}
+
+// --- Rooster gifts (directed accept/decline ownership transfer) ---
+
+export interface IncomingGift {
+  id: string;
+  roostrId: string;
+  fromUserId: number;
+  fromName: string;
+  fromPhoto: string | null;
+  breedId: string;
+  nickname: string | null;
+  createdAt: string;
+  unread?: boolean;
+}
+
+export interface GiftUpdate {
+  id: string;
+  roostrId: string;
+  toUserId: number;
+  toName: string;
+  toPhoto: string | null;
+  breedId: string;
+  nickname: string | null;
+  status: string; // accepted | declined
+  resolvedAt: string;
+  unread?: boolean;
+}
+
+const displayName = (u: {
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  id: number;
+}) =>
+  [u.firstName, u.lastName].filter(Boolean).join(" ") ||
+  (u.username ? `@${u.username}` : String(u.id));
+
+// Gift an ACTIVE bird to a friend. Locks the bird (status="gifting") via CAS so
+// it can't be double-gifted/sold, then writes a pending gift row. Friends-only.
+export async function createGift(
+  roostrId: string,
+  fromUserId: number,
+  toUserId: number,
+): Promise<{ ok: boolean; reason?: string; giftId?: string }> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
+  if (fromUserId === toUserId) return { ok: false, reason: "self" };
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, gifts } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    // Must be friends (server-side guard; the picker only lists friends).
+    const friendship = await getFriendship(fromUserId, toUserId);
+    if (!friendship) return { ok: false, reason: "not_friends" };
+    // CAS lock: only an ACTIVE bird the sender owns can be gifted.
+    const locked = await db
+      .update(roostrs)
+      .set({ status: "gifting" })
+      .where(
+        and(
+          eq(roostrs.id, roostrId),
+          eq(roostrs.ownerId, fromUserId),
+          eq(roostrs.status, "active"),
+        ),
+      )
+      .returning({ id: roostrs.id });
+    if (locked.length === 0) return { ok: false, reason: "unavailable" };
+    const [g] = await db
+      .insert(gifts)
+      .values({ roostrId, fromUserId, toUserId })
+      .returning({ id: gifts.id });
+    return { ok: true, giftId: g?.id };
+  } catch (e) {
+    console.error("createGift failed:", e);
+    return { ok: false, reason: "error" };
+  }
+}
+
+// The single pending gift for a bird (null if none). Drives the /gift/[id] page.
+export async function getPendingGiftForRoostr(roostrId: string) {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { gifts } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const rows = await db
+      .select()
+      .from(gifts)
+      .where(and(eq(gifts.roostrId, roostrId), eq(gifts.status, "pending")))
+      .limit(1);
+    return rows[0] ?? null;
+  } catch (e) {
+    console.error("getPendingGiftForRoostr failed:", e);
+    return null;
+  }
+}
+
+// Accept a pending gift → ownership moves, bird unlocks, transfer + meta.gifted.
+export async function acceptGift(
+  giftId: string,
+  userId: number,
+): Promise<{ ok: boolean }> {
+  if (!process.env.DATABASE_URL) return { ok: false };
+  try {
+    const { db } = await import("@/db");
+    const { gifts, roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    // CAS: claim the pending gift addressed to me.
+    const claimed = await db
+      .update(gifts)
+      .set({ status: "accepted", resolvedAt: new Date() })
+      .where(
+        and(
+          eq(gifts.id, giftId),
+          eq(gifts.toUserId, userId),
+          eq(gifts.status, "pending"),
+        ),
+      )
+      .returning({ roostrId: gifts.roostrId, fromUserId: gifts.fromUserId });
+    const row = claimed[0];
+    if (!row) return { ok: false };
+    // Move ownership + unlock + flag "this bird was gifted" (rooster achievement).
+    const [r] = await db
+      .select({ meta: roostrs.meta })
+      .from(roostrs)
+      .where(eq(roostrs.id, row.roostrId))
+      .limit(1);
+    const meta = { ...((r?.meta as Record<string, unknown>) ?? {}), gifted: true };
+    await db
+      .update(roostrs)
+      .set({ ownerId: userId, status: "active", meta })
+      .where(eq(roostrs.id, row.roostrId));
+    await recordTransfer(row.roostrId, row.fromUserId, userId, "gift");
+    return { ok: true };
+  } catch (e) {
+    console.error("acceptGift failed:", e);
+    return { ok: false };
+  }
+}
+
+// Decline a pending gift → bird returns to the sender (owner unchanged),
+// meta.giftRejected flags the "rejected" rooster achievement.
+export async function declineGift(
+  giftId: string,
+  userId: number,
+): Promise<{ ok: boolean }> {
+  if (!process.env.DATABASE_URL) return { ok: false };
+  try {
+    const { db } = await import("@/db");
+    const { gifts, roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const claimed = await db
+      .update(gifts)
+      .set({ status: "declined", resolvedAt: new Date() })
+      .where(
+        and(
+          eq(gifts.id, giftId),
+          eq(gifts.toUserId, userId),
+          eq(gifts.status, "pending"),
+        ),
+      )
+      .returning({ roostrId: gifts.roostrId });
+    const row = claimed[0];
+    if (!row) return { ok: false };
+    const [r] = await db
+      .select({ meta: roostrs.meta })
+      .from(roostrs)
+      .where(eq(roostrs.id, row.roostrId))
+      .limit(1);
+    const meta = {
+      ...((r?.meta as Record<string, unknown>) ?? {}),
+      giftRejected: true,
+    };
+    await db
+      .update(roostrs)
+      .set({ status: "active", meta })
+      .where(eq(roostrs.id, row.roostrId));
+    return { ok: true };
+  } catch (e) {
+    console.error("declineGift failed:", e);
+    return { ok: false };
+  }
+}
+
+// Pending gifts addressed to me → "X sent you a gift" notifications (friends tab).
+export async function getIncomingGifts(userId: number): Promise<IncomingGift[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { gifts, users, roostrs } = await import("@/db/schema");
+    const { and, desc, eq } = await import("drizzle-orm");
+    const reads = await getNotificationReads(userId);
+    const rows = await db
+      .select({
+        id: gifts.id,
+        roostrId: gifts.roostrId,
+        fromUserId: gifts.fromUserId,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        breedId: roostrs.breedId,
+        nickname: roostrs.nickname,
+        createdAt: gifts.createdAt,
+      })
+      .from(gifts)
+      .innerJoin(users, eq(users.id, gifts.fromUserId))
+      .innerJoin(roostrs, eq(roostrs.id, gifts.roostrId))
+      .where(and(eq(gifts.toUserId, userId), eq(gifts.status, "pending")))
+      .orderBy(desc(gifts.createdAt))
+      .limit(50);
+    return rows.map((r) => ({
+      id: r.id,
+      roostrId: r.roostrId,
+      fromUserId: r.fromUserId,
+      fromName: displayName({ ...r, id: r.fromUserId }),
+      fromPhoto: r.photoUrl,
+      breedId: r.breedId,
+      nickname: r.nickname,
+      createdAt: r.createdAt.toISOString(),
+      unread: !reads.has(`gift:${r.id}`),
+    }));
+  } catch (e) {
+    console.error("getIncomingGifts failed:", e);
+    return [];
+  }
+}
+
+// Resolved gifts I SENT → "your gift was accepted / declined" notices (friends tab).
+export async function getSenderGiftUpdates(
+  userId: number,
+): Promise<GiftUpdate[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { gifts, users, roostrs } = await import("@/db/schema");
+    const { and, desc, eq, inArray, isNotNull } = await import("drizzle-orm");
+    const reads = await getNotificationReads(userId);
+    const rows = await db
+      .select({
+        id: gifts.id,
+        roostrId: gifts.roostrId,
+        toUserId: gifts.toUserId,
+        username: users.username,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        photoUrl: users.photoUrl,
+        breedId: roostrs.breedId,
+        nickname: roostrs.nickname,
+        status: gifts.status,
+        resolvedAt: gifts.resolvedAt,
+      })
+      .from(gifts)
+      .innerJoin(users, eq(users.id, gifts.toUserId))
+      .innerJoin(roostrs, eq(roostrs.id, gifts.roostrId))
+      .where(
+        and(
+          eq(gifts.fromUserId, userId),
+          inArray(gifts.status, ["accepted", "declined"]),
+          isNotNull(gifts.resolvedAt),
+        ),
+      )
+      .orderBy(desc(gifts.resolvedAt))
+      .limit(30);
+    return rows.map((r) => ({
+      id: r.id,
+      roostrId: r.roostrId,
+      toUserId: r.toUserId,
+      toName: displayName({ ...r, id: r.toUserId }),
+      toPhoto: r.photoUrl,
+      breedId: r.breedId,
+      nickname: r.nickname,
+      status: r.status,
+      resolvedAt: (r.resolvedAt ?? new Date()).toISOString(),
+      unread: !reads.has(`giftres:${r.id}`),
+    }));
+  } catch (e) {
+    console.error("getSenderGiftUpdates failed:", e);
     return [];
   }
 }
@@ -1115,13 +1408,15 @@ export async function markNotificationRead(
 export async function countUnreadNotifications(userId: number): Promise<number> {
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
-    const [news, ach, dex, friends, requests, readyQ, stations] =
+    const [news, ach, dex, friends, requests, gifts, giftUpdates, readyQ, stations] =
       await Promise.all([
         getNews(userId),
         getNewAchievements(userId),
         getRecentDiscoveries(userId),
         getNewFriends(userId),
         getIncomingFriendRequests(userId),
+        getIncomingGifts(userId),
+        getSenderGiftUpdates(userId),
         countReadyQuests(userId),
         getStationAlerts(userId),
       ]);
@@ -1129,7 +1424,9 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       news.filter((n) => n.unread).length +
       ach.filter((a) => a.unread).length +
       dex.filter((d) => d.unread).length +
-      friends.filter((f) => f.unread).length;
+      friends.filter((f) => f.unread).length +
+      gifts.filter((g) => g.unread).length +
+      giftUpdates.filter((g) => g.unread).length;
     return unread + requests.length + readyQ + stations.length;
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);
