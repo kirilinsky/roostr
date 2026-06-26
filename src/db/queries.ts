@@ -915,8 +915,10 @@ export async function getRoostrs(ownerId: number) {
   }
 }
 
-// Collection roster: ACTIVE + WORKING birds (working ones show a station badge,
-// stay on the roster but can't be sold). Excludes listed/sold/recycled. Newest first.
+// Collection roster: ACTIVE + WORKING + GIFTING birds. Working ones show a station
+// badge; gifting ones hang in "limbo" (sent as a pending gift) — both stay visible
+// on the roster but are locked (can't be sold/worked/gifted). Excludes
+// listed/sold/recycled. Newest first.
 export async function getCollectionRoostrs(ownerId: number) {
   if (!process.env.DATABASE_URL) return [];
   try {
@@ -929,7 +931,7 @@ export async function getCollectionRoostrs(ownerId: number) {
       .where(
         and(
           eq(roostrs.ownerId, ownerId),
-          inArray(roostrs.status, ["active", "working"]),
+          inArray(roostrs.status, ["active", "working", "gifting"]),
         ),
       )
       .orderBy(desc(roostrs.createdAt));

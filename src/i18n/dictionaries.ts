@@ -254,6 +254,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "detail.sellPlaceholder": "Sale form coming soon.",
     "detail.locked":
       "On the market — actions are locked until it sells or returns.",
+    "detail.giftPending":
+      "In limbo — gifted and awaiting the recipient. You can't act on it or take it back; it only returns if they decline.",
     "detail.atWork": "At work ({station}) — take it off work to sell.",
     "detail.sellBlocked": "Take it off work first.",
     "detail.addNickname": "Add nickname",
@@ -405,6 +407,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "card.onFarm": "On the farm",
     "card.onLab": "In the lab",
     "card.working": "At work",
+    "card.gifting": "Pending gift",
     "card.body": "Body",
     "card.wing": "Wing",
     "card.tail": "Tail",
@@ -783,6 +786,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "detail.sellPlaceholder": "Форма продажи скоро.",
     "detail.locked":
       "На рынке — действия заблокированы, пока не продастся или вернётся.",
+    "detail.giftPending":
+      "В лимбе — подарен и ждёт получателя. Ты не можешь ничего с ним сделать и не можешь забрать назад; вернётся только если откажутся.",
     "detail.atWork": "На работе ({station}) — сними с работы, чтобы продать.",
     "detail.sellBlocked": "Сначала убери с работы.",
     "sell.price": "Цена (коины)",
@@ -793,7 +798,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "breedInfo.about": "О породе",
     "breedInfo.inGame": "В игре",
     "breedInfo.region": "Родина",
-    "breedInfo.baseHp": "Базовое HP",
+    "breedInfo.baseHp": "Базовое Здоровье",
     "breedInfo.geneAffinity": "Склонность к генам",
     "stats.kindsTitle": "Виды статов",
     "stats.offense": "Атака",
@@ -921,6 +926,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "card.onFarm": "На ферме",
     "card.onLab": "В лаборатории",
     "card.working": "На работе",
+    "card.gifting": "Ждёт ответа",
     "card.body": "Тело",
     "card.wing": "Крыло",
     "card.tail": "Хвост",

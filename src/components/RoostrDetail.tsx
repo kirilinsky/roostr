@@ -559,14 +559,27 @@ export default function RoostrDetail({
         </Card>
       )}
 
-      {/* Locked notice — on the market (or otherwise non-active, non-working) */}
-      {isOwner && locked && roostr.status !== "working" && (
-        <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
+      {/* Gift limbo — sent as a pending gift: locked, and the sender CAN'T cancel
+          it. It only comes back if the recipient declines. */}
+      {isOwner && roostr.status === "gifting" && (
+        <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "secondary.main" }}>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            🔒 {t("detail.locked")}
+            🎁 {t("detail.giftPending")}
           </Typography>
         </Card>
       )}
+
+      {/* Locked notice — on the market (or otherwise non-active, non-working/gifting) */}
+      {isOwner &&
+        locked &&
+        roostr.status !== "working" &&
+        roostr.status !== "gifting" && (
+          <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              🔒 {t("detail.locked")}
+            </Typography>
+          </Card>
+        )}
 
       {/* Owner actions — sell now; gift / release are coming */}
       {canManage && (

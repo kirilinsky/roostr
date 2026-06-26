@@ -160,6 +160,24 @@ export default function CollectionCard({
             })}
           />
         )}
+        {/* gift limbo — sent as a pending gift, awaiting the recipient's decision */}
+        {roostr.status === "gifting" && (
+          <Chip
+            size="small"
+            title={t("card.gifting")}
+            label="🎁"
+            sx={(theme) => ({
+              position: "absolute",
+              bottom: 6,
+              left: 6,
+              height: 20,
+              fontWeight: 700,
+              fontSize: 11,
+              bgcolor: "secondary.main",
+              color: theme.palette.secondary.contrastText,
+            })}
+          />
+        )}
         {/* tier · rating — overlaid bottom-right so the name row below stays
             full width (chip used to share the name row and truncate it). */}
         <Chip
