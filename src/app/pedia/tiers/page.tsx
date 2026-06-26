@@ -35,7 +35,7 @@ export default async function PediaTiersPage() {
           <Typography color="text.secondary">{t("pedia.tiers.desc")}</Typography>
         </Box>
 
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
           <Typography variant="body2">{t("pedia.tiers.intro")}</Typography>
         </Card>
 

@@ -38,7 +38,7 @@ export default async function PediaArchetypesPage() {
         </Box>
 
         {/* How it works */}
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
           <Typography variant="body2" sx={{ mb: 1 }}>
             {t("archetype.intro")}
           </Typography>
@@ -58,7 +58,7 @@ export default async function PediaArchetypesPage() {
           }}
         >
           {ARCHETYPES.map((a) => (
-            <Card key={a.id} sx={{ p: 2, display: "flex", flexDirection: "column", gap: 0.75 }}>
+            <Card key={a.id} sx={{ p: { xs: 1.5, md: 2 }, display: "flex", flexDirection: "column", gap: 0.75 }}>
               <Typography variant="h6">{a.name[locale]}</Typography>
 
               {a.families.length > 0 && (

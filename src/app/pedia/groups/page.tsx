@@ -45,7 +45,7 @@ export default async function PediaGroupsPage() {
           {BREED_GROUP_LIST.map((g) => {
             const count = BREEDS_CATALOG.filter((b) => b.group === g.id).length;
             return (
-              <Card key={g.id} sx={{ p: 2 }}>
+              <Card key={g.id} sx={{ p: { xs: 1.5, md: 2 } }}>
                 <Stack direction="row" alignItems="center" spacing={1.5}>
                   <Typography sx={{ fontSize: 40, lineHeight: 1 }}>{g.icon}</Typography>
                   <Box sx={{ minWidth: 0, flexGrow: 1 }}>

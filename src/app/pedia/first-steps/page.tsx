@@ -79,7 +79,7 @@ export default async function PediaFirstStepsPage() {
         </Typography>
 
         {STEPS.map((s, i) => (
-          <Card key={i} sx={{ p: 2 }}>
+          <Card key={i} sx={{ p: { xs: 1.5, md: 2 } }}>
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <Chip label={i + 1} color="primary" size="small" />
               <Typography variant="h6">{t(s.titleKey)}</Typography>

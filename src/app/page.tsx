@@ -27,7 +27,7 @@ function PromoStat({
   label: string;
 }) {
   return (
-    <Card sx={{ p: 2, textAlign: "center", height: "100%" }}>
+    <Card sx={{ p: { xs: 1.5, md: 2 }, textAlign: "center", height: "100%" }}>
       <Box
         sx={{
           height: 30,

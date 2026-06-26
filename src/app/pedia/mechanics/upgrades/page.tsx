@@ -22,7 +22,7 @@ function Section({
   linkLabel?: string;
 }) {
   return (
-    <Card sx={{ p: 2 }}>
+    <Card sx={{ p: { xs: 1.5, md: 2 } }}>
       <Typography variant="h6" sx={{ mb: 0.5 }}>
         {title}
       </Typography>
@@ -85,7 +85,7 @@ export default async function PediaUpgradesPage() {
           linkLabel={t("pedia.genes.title")}
         />
 
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             {t("pedia.mech.upgrade.costTitle")}
           </Typography>
@@ -121,7 +121,7 @@ export default async function PediaUpgradesPage() {
           linkLabel={t("pedia.skills.title")}
         />
 
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             {t("pedia.mech.upgrade.levelTitle")}
           </Typography>
@@ -161,7 +161,7 @@ export default async function PediaUpgradesPage() {
           linkLabel={t("nav.collection")}
         />
 
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
           <Typography variant="h6" sx={{ mb: 0.5 }}>
             {t("pedia.mech.upgrade.synthTitle")}
           </Typography>

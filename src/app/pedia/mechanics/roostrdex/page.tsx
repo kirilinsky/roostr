@@ -10,7 +10,7 @@ import { getTranslations } from "@/i18n/server";
 
 function Section({ title, body }: { title: string; body: string }) {
   return (
-    <Card sx={{ p: 2 }}>
+    <Card sx={{ p: { xs: 1.5, md: 2 } }}>
       <Typography variant="h6" sx={{ mb: 0.5 }}>
         {title}
       </Typography>
@@ -52,7 +52,7 @@ export default async function PediaRoostrdexPage() {
           body={t("pedia.mech.dex.what")}
         />
 
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
           <Stack
             direction="row"
             alignItems="center"

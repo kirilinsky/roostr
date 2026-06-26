@@ -409,7 +409,7 @@ export default function RoostrDetail({
 
         {/* combat stats + trait */}
         <Stack spacing={1.5} sx={{ flexGrow: 1, minWidth: 0 }}>
-          <Card sx={{ p: 2, flexGrow: 1 }}>
+          <Card sx={{ p: { xs: 1.5, md: 2 }, flexGrow: 1 }}>
             <Stack
               direction="row"
               alignItems="center"
@@ -492,7 +492,7 @@ export default function RoostrDetail({
           </Card>
 
           {/* Breed trait — innate, non-upgradeable buff/debuff */}
-          <Card sx={{ p: 2 }}>
+          <Card sx={{ p: { xs: 1.5, md: 2 } }}>
             <Typography variant="overline" color="text.secondary">
               {t("detail.breedTrait")} · {breedName}
             </Typography>
@@ -529,7 +529,7 @@ export default function RoostrDetail({
       {/* Working notice — bird is on the farm / in the lab. Can't be sold until
           removed from work; the Sell button explains instead of opening the form. */}
       {isOwner && roostr.status === "working" && (
-        <Card sx={{ p: 2, borderColor: "tertiary.main" }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
           <Stack
             direction="row"
             spacing={1}
@@ -558,7 +558,7 @@ export default function RoostrDetail({
 
       {/* Locked notice — on the market (or otherwise non-active, non-working) */}
       {isOwner && locked && roostr.status !== "working" && (
-        <Card sx={{ p: 2, borderColor: "tertiary.main" }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             🔒 {t("detail.locked")}
           </Typography>
@@ -567,7 +567,7 @@ export default function RoostrDetail({
 
       {/* Owner actions — sell now; gift / release are coming */}
       {canManage && (
-        <Card sx={{ p: 2 }}>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Button variant="contained" onClick={() => setSellOpen(true)}>
               {t("detail.sell")}

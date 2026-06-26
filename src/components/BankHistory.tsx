@@ -62,7 +62,7 @@ export default function BankHistory({ txns }: { txns: ResourceTxn[] }) {
 
   return (
     <Card variant="surface" sx={{ minHeight: { lg: 520 } }}>
-      <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
+      <CardContent sx={{ p: { xs: 1.5, md: 2 }, "&:last-child": { pb: 2 } }}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
           <Typography variant="overline" color="text.secondary">
             {t("bank.history")}

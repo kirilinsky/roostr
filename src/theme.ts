@@ -1,6 +1,6 @@
 "use client";
 
-import { createTheme } from "@mui/material/styles";
+import { createTheme, responsiveFontSizes } from "@mui/material/styles";
 
 // --- Design tokens (Neo-Arcade Day Mode) ---
 // Modern Brutalism × pixel-art: sharp corners (0 radius), thick ink borders, hard
@@ -51,6 +51,11 @@ const bodyFamily = "var(--font-body), system-ui, sans-serif";
 // The signature hard shadow: a solid ink offset, no blur (4px down/right).
 const hardShadow = `4px 4px 0 ${INK}`;
 
+// Mobile (below `sm` = phones) trims the chrome a touch so dense screens fit:
+// 1px ink borders instead of 2px, tighter gutters, smaller card padding. Lives
+// here so the design system stays the single source — never inline per-screen.
+const mobile = base.breakpoints.down("sm");
+
 const theme = createTheme({
   palette: {
     mode: "light",
@@ -100,8 +105,13 @@ const theme = createTheme({
           },
           "&:active": { boxShadow: "none", transform: "translate(4px, 4px)" },
           "&.Mui-disabled": { boxShadow: "none", transform: "none" },
+          [mobile]: { borderWidth: 1 },
         },
-        outlined: { borderWidth: 2, "&:hover": { borderWidth: 2 } },
+        outlined: {
+          borderWidth: 2,
+          "&:hover": { borderWidth: 2 },
+          [mobile]: { borderWidth: 1, "&:hover": { borderWidth: 1 } },
+        },
       },
     },
     MuiCard: {
@@ -110,6 +120,7 @@ const theme = createTheme({
         root: ({ ownerState }) => ({
           borderRadius: 0,
           border: `2px solid ${INK}`,
+          [mobile]: { borderWidth: 1 },
           ...(ownerState.variant === "surface"
             ? { backgroundColor: INSET, boxShadow: "none" }
             : { boxShadow: hardShadow }),
@@ -141,13 +152,37 @@ const theme = createTheme({
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: "#C29C00",
           },
+          [mobile]: {
+            "& .MuiOutlinedInput-notchedOutline": { borderWidth: 1 },
+          },
         },
       },
     },
     MuiLinearProgress: {
       styleOverrides: { root: { borderRadius: 0, border: `1px solid ${INK}` } },
     },
+    // Mobile: tighter page gutters (12px vs the 16px default) so wide content fits.
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          [mobile]: {
+            paddingLeft: base.spacing(1.5),
+            paddingRight: base.spacing(1.5),
+          },
+        },
+      },
+    },
+    // Mobile: shave card inner padding a touch (12px vs 16px) for dense screens.
+    MuiCardContent: {
+      styleOverrides: {
+        root: {
+          [mobile]: { padding: base.spacing(1.5), "&:last-child": { paddingBottom: base.spacing(1.5) } },
+        },
+      },
+    },
   },
 });
 
-export default theme;
+// responsiveFontSizes scales every typography variant DOWN on smaller breakpoints
+// (mobile gets the smallest sizes) — keeps headlines from overflowing on phones.
+export default responsiveFontSizes(theme);
