@@ -57,7 +57,20 @@ export interface AvatarTraits {
   combType: string;
   legType: string;
   neckType: string;
+  // Weight class id (tiny…huge) — scales the belly so heavy birds look chunkier.
+  // Not breed/colorway data; injected from the bird's rolled weightClass.
+  weight?: string;
 }
+
+// Belly (body) size multiplier per weight class.
+export const WEIGHT_BELLY: Record<string, number> = {
+  tiny: 0.84,
+  light: 0.92,
+  middle: 1,
+  heavy: 1.12,
+  huge: 1.26,
+};
+export const WEIGHTS = ["tiny", "light", "middle", "heavy", "huge"] as const;
 
 // Silhouettes = the big visual differentiator (breed × weight). Art subfolder per.
 export const SILHOUETTES = ["standard", "plump", "tall", "bantam", "fluffy"] as const;
@@ -90,6 +103,7 @@ export const DEFAULT_TRAITS: AvatarTraits = {
   combType: "single",
   legType: "plain",
   neckType: "normal",
+  weight: "middle",
 };
 
 // Asset path convention for the AI/artist drop-in. Empty folders = placeholders.

@@ -55,7 +55,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
   const { breed, weightClass, genes, maxHealth, stats, role, seed } = roostr;
   // V2 look (breed features + colorway from seed) — the card now shows THIS, not
   // the legacy per-part colors.
-  const cosmetic = cosmeticForRoostr(breed.id, seed);
+  const cosmetic = { ...cosmeticForRoostr(breed.id, seed), weight: weightClass.id };
   const bodyHex = cosmetic.base;
   const V2_SWATCHES: { labelKey: string; hex: string }[] = [
     { labelKey: "card.body", hex: cosmetic.base },
@@ -178,7 +178,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             ].join(", "),
           })}
         >
-          <RoostrAvatar traits={cosmetic} size={196} />
+          <RoostrAvatar traits={cosmetic} fill />
         </Box>
 
         {/* Colorway — the bird's 4 V2 colors (matches the avatar). */}

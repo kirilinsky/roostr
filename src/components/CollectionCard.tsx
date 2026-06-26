@@ -100,7 +100,7 @@ export default function CollectionCard({
           background: tierBackground(roostr.tier.color),
         }}
       >
-        <RoostrAvatar traits={roostr.cosmetic} size={140} />
+        <RoostrAvatar traits={roostr.cosmetic} fill />
         {selected && (
           <Chip
             label="✓"
@@ -233,6 +233,21 @@ export default function CollectionCard({
           </Stack>
         ) : (
           <Stack direction="row" spacing={1.5}>
+            {/* HP alongside the stat lean */}
+            {!compact && (
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums",
+                    color: "error.main",
+                  }}
+                >
+                  ♥ {roostr.maxHealth}
+                </Typography>
+              </Stack>
+            )}
             {STAT_KIND_ORDER.map((kind) => (
               <Stack key={kind} direction="row" alignItems="center" spacing={0.5}>
                 {!compact && (

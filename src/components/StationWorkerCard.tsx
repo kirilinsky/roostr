@@ -92,10 +92,7 @@ export default function StationWorkerCard({
             background: tierBackground(tier.color),
           }}
         >
-          <RoostrAvatar
-            traits={roostr.cosmetic}
-            size={132}
-          />
+          <RoostrAvatar traits={roostr.cosmetic} fill />
         </Box>
         <Chip
           label={`${tier.id} · ${roostr.rating}`}

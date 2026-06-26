@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import {
   AVATAR_PARTS,
+  WEIGHT_BELLY,
   partAssetPath,
   type AvatarTraits,
   type ColorChannel,
@@ -16,6 +17,9 @@ import {
 
 const R = 384; // internal canvas px
 const U = R / 64; // design-unit → px
+// Nudge the bird left so it reads centered in the canvas/sphere (its head/beak
+// extend right, so the raw layout sits a touch right-of-center).
+const BIRD_DX = -3;
 
 // Silhouette = non-uniform squash of the whole bird around the body center, plus a
 // tail-length tweak — cheap but visibly distinct body types.
@@ -52,6 +56,45 @@ function shade(hex: string, amt: number): string {
   const b = parseInt(h.slice(4, 6), 16);
   const f = (n: number) => Math.max(0, Math.min(255, Math.round(n + amt)));
   return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+
+// Perceived brightness of a hex color (0–255) → pick a contrasting outline.
+function lum(hex: string): number {
+  const h = hex.replace("#", "");
+  if (h.length < 6) return 128;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+// Soft "sphere" backdrop behind the bird — gives depth + keeps legs/feet from
+// blending into the card's tier background. Drawn UN-squashed (not silhouette-scaled).
+function drawSphere(ctx: CanvasRenderingContext2D) {
+  const cx = 32 * U,
+    cy = 33 * U,
+    r = 31 * U;
+  const g = ctx.createRadialGradient(cx - r * 0.34, cy - r * 0.4, r * 0.1, cx, cy, r);
+  g.addColorStop(0, "#fbf8f1");
+  g.addColorStop(0.55, "#ece6d7");
+  g.addColorStop(1, "#cdc4af");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.lineWidth = 1 * U;
+  ctx.strokeStyle = "rgba(0,0,0,0.10)";
+  ctx.stroke();
+}
+
+// Soft contact shadow under the feet (grounds the bird on the sphere).
+function groundShadow(ctx: CanvasRenderingContext2D) {
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.16)";
+  ctx.beginPath();
+  ctx.ellipse((36 + BIRD_DX) * U, 57 * U, 14 * U, 3.4 * U, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 // --- low-level pixel primitives (design-unit coords) ---
@@ -124,12 +167,16 @@ function drawPart(ctx: CanvasRenderingContext2D, p: PartDef, t: AvatarTraits, op
       break;
     }
     case "body": {
+      // Belly scales with weight class (heavy = chunkier; mostly wider).
+      const wf = WEIGHT_BELLY[t.weight ?? "middle"] ?? 1;
+      const brx = 17 * wf;
+      const bry = 15 * (1 + (wf - 1) * 0.65);
       ctx.fillStyle = col;
-      ell(ctx, 36, 38, 17, 15);
+      ell(ctx, 36, 38, brx, bry);
       ctx.save();
-      clipEll(ctx, 36, 38, 17, 15);
+      clipEll(ctx, 36, 38, brx, bry);
       ctx.fillStyle = shade(col, -30); // belly shadow
-      ell(ctx, 36, 47, 17, 11);
+      ell(ctx, 36, 38 + bry * 0.6, brx, bry * 0.73);
       ctx.fillStyle = shade(col, 26); // back highlight
       ell(ctx, 30, 30, 9, 5);
       ctx.fillStyle = shade(col, -16); // a couple of feather seams
@@ -168,22 +215,27 @@ function drawPart(ctx: CanvasRenderingContext2D, p: PartDef, t: AvatarTraits, op
       break;
     }
     case "leg": {
-      ctx.strokeStyle = col;
-      ctx.lineWidth = 1.6 * U;
-      [33, 40].forEach((lx) => {
-        ctx.beginPath();
-        ctx.moveTo(lx * U, 50 * U);
-        ctx.lineTo(lx * U, 57 * U);
-        ctx.stroke();
-        ctx.lineWidth = 1.1 * U;
-        [-2, 0, 2].forEach((tx) => {
+      // Outline contrasts the leg color so legs never blend into the backdrop.
+      const outline = lum(col) > 130 ? "#2b2b30" : "#efe9da";
+      const legs = (color: string, w: number) => {
+        ctx.strokeStyle = color;
+        [33, 40].forEach((lx) => {
+          ctx.lineWidth = w * U;
           ctx.beginPath();
-          ctx.moveTo(lx * U, 57 * U);
-          ctx.lineTo((lx + tx) * U, 59 * U);
+          ctx.moveTo(lx * U, 50 * U);
+          ctx.lineTo(lx * U, 57 * U);
           ctx.stroke();
+          ctx.lineWidth = (w - 0.5) * U;
+          [-2, 0, 2].forEach((tx) => {
+            ctx.beginPath();
+            ctx.moveTo(lx * U, 57 * U);
+            ctx.lineTo((lx + tx) * U, 59 * U);
+            ctx.stroke();
+          });
         });
-        ctx.lineWidth = 1.6 * U;
-      });
+      };
+      legs(outline, 2.6); // contrast outline
+      legs(col, 1.6); // skin on top
       if (t.legType === "feathered") {
         // foot feathering (Brahma/Cochin) — base-color puffs over the shanks
         const fc = channelColor("base", t);
@@ -370,6 +422,8 @@ export default function AvatarV2({
     const render = (time: number) => {
       ctx.clearRect(0, 0, R, R);
       ctx.imageSmoothingEnabled = false;
+      drawSphere(ctx);
+      groundShadow(ctx);
 
       // --- idle gestures (all derived from `time`) ---
       const bob = animate ? Math.sin(time * 2.3) * 0.8 : 0;
@@ -389,6 +443,7 @@ export default function AvatarV2({
       }
 
       ctx.save();
+      ctx.translate(BIRD_DX * U, 0); // center the bird (sphere/shadow stay put)
       // Silhouette squash around the body center.
       ctx.translate(36 * U, 40 * U);
       ctx.scale(sil.sx, sil.sy);

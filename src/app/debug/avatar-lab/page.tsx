@@ -26,6 +26,7 @@ import {
   PATTERNS,
   SILHOUETTES,
   TAILS,
+  WEIGHTS,
   cosmeticForRoostr,
   type AvatarTraits,
 } from "@/lib/avatarV2";
@@ -303,7 +304,7 @@ export default function AvatarLabPage() {
                   <ColorInput
                     key={f.key}
                     label={f.label}
-                    value={t[f.key]}
+                    value={t[f.key] ?? ""}
                     onChange={(v) => set({ [f.key]: v } as Partial<AvatarTraits>)}
                   />
                 ))}
@@ -323,6 +324,12 @@ export default function AvatarLabPage() {
                   <Feat label="Legs" value={t.legType} opts={LEGS} onChange={(v) => set({ legType: v })} />
                   <Feat label="Neck" value={t.neckType} opts={NECKS} onChange={(v) => set({ neckType: v })} />
                 </Stack>
+                <Feat
+                  label="Weight (belly)"
+                  value={t.weight ?? "middle"}
+                  opts={WEIGHTS}
+                  onChange={(v) => set({ weight: v })}
+                />
               </Stack>
             </Card>
           </Stack>

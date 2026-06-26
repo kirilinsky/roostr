@@ -111,6 +111,7 @@ export default async function RootLayout({
   const bottomNav: NavItem[] = [
     // Bank lives behind the balance HUD (ResourceBar) now — not in the sidebar.
     { href: "/pedia", label: t("nav.pedia"), icon: "📖" },
+    { href: "/roostrdex", label: t("nav.roostrdex"), icon: "📕" },
     // Debug is admin-only.
     ...(admin ? [{ href: "/debug", label: t("nav.debug"), icon: "🐞" }] : []),
     // Support moved to the footer.

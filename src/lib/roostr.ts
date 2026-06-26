@@ -588,9 +588,10 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     // the seed (same result) so it still renders.
     cosmetic: (() => {
       const cw = (row.meta as { cosmetic?: Colorway } | null)?.cosmetic;
-      return cw
+      const c = cw
         ? cosmeticFrom(row.breedId, cw)
         : cosmeticForRoostr(row.breedId, row.seed);
+      return { ...c, weight: weightClass.id }; // belly scales with weight class
     })(),
   };
 }
