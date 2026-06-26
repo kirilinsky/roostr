@@ -7,7 +7,7 @@ import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
+import RoostrAvatar from "@/components/RoostrAvatar";
 import { tierBackground } from "@/lib/tierBg";
 import { contrastText } from "@/lib/contrast";
 import { skillLabel, type HydratedRoostr, type Skill } from "@/lib/roostr";
@@ -92,12 +92,8 @@ export default function StationWorkerCard({
             background: tierBackground(tier.color),
           }}
         >
-          <RoostrAvatarPixel
-            colors={roostr.colors}
-            pattern={roostr.pattern}
-            breed={roostr.breed}
-            weightClass={roostr.weightClass}
-            seed={roostr.seed}
+          <RoostrAvatar
+            traits={roostr.cosmetic}
             size={132}
           />
         </Box>

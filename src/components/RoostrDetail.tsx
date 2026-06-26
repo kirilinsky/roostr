@@ -15,7 +15,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
-import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
+import RoostrAvatar from "@/components/RoostrAvatar";
 import BreedInfoModal from "@/components/BreedInfoModal";
 import StatInfoModal from "@/components/StatInfoModal";
 import ArchetypeInfoModal from "@/components/ArchetypeInfoModal";
@@ -288,13 +288,7 @@ export default function RoostrDetail({
                 background: tierBackground(tier.color),
               }}
             >
-              <RoostrAvatarPixel
-                colors={roostr.colors}
-                pattern={roostr.pattern}
-                breed={roostr.breed}
-                weightClass={roostr.weightClass}
-                seed={roostr.seed}
-              />
+              <RoostrAvatar traits={roostr.cosmetic} animate fill />
             </Box>
             <Chip
               label={`★ ${tier.id}`}

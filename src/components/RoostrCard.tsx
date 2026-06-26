@@ -9,25 +9,21 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import GeneIcon from "@/components/GeneIcon";
-import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
+import RoostrAvatar from "@/components/RoostrAvatar";
+import { cosmeticForRoostr } from "@/lib/avatarV2";
 import StatModBadges from "@/components/StatModBadges";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import { tierBackground } from "@/lib/tierBg";
 import { MONO_FONT } from "@/lib/tokens";
 import {
-  BODY_COLOR_HEX,
-  COLOR_HEX,
   SKILLS,
   SKILL_IDS,
   STAT_BAR_MAX,
-  colorLabel,
   computeRating,
   formatTraitEffects,
-  patternLabel,
   roleLabel,
   skillLabel,
   tierFor,
-  type CosmeticLayer,
   type RolledRoostr,
 } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -36,18 +32,6 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 const SKILL_KIND = Object.fromEntries(
   SKILLS.map((s) => [s.id, s.kind]),
 ) as Record<string, StatKind>;
-
-const COLOR_ROWS: { key: CosmeticLayer; labelKey: string }[] = [
-  { key: "body", labelKey: "card.body" },
-  { key: "tail", labelKey: "card.tail" },
-  { key: "hackle", labelKey: "card.hackle" },
-  { key: "saddle", labelKey: "card.saddle" },
-  { key: "wing", labelKey: "card.wing" },
-  { key: "comb", labelKey: "card.comb" },
-  { key: "beak", labelKey: "card.beak" },
-  { key: "leg", labelKey: "card.leg" },
-  { key: "eye", labelKey: "card.eye" },
-];
 
 function shadeHex(hex: string, amount: number): string {
   const h = hex.replace("#", "");
@@ -68,9 +52,17 @@ function shadeHex(hex: string, amount: number): string {
 export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
   const t = useT();
   const locale = useLocale();
-  const { breed, weightClass, genes, maxHealth, stats, colors, pattern, role, seed } =
-    roostr;
-  const bodyHex = BODY_COLOR_HEX[colors.body.color] ?? "#888";
+  const { breed, weightClass, genes, maxHealth, stats, role, seed } = roostr;
+  // V2 look (breed features + colorway from seed) — the card now shows THIS, not
+  // the legacy per-part colors.
+  const cosmetic = cosmeticForRoostr(breed.id, seed);
+  const bodyHex = cosmetic.base;
+  const V2_SWATCHES: { labelKey: string; hex: string }[] = [
+    { labelKey: "card.body", hex: cosmetic.base },
+    { labelKey: "card.tail", hex: cosmetic.accent1 },
+    { labelKey: "card.comb", hex: cosmetic.accent2 },
+    { labelKey: "card.leg", hex: cosmetic.skin },
+  ];
   const seedId = `#${seed.toString(16).padStart(6, "0").toUpperCase()}`;
   const rating = computeRating(stats, maxHealth);
   const tier = tierFor(rating);
@@ -113,16 +105,19 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
         {/* top chips */}
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-            <Chip
-              label={patternLabel(pattern, locale)}
-              size="small"
-              sx={{
-                bgcolor: "common.black",
-                color: "common.white",
-                fontWeight: 800,
-                borderRadius: 0.75,
-              }}
-            />
+            {cosmetic.pattern !== "none" && (
+              <Chip
+                label={cosmetic.pattern}
+                size="small"
+                sx={{
+                  bgcolor: "common.black",
+                  color: "common.white",
+                  fontWeight: 800,
+                  textTransform: "capitalize",
+                  borderRadius: 0.75,
+                }}
+              />
+            )}
             <Chip
               label={weightClass.name[locale]}
               size="small"
@@ -183,37 +178,30 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             ].join(", "),
           })}
         >
-          <RoostrAvatarPixel
-            colors={colors}
-            pattern={pattern}
-            breed={breed}
-            weightClass={weightClass}
-            seed={seed}
-            size={196}
-          />
+          <RoostrAvatar traits={cosmetic} size={196} />
         </Box>
 
-        {/* Cosmetic colors — compact swatches with visible layer labels. */}
+        {/* Colorway — the bird's 4 V2 colors (matches the avatar). */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
             gap: 0.75,
           }}
         >
-          {COLOR_ROWS.map(({ key, labelKey }) => (
+          {V2_SWATCHES.map(({ labelKey, hex }) => (
             <Box
-              key={key}
-              title={`${t(labelKey)}: ${colorLabel(key, colors[key].color, locale)}`}
+              key={labelKey}
+              title={`${t(labelKey)}: ${hex}`}
               sx={{
                 minWidth: 0,
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
-                gap: 0.5,
-                px: 0.75,
+                gap: 0.25,
+                px: 0.5,
                 py: 0.5,
                 borderRadius: 0.75,
-                cursor: "help",
                 bgcolor: "rgba(0,0,0,0.34)",
                 color: "common.white",
                 boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.18)",
@@ -221,11 +209,10 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
             >
               <Box
                 sx={{
-                  width: 14,
-                  height: 14,
+                  width: "100%",
+                  height: 18,
                   borderRadius: 0.25,
-                  flexShrink: 0,
-                  bgcolor: COLOR_HEX[key]?.[colors[key].color] ?? "#888",
+                  bgcolor: hex,
                   border: "1px solid",
                   borderColor: "rgba(255,255,255,0.72)",
                 }}
@@ -233,7 +220,7 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
               <Typography
                 variant="caption"
                 noWrap
-                sx={{ minWidth: 0, fontSize: "0.66rem", fontWeight: 800 }}
+                sx={{ minWidth: 0, fontSize: "0.62rem", fontWeight: 800 }}
               >
                 {t(labelKey)}
               </Typography>

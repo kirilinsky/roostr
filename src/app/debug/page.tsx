@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
@@ -8,9 +9,9 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import RoostrCard from "@/components/RoostrCard";
-import RoostrAvatarLab from "@/components/RoostrAvatarLab";
 import GeneLab from "@/components/GeneLab";
 import DebugCoinGrant from "@/components/DebugCoinGrant";
+import DebugBackfillCosmetics from "@/components/DebugBackfillCosmetics";
 import NewsPublisher from "@/components/NewsPublisher";
 import { useToast } from "@/components/ToastProvider";
 import AchievementIcon from "@/components/AchievementIcon";
@@ -22,16 +23,14 @@ interface BatchStats {
   n: number;
   genes: Record<number, number>; // 2|3|4 -> count
   roles: Record<string, number>;
-  body: Record<string, number>; // body color id -> count
 }
 
 function craft(n: number): BatchStats {
-  const s: BatchStats = { n, genes: {}, roles: {}, body: {} };
+  const s: BatchStats = { n, genes: {}, roles: {} };
   for (let i = 0; i < n; i++) {
     const r = rollRoostr();
     s.genes[r.genes.length] = (s.genes[r.genes.length] ?? 0) + 1;
     s.roles[r.role] = (s.roles[r.role] ?? 0) + 1;
-    s.body[r.colors.body.color] = (s.body[r.colors.body.color] ?? 0) + 1;
   }
   return s;
 }
@@ -98,6 +97,11 @@ export default function DebugPage() {
           {t("debug.subtitle")} {t("debug.rolls", { count })}
         </Typography>
 
+        <Button component={Link} href="/debug/avatar-lab" variant="outlined">
+          🐔 Avatar V2 Lab
+        </Button>
+        <DebugBackfillCosmetics />
+
         <Stack
           direction="row"
           spacing={1}
@@ -146,11 +150,6 @@ export default function DebugPage() {
 
         <Divider flexItem />
 
-        {/* Avatar workshop — author/verify the SVG layer compositor. */}
-        <RoostrAvatarLab />
-
-        <Divider flexItem />
-
         {/* Dev faucet — grant coins to test the economy. */}
         <DebugCoinGrant />
 
@@ -189,7 +188,6 @@ export default function DebugPage() {
             </Typography>
             <Dist title="Gene count" data={batch.genes} total={batch.n} />
             <Dist title="Recommended role" data={batch.roles} total={batch.n} />
-            <Dist title="Body color" data={batch.body} total={batch.n} />
           </Stack>
         )}
       </Stack>

@@ -1,6 +1,7 @@
 import type { SessionUser } from "@/lib/auth";
 import { parseReferralId } from "@/lib/referrals";
 import { hydrateRoostr, type RolledRoostr } from "@/lib/roostr";
+import { rollColorway } from "@/lib/avatarV2";
 import {
   STATIONS,
   settlePending,
@@ -35,13 +36,14 @@ export async function createRoostr(
         weightClassId: r.weightClass.id,
         geneIds: r.genes.map((g) => g.id),
         geneLevels: {}, // every gene starts at level 1 (implicit)
-        colors: r.colors,
-        pattern: r.pattern,
         role: r.role,
         maxHealth: r.maxHealth,
         seed: r.seed,
         origin,
-        // status defaults to "active", meta to {} (see schema)
+        // Bake the bird's colorway at hatch (features come from the breed, so only
+        // the per-bird colors are stored — frozen + customization-ready).
+        meta: { cosmetic: rollColorway(r.breed.id, r.seed) },
+        // status defaults to "active"
       })
       .returning({ id: roostrs.id });
     const id = row?.id ?? null;
@@ -56,6 +58,38 @@ export async function createRoostr(
   } catch (e) {
     console.error("createRoostr failed:", e);
     return null;
+  }
+}
+
+// One-off backfill: bake `meta.cosmetic` (the V2 avatar look) onto every existing
+// roostr that doesn't have it yet. Idempotent — skips already-baked rows, and the
+// derivation is deterministic, so re-running is safe. Admin-triggered from /debug.
+export async function backfillCosmetics(): Promise<{ updated: number; total: number }> {
+  if (!process.env.DATABASE_URL) return { updated: 0, total: 0 };
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({
+        id: roostrs.id,
+        breedId: roostrs.breedId,
+        seed: roostrs.seed,
+        meta: roostrs.meta,
+      })
+      .from(roostrs);
+    let updated = 0;
+    for (const r of rows) {
+      const meta = { ...((r.meta as Record<string, unknown>) ?? {}) };
+      if (meta.cosmetic) continue; // already baked
+      meta.cosmetic = rollColorway(r.breedId, r.seed);
+      await db.update(roostrs).set({ meta }).where(eq(roostrs.id, r.id));
+      updated++;
+    }
+    return { updated, total: rows.length };
+  } catch (e) {
+    console.error("backfillCosmetics failed:", e);
+    return { updated: 0, total: 0 };
   }
 }
 

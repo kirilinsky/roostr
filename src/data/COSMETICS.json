@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "description": {
     "en": "Per-part appearance catalog (no battle effect). `parts.<part>` = { colors[], patterns?[], effects?[] }. Each entry: name{en,ru} (name.en = canonical id) + weight (drop frequency; exotics rare). Source of truth for what each part can wear; a rooster's chosen look (RoosterAppearance) picks one color/pattern/effect per part.",
     "ru": "Каталог внешности по частям (на бой не влияет). `parts.<part>` = { colors[], patterns?[], effects?[] }. У каждого: name{en,ru} (name.en — канон-id) + weight (частота выпадения; экзотика редкая). Источник правды что часть может носить; выбранный вид петуха (RoosterAppearance) берёт по одному цвету/паттерну/эффекту на часть."
@@ -1082,6 +1082,794 @@
           },
           "hex": "#8a8a4a",
           "weight": 30
+        }
+      ]
+    }
+  },
+  "breedsDescription": {
+    "en": "Per-breed cosmetic profile for the V2 layered avatar (debug). silhouette + feature variants (tail/comb/legs/neck, drawn from the breed's real look) + a lean palette set (base/accent1/accent2=comb/skin=legs+beak) + allowed patterns. Colors cut to 4 channels (no 14-region pool). First palette = signature; the rest are colorways.",
+    "ru": "Косметический профиль на породу для V2-аватара (дебаг). Силуэт + варианты частей (хвост/гребень/ноги/шея по реальному виду породы) + урезанная палитра (base/accent1/accent2=гребень/skin=ноги+клюв) + допустимые паттерны. Цвет порезан до 4 каналов. Первая палитра — сигнатурная, остальные — колорвеи."
+  },
+  "breeds": {
+    "ayam-cemani": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#15161f",
+          "accent1": "#0e0e12",
+          "accent2": "#3a1f22",
+          "skin": "#2b2b30"
+        }
+      ]
+    },
+    "silkie": {
+      "silhouette": "fluffy",
+      "tail": "fan",
+      "comb": "rose",
+      "legs": "feathered",
+      "neck": "crested",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#d8cfbd",
+          "accent2": "#3a1f22",
+          "skin": "#2b2b30"
+        },
+        {
+          "base": "#1f1f24",
+          "accent1": "#0e0e12",
+          "accent2": "#3a1f22",
+          "skin": "#2b2b30"
+        }
+      ]
+    },
+    "polish": {
+      "silhouette": "standard",
+      "tail": "fan",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "crested",
+      "patterns": [
+        "none",
+        "speckle"
+      ],
+      "palettes": [
+        {
+          "base": "#1f1f24",
+          "accent1": "#ededdf",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        },
+        {
+          "base": "#d8b46a",
+          "accent1": "#6b4423",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        }
+      ]
+    },
+    "phoenix": {
+      "silhouette": "tall",
+      "tail": "sickle",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#d8cfbd",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        },
+        {
+          "base": "#d8b46a",
+          "accent1": "#6b4423",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "onagadori": {
+      "silhouette": "tall",
+      "tail": "sickle",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#b23a2e",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "shamo": {
+      "silhouette": "tall",
+      "tail": "short",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#6b4423",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        },
+        {
+          "base": "#1f1f24",
+          "accent1": "#b23a2e",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "brahma": {
+      "silhouette": "plump",
+      "tail": "standard",
+      "comb": "pea",
+      "legs": "feathered",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        },
+        {
+          "base": "#e3c992",
+          "accent1": "#6b4423",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "cochin": {
+      "silhouette": "plump",
+      "tail": "fan",
+      "comb": "single",
+      "legs": "feathered",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#e3c992",
+          "accent1": "#d8b46a",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        },
+        {
+          "base": "#1f1f24",
+          "accent1": "#0e0e12",
+          "accent2": "#D6342B",
+          "skin": "#2b2b30"
+        }
+      ]
+    },
+    "serama": {
+      "silhouette": "bantam",
+      "tail": "fan",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#b23a2e",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        },
+        {
+          "base": "#ededdf",
+          "accent1": "#d8cfbd",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "leghorn": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#d8cfbd",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        },
+        {
+          "base": "#6b4423",
+          "accent1": "#b23a2e",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "rhode-island-red": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#8a2f23",
+          "accent1": "#5a1f16",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "plymouth-rock": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "stripes"
+      ],
+      "palettes": [
+        {
+          "base": "#5a5a64",
+          "accent1": "#2b2b30",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "orpington": {
+      "silhouette": "plump",
+      "tail": "fan",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#e3c992",
+          "accent1": "#d8b46a",
+          "accent2": "#D6342B",
+          "skin": "#d99f8a"
+        },
+        {
+          "base": "#1f1f24",
+          "accent1": "#0e0e12",
+          "accent2": "#D6342B",
+          "skin": "#2b2b30"
+        }
+      ]
+    },
+    "wyandotte": {
+      "silhouette": "plump",
+      "tail": "fan",
+      "comb": "rose",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "spots",
+        "speckle"
+      ],
+      "palettes": [
+        {
+          "base": "#d8cfbd",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        },
+        {
+          "base": "#d8b46a",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "sussex": {
+      "silhouette": "plump",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#d99f8a"
+        }
+      ]
+    },
+    "marans": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "feathered",
+      "neck": "normal",
+      "patterns": [
+        "stripes"
+      ],
+      "palettes": [
+        {
+          "base": "#4a4a52",
+          "accent1": "#2b2b30",
+          "accent2": "#D6342B",
+          "skin": "#d99f8a"
+        }
+      ]
+    },
+    "araucana": {
+      "silhouette": "standard",
+      "tail": "fan",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#4a5568",
+          "accent1": "#2b2b30",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        },
+        {
+          "base": "#6b4423",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        }
+      ]
+    },
+    "sebright": {
+      "silhouette": "bantam",
+      "tail": "fan",
+      "comb": "rose",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "spots"
+      ],
+      "palettes": [
+        {
+          "base": "#d8b46a",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        },
+        {
+          "base": "#d8cfbd",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        }
+      ]
+    },
+    "faverolles": {
+      "silhouette": "fluffy",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "feathered",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#f1e6c8",
+          "accent1": "#d8b46a",
+          "accent2": "#D6342B",
+          "skin": "#d99f8a"
+        }
+      ]
+    },
+    "appenzeller-spitzhauben": {
+      "silhouette": "standard",
+      "tail": "sickle",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "crested",
+      "patterns": [
+        "speckle"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        }
+      ]
+    },
+    "asil": {
+      "silhouette": "tall",
+      "tail": "short",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#8a2f23",
+          "accent1": "#1f1f24",
+          "accent2": "#3a1f22",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "malay": {
+      "silhouette": "tall",
+      "tail": "short",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#8a2f23",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "old-english-game": {
+      "silhouette": "standard",
+      "tail": "sickle",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#1f1f24",
+          "accent1": "#b23a2e",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        },
+        {
+          "base": "#8a2f23",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "ayam-ketawa": {
+      "silhouette": "tall",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#6b4423",
+          "accent1": "#b23a2e",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "denizli": {
+      "silhouette": "tall",
+      "tail": "sickle",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#1f1f24",
+          "accent1": "#2b2b30",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        }
+      ]
+    },
+    "bergische-kraher": {
+      "silhouette": "tall",
+      "tail": "sickle",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#1f1f24",
+          "accent1": "#0e0e12",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "jersey-giant": {
+      "silhouette": "plump",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#1f1f24",
+          "accent1": "#0e0e12",
+          "accent2": "#D6342B",
+          "skin": "#2b2b30"
+        },
+        {
+          "base": "#4a5568",
+          "accent1": "#2b2b30",
+          "accent2": "#D6342B",
+          "skin": "#2b2b30"
+        }
+      ]
+    },
+    "dorking": {
+      "silhouette": "plump",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#c9bfa8",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#d99f8a"
+        }
+      ]
+    },
+    "sumatra": {
+      "silhouette": "tall",
+      "tail": "long",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#15161f",
+          "accent1": "#0e0e12",
+          "accent2": "#3a1f22",
+          "skin": "#2b2b30"
+        }
+      ]
+    },
+    "yokohama": {
+      "silhouette": "tall",
+      "tail": "sickle",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#b23a2e",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "naked-neck": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "naked",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#8a2f23",
+          "accent1": "#5a1f16",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "sultan": {
+      "silhouette": "fluffy",
+      "tail": "fan",
+      "comb": "pea",
+      "legs": "feathered",
+      "neck": "crested",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#d8cfbd",
+          "accent2": "#D6342B",
+          "skin": "#cfc8b6"
+        }
+      ]
+    },
+    "frizzle": {
+      "silhouette": "fluffy",
+      "tail": "fan",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#e3c992",
+          "accent1": "#d8b46a",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        },
+        {
+          "base": "#ededdf",
+          "accent1": "#d8cfbd",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "houdan": {
+      "silhouette": "standard",
+      "tail": "fan",
+      "comb": "pea",
+      "legs": "plain",
+      "neck": "crested",
+      "patterns": [
+        "speckle"
+      ],
+      "palettes": [
+        {
+          "base": "#1f1f24",
+          "accent1": "#ededdf",
+          "accent2": "#D6342B",
+          "skin": "#d99f8a"
+        }
+      ]
+    },
+    "hamburg": {
+      "silhouette": "standard",
+      "tail": "sickle",
+      "comb": "rose",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "speckle"
+      ],
+      "palettes": [
+        {
+          "base": "#ededdf",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        },
+        {
+          "base": "#d8b46a",
+          "accent1": "#1f1f24",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        }
+      ]
+    },
+    "australorp": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#15161f",
+          "accent1": "#0e0e12",
+          "accent2": "#D6342B",
+          "skin": "#5a6573"
+        }
+      ]
+    },
+    "welsummer": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "none"
+      ],
+      "palettes": [
+        {
+          "base": "#6b4423",
+          "accent1": "#b23a2e",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
+        }
+      ]
+    },
+    "barnevelder": {
+      "silhouette": "standard",
+      "tail": "standard",
+      "comb": "single",
+      "legs": "plain",
+      "neck": "normal",
+      "patterns": [
+        "spots"
+      ],
+      "palettes": [
+        {
+          "base": "#6b4423",
+          "accent1": "#2b2b30",
+          "accent2": "#D6342B",
+          "skin": "#E9A23B"
         }
       ]
     }

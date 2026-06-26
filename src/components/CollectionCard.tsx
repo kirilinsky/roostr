@@ -9,7 +9,7 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
-import RoostrAvatarPixel from "@/components/RoostrAvatarPixel";
+import RoostrAvatar from "@/components/RoostrAvatar";
 import BattleRecord from "@/components/BattleRecord";
 import { SKILLS, geneUpgradeCount, type HydratedRoostr } from "@/lib/roostr";
 import { STAT_KIND_COLOR, STAT_KIND_ORDER, type StatKind } from "@/lib/statKinds";
@@ -100,14 +100,7 @@ export default function CollectionCard({
           background: tierBackground(roostr.tier.color),
         }}
       >
-        <RoostrAvatarPixel
-          colors={roostr.colors}
-          pattern={roostr.pattern}
-          breed={roostr.breed}
-          weightClass={roostr.weightClass}
-          seed={roostr.seed}
-          size={140}
-        />
+        <RoostrAvatar traits={roostr.cosmetic} size={140} />
         {selected && (
           <Chip
             label="✓"

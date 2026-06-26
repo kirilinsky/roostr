@@ -21,7 +21,6 @@ import {
   rollRoostr,
   sellPriceBounds,
   tierFor,
-  toAppearance,
   type Gene,
 } from "@/lib/roostr";
 
@@ -170,46 +169,13 @@ describe("rollRoostr (seeded)", () => {
     expect(a.breed.id).toBe(b.breed.id);
     expect(a.weightClass.id).toBe(b.weightClass.id);
     expect(a.genes.map((g) => g.id)).toEqual(b.genes.map((g) => g.id));
-    expect(a.colors).toEqual(b.colors);
   });
 
   it("produces a valid composition", () => {
     const r = rollRoostr(mulberry32(99));
-    // RoosterAppearance: 9 parts (body…saddle…beak), each an object with a color id.
-    expect(Object.keys(r.colors).length).toBe(9);
-    for (const v of Object.values(r.colors))
-      expect(typeof v.color).toBe("string");
-    // body/wing always carry a pattern; pattern column mirrors body.pattern.
-    expect(typeof r.colors.body.pattern).toBe("string");
-    expect(r.pattern).toBe(r.colors.body.pattern);
     expect(r.genes.length).toBeGreaterThanOrEqual(1);
     expect(r.genes.length).toBeLessThanOrEqual(4);
     expect(r.maxHealth).toBeGreaterThanOrEqual(1);
-  });
-
-  it("toAppearance adapts the legacy flat shape (back-compat)", () => {
-    // Old stored form: flat color ids + a single separate pattern, no saddle.
-    const legacy = {
-      body: "Black",
-      wing: "White",
-      tail: "Copper",
-      hackle: "Gold",
-      comb: "Red",
-      leg: "Yellow",
-      eye: "Amber",
-      beak: "Horn",
-    };
-    const a = toAppearance(legacy, "Barred");
-    expect(a.body.color).toBe("Black");
-    expect(a.beak.color).toBe("Horn");
-    // legacy single pattern applies to body + wing.
-    expect(a.body.pattern).toBe("Barred");
-    expect(a.wing.pattern).toBe("Barred");
-    // saddle didn't exist on old birds → mirrors the hackle color.
-    expect(a.saddle.color).toBe("Gold");
-    // already-new shape passes through unchanged.
-    const fresh = rollRoostr(mulberry32(7)).colors;
-    expect(toAppearance(fresh, fresh.body.pattern)).toEqual(fresh);
   });
 });
 
@@ -244,8 +210,6 @@ describe("hydrateRoostr", () => {
       weightClassId: rolled.weightClass.id,
       geneIds: rolled.genes.map((g) => g.id),
       geneLevels: {},
-      colors: rolled.colors,
-      pattern: rolled.pattern,
       seed: rolled.seed,
     };
     const h = hydrateRoostr(row);

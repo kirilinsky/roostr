@@ -12,7 +12,6 @@ import {
   type AnyPgColumn,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { RoosterAppearance } from "@/lib/roostr";
 
 // First-cut schema. Roostr columns mirror RolledRoostr (src/lib/roostr.ts).
 // Battle / farm / expedition detail is kept in jsonb until those systems are
@@ -193,11 +192,11 @@ export const roostrs = pgTable("roostrs", {
     .$type<Record<string, number>>()
     .notNull()
     .default({}),
-  // Per-part appearance (RoosterAppearance): { part: { color, pattern?, patternColor?,
-  // effect? } }. Older rows hold the legacy flat shape { part: "ColorId" } until the
-  // cosmetics migration runs; hydrate normalizes both. `pattern` mirrors body.pattern.
-  colors: jsonb("colors").$type<RoosterAppearance>().notNull(),
-  pattern: text("pattern").notNull(),
+  // LEGACY cosmetic columns (pre-V2 per-part colors). No longer written or read —
+  // the look now lives in `meta.cosmetic` (V2). Kept nullable so old rows survive;
+  // safe to drop later.
+  colors: jsonb("colors"),
+  pattern: text("pattern"),
   role: text("role").notNull(),
   maxHealth: integer("max_health").notNull(),
   seed: integer("seed").notNull(),
