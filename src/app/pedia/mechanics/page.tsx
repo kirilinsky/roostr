@@ -98,6 +98,13 @@ const ARTICLES = [
     live: true,
   },
   {
+    href: "/pedia/mechanics/shop",
+    icon: "🛍️",
+    titleKey: "pedia.mech.shop.title",
+    descKey: "pedia.mech.shop.desc",
+    live: true,
+  },
+  {
     href: "/pedia/mechanics",
     icon: "🛒",
     titleKey: "pedia.mech.market.title",

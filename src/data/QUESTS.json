@@ -10,12 +10,26 @@
     },
     "metric": "eggsHatched",
     "value": 1,
-    "reward": { "resource": "coin", "amount": 55 },
+    "reward": { "resource": "egg", "amount": 1 },
     "href": "/incubator"
   },
   {
-    "id": "own-three",
+    "id": "farm-worker",
     "order": 2,
+    "icon": "🌾",
+    "name": { "en": "Put them to work", "ru": "Отправь работать" },
+    "desc": {
+      "en": "Assign a rooster to the Farm to produce eggs over time.",
+      "ru": "Поставь петуха на Ферму — он будет нести яйца со временем."
+    },
+    "metric": "stationWorkers",
+    "value": 1,
+    "reward": { "resource": "egg", "amount": 1 },
+    "href": "/farm"
+  },
+  {
+    "id": "own-three",
+    "order": 3,
     "icon": "🐔",
     "name": { "en": "Start a flock", "ru": "Собери стаю" },
     "desc": {
@@ -29,7 +43,7 @@
   },
   {
     "id": "discover-three",
-    "order": 3,
+    "order": 4,
     "icon": "📕",
     "name": { "en": "Field researcher", "ru": "Полевой исследователь" },
     "desc": {
@@ -40,34 +54,6 @@
     "value": 3,
     "reward": { "resource": "coin", "amount": 75 },
     "href": "/roostrdex"
-  },
-  {
-    "id": "farm-worker",
-    "order": 4,
-    "icon": "🌾",
-    "name": { "en": "Put them to work", "ru": "Отправь работать" },
-    "desc": {
-      "en": "Assign a rooster to the Farm to produce eggs over time.",
-      "ru": "Поставь петуха на Ферму — он будет нести яйца со временем."
-    },
-    "metric": "stationWorkers",
-    "value": 1,
-    "reward": { "resource": "egg", "amount": 1 },
-    "href": "/farm"
-  },
-  {
-    "id": "farm-expand",
-    "order": 4.5,
-    "icon": "🏗️",
-    "name": { "en": "Expand the farm", "ru": "Расширь ферму" },
-    "desc": {
-      "en": "Buy a +1 worker slot on the Farm to run more roosters.",
-      "ru": "Купи +1 слот воркера на Ферме — больше петухов в деле."
-    },
-    "metric": "farmSlots",
-    "value": 3,
-    "reward": { "resource": "sci", "amount": 55 },
-    "href": "/farm"
   },
   {
     "id": "station-claim",
@@ -98,35 +84,22 @@
     "href": "/lab"
   },
   {
-    "id": "first-friend",
+    "id": "farm-expand",
     "order": 7,
-    "icon": "🤝",
-    "name": { "en": "Make a friend", "ru": "Заведи друга" },
+    "icon": "🏗️",
+    "name": { "en": "Expand the farm", "ru": "Расширь ферму" },
     "desc": {
-      "en": "Add your first friend. Visit another player's profile to send a request.",
-      "ru": "Добавь первого друга. Зайди на профиль другого игрока и отправь заявку."
+      "en": "Buy a +1 worker slot on the Farm to run more roosters.",
+      "ru": "Купи +1 слот воркера на Ферме — больше петухов в деле."
     },
-    "metric": "friends",
-    "value": 1,
-    "reward": { "resource": "coin", "amount": 55 }
-  },
-  {
-    "id": "first-referral",
-    "order": 8,
-    "icon": "🎁",
-    "name": { "en": "Spread the word", "ru": "Позови своих" },
-    "desc": {
-      "en": "Invite a friend with your referral link — you both get rewards.",
-      "ru": "Пригласи друга по реферальной ссылке — награды получите оба."
-    },
-    "metric": "referralsCount",
-    "value": 1,
-    "reward": { "resource": "egg", "amount": 2 },
-    "href": "/pedia/mechanics/referrals"
+    "metric": "farmSlots",
+    "value": 3,
+    "reward": { "resource": "sci", "amount": 55 },
+    "href": "/farm"
   },
   {
     "id": "lab-expand",
-    "order": 8.5,
+    "order": 8,
     "icon": "🔧",
     "name": { "en": "Expand the lab", "ru": "Расширь лабу" },
     "desc": {
@@ -139,8 +112,49 @@
     "href": "/lab"
   },
   {
+    "id": "defense-guard",
+    "order": 9,
+    "icon": "🛡️",
+    "name": { "en": "Stand watch", "ru": "Заступи в дозор" },
+    "desc": {
+      "en": "Assign a rooster to the Defense — its Crow guards your base.",
+      "ru": "Поставь петуха в Дозор — его Крик защищает базу."
+    },
+    "metric": "defenseGuards",
+    "value": 1,
+    "reward": { "resource": "sci", "amount": 55 },
+    "href": "/defense"
+  },
+  {
+    "id": "first-friend",
+    "order": 10,
+    "icon": "🤝",
+    "name": { "en": "Make a friend", "ru": "Заведи друга" },
+    "desc": {
+      "en": "Add your first friend. Visit another player's profile to send a request.",
+      "ru": "Добавь первого друга. Зайди на профиль другого игрока и отправь заявку."
+    },
+    "metric": "friends",
+    "value": 1,
+    "reward": { "resource": "coin", "amount": 55 }
+  },
+  {
+    "id": "first-referral",
+    "order": 11,
+    "icon": "🎁",
+    "name": { "en": "Spread the word", "ru": "Позови своих" },
+    "desc": {
+      "en": "Invite a friend with your referral link — you both get rewards.",
+      "ru": "Пригласи друга по реферальной ссылке — награды получите оба."
+    },
+    "metric": "referralsCount",
+    "value": 1,
+    "reward": { "resource": "egg", "amount": 2 },
+    "href": "/pedia/mechanics/referrals"
+  },
+  {
     "id": "gift-friend",
-    "order": 8.7,
+    "order": 12,
     "icon": "🎁",
     "name": { "en": "Share the flock", "ru": "Поделись стаей" },
     "desc": {
@@ -154,7 +168,7 @@
   },
   {
     "id": "referral-three",
-    "order": 9,
+    "order": 13,
     "icon": "📣",
     "name": { "en": "Flock leader", "ru": "Вожак стаи" },
     "desc": {
@@ -167,22 +181,8 @@
     "href": "/pedia/mechanics/referrals"
   },
   {
-    "id": "defense-guard",
-    "order": 9.5,
-    "icon": "🛡️",
-    "name": { "en": "Stand watch", "ru": "Заступи в дозор" },
-    "desc": {
-      "en": "Assign a rooster to the Defense — its Crow guards your base.",
-      "ru": "Поставь петуха в Дозор — его Крик защищает базу."
-    },
-    "metric": "defenseGuards",
-    "value": 1,
-    "reward": { "resource": "sci", "amount": 55 },
-    "href": "/defense"
-  },
-  {
     "id": "referral-five",
-    "order": 10,
+    "order": 14,
     "icon": "👑",
     "name": { "en": "Roostr recruiter", "ru": "Главный вербовщик" },
     "desc": {

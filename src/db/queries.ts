@@ -181,6 +181,59 @@ export function grantCoins(userId: number, amount: number, kind: string, ref?: s
   return grantResource(userId, "coin", amount, kind, ref);
 }
 
+// --- Egg shop (coin → egg, escalating price) ---
+
+// Eggs this user has ever bought from the shop → drives the price ramp. Derived
+// from the ledger (positive egg rows tagged "egg_shop"); no extra column.
+export async function countEggsBought(userId: number): Promise<number> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
+  try {
+    const { db } = await import("@/db");
+    const { resourceTxns } = await import("@/db/schema");
+    const { and, eq, gt, sql } = await import("drizzle-orm");
+    const [r] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(resourceTxns)
+      .where(
+        and(
+          eq(resourceTxns.userId, userId),
+          eq(resourceTxns.resource, "egg"),
+          eq(resourceTxns.kind, "egg_shop"),
+          gt(resourceTxns.amount, 0),
+        ),
+      );
+    return Number(r?.n ?? 0);
+  } catch (e) {
+    console.error("countEggsBought failed:", e);
+    return 0;
+  }
+}
+
+// Buy ONE egg at the player's current (server-computed) price. Spends coins
+// atomically; on the rare grant failure, refunds. Price is re-derived server-side
+// from the ledger, so a stale client price can't be exploited.
+export async function buyShopEgg(
+  userId: number,
+): Promise<{ ok: boolean; reason?: string; price?: number; coins?: number }> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
+  try {
+    const { eggShopPrice } = await import("@/lib/shop");
+    const bought = await countEggsBought(userId);
+    const price = eggShopPrice(bought);
+    const coins = await spendCoins(userId, price, "egg_shop");
+    if (coins === null) return { ok: false, reason: "coins", price };
+    const eggs = await grantResource(userId, "egg", 1, "egg_shop");
+    if (eggs === null) {
+      await grantCoins(userId, price, "refund", "egg_shop");
+      return { ok: false, reason: "error", price };
+    }
+    return { ok: true, price, coins };
+  } catch (e) {
+    console.error("buyShopEgg failed:", e);
+    return { ok: false, reason: "error" };
+  }
+}
+
 // A single ledger row shape for the UI (the bank history list).
 export interface ResourceTxn {
   id: string;

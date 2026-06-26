@@ -20,11 +20,11 @@ const CATEGORIES = [
     live: true,
   },
   {
-    href: "/shop",
+    href: "/shop/eggs",
     icon: "🥚",
     titleKey: "shop.eggsTitle",
     descKey: "shop.eggsDesc",
-    live: false,
+    live: true,
   },
   {
     href: "/shop",
