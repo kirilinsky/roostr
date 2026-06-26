@@ -41,8 +41,10 @@ export async function createRoostr(
         seed: r.seed,
         origin,
         // Bake the bird's colorway at hatch (features come from the breed, so only
-        // the per-bird colors are stored — frozen + customization-ready).
-        meta: { cosmetic: rollColorway(r.breed.id, r.seed) },
+        // the per-bird colors are stored — frozen + customization-ready). The
+        // selected breed trait is also frozen so future catalog edits don't mutate
+        // already-hatched birds.
+        meta: { cosmetic: rollColorway(r.breed.id, r.seed), traitId: r.breed.trait.id },
         // status defaults to "active"
       })
       .returning({ id: roostrs.id });

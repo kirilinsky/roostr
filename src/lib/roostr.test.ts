@@ -16,6 +16,7 @@ import {
   hydrateRoostr,
   upgradeGeneLevel,
   mulberry32,
+  pickBreedTrait,
   pickGenes,
   pickWeighted,
   rollRoostr,
@@ -161,12 +162,26 @@ describe("pickGenes (seeded)", () => {
   });
 });
 
+describe("breed traits", () => {
+  it("every breed has at least two rollable traits, with some three-trait breeds", () => {
+    expect(BREEDS.every((b) => b.traits.length >= 2)).toBe(true);
+    expect(BREEDS.some((b) => b.traits.length >= 3)).toBe(true);
+  });
+
+  it("picks a trait from the breed's trait pool", () => {
+    const breed = BREEDS.find((b) => b.traits.length >= 3) ?? BREEDS[0];
+    const trait = pickBreedTrait(breed, mulberry32(3));
+    expect(breed.traits.map((t) => t.id)).toContain(trait.id);
+  });
+});
+
 describe("rollRoostr (seeded)", () => {
   it("is deterministic for the same seed", () => {
     const a = rollRoostr(mulberry32(42));
     const b = rollRoostr(mulberry32(42));
     expect(a.seed).toBe(b.seed);
     expect(a.breed.id).toBe(b.breed.id);
+    expect(a.breed.trait.id).toBe(b.breed.trait.id);
     expect(a.weightClass.id).toBe(b.weightClass.id);
     expect(a.genes.map((g) => g.id)).toEqual(b.genes.map((g) => g.id));
   });
@@ -217,6 +232,20 @@ describe("hydrateRoostr", () => {
     expect(h.genes.map((g) => g.id)).toEqual(row.geneIds);
     expect(h.rating).toBe(computeRating(h.stats, h.maxHealth));
     expect(h.tier.id).toBe(tierFor(h.rating).id);
+  });
+
+  it("hydrates the selected trait from meta.traitId", () => {
+    const breed = BREEDS.find((b) => b.traits.length >= 2)!;
+    const selected = breed.traits[1];
+    const h = hydrateRoostr({
+      breedId: breed.id,
+      weightClassId: WEIGHT_CLASSES[2].id,
+      geneIds: [],
+      geneLevels: {},
+      seed: 1,
+      meta: { traitId: selected.id },
+    });
+    expect(h.breed.trait.id).toBe(selected.id);
   });
 });
 

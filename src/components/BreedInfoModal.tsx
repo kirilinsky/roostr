@@ -97,15 +97,26 @@ export default function BreedInfoModal({
           <Typography variant="overline" color="text.secondary">
             {t("breedInfo.inGame")}
           </Typography>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mt: 0.5 }}>
-            ☆ {breed.trait.name[locale]}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {breed.trait.description[locale]}
-          </Typography>
-          <Typography variant="caption" color="primary" component="div" sx={{ fontWeight: 700 }}>
-            {formatTraitEffects(breed.trait.effects, locale)}
-          </Typography>
+          <Stack spacing={1} sx={{ mt: 0.5 }}>
+            {(breed.traits ?? [breed.trait]).map((trait) => (
+              <Box key={trait.id}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                  ☆ {trait.name[locale]}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {trait.description[locale]}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="primary"
+                  component="div"
+                  sx={{ fontWeight: 700 }}
+                >
+                  {formatTraitEffects(trait.effects, locale)}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
           <Row label={t("breedInfo.baseHp")} value={String(breed.baseHealth)} />
         </Box>
 

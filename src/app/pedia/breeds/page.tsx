@@ -77,15 +77,21 @@ export default async function PediaBreedsPage() {
                 <Typography variant="overline" color="text.secondary">
                   {t("detail.breedTrait")}
                 </Typography>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                  ☆ {b.trait.name[locale]}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {b.trait.description[locale]}
-                </Typography>
-                <Typography variant="caption" color="primary" sx={{ fontWeight: 700 }}>
-                  {formatTraitEffects(b.trait.effects, locale)}
-                </Typography>
+                <Stack spacing={1}>
+                  {(b.traits ?? [b.trait]).map((trait) => (
+                    <Box key={trait.id}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                        ☆ {trait.name[locale]}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {trait.description[locale]}
+                      </Typography>
+                      <Typography variant="caption" color="primary" sx={{ fontWeight: 700 }}>
+                        {formatTraitEffects(trait.effects, locale)}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
 
                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
                   {b.tags.map((tag) => (

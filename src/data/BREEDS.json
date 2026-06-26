@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "description": {
     "en": "Roostr breed catalog for future Roostrdex pages.",
     "ru": "Каталог пород Roostr для будущих страниц Roostrdex."
@@ -68,7 +68,76 @@
         "en": "Indonesia",
         "ru": "Индонезия",
         "iso": "ID"
-      }
+      },
+      "traits": [
+        {
+          "id": "black-omen",
+          "name": {
+            "en": "Black Omen",
+            "ru": "Чёрное знамение"
+          },
+          "effects": [
+            {
+              "stat": "Crit",
+              "mod": 0.1
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.08
+            },
+            {
+              "stat": "Stealth",
+              "mod": 0.1
+            }
+          ],
+          "description": {
+            "en": "Its eerie all-black presence unsettles rivals.",
+            "ru": "Жуткий чёрный облик нервирует соперников."
+          }
+        },
+        {
+          "id": "void-focus",
+          "name": {
+            "en": "Void Focus",
+            "ru": "Фокус пустоты"
+          },
+          "effects": [
+            {
+              "stat": "Mind",
+              "mod": 0.12
+            },
+            {
+              "stat": "Luck",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Reads the fight calmly, but trusts fate less.",
+            "ru": "Спокойно читает бой, но меньше полагается на удачу."
+          }
+        },
+        {
+          "id": "obsidian-hide",
+          "name": {
+            "en": "Obsidian Hide",
+            "ru": "Обсидиановая кожа"
+          },
+          "effects": [
+            {
+              "stat": "Stealth",
+              "mod": 0.12
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A shadowy body blends in, at the cost of quick starts.",
+            "ru": "Теневой облик помогает скрываться, но мешает резким стартам."
+          }
+        }
+      ]
     },
     {
       "id": "silkie",
@@ -130,7 +199,51 @@
         "en": "China",
         "ru": "Китай",
         "iso": "CN"
-      }
+      },
+      "traits": [
+        {
+          "id": "downy-coat",
+          "name": {
+            "en": "Downy Coat",
+            "ru": "Пуховая шуба"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Soft fur-like plumage soothes but shields poorly.",
+            "ru": "Мягкое пуховое перо лечит, но плохо защищает."
+          }
+        },
+        {
+          "id": "gentle-brooder",
+          "name": {
+            "en": "Gentle Brooder",
+            "ru": "Заботливая наседка"
+          },
+          "effects": [
+            {
+              "stat": "Fertility",
+              "mod": 0.12
+            },
+            {
+              "stat": "Damage",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Nurturing instincts favor the nest over hard hits.",
+            "ru": "Забота о гнезде важнее сильных ударов."
+          }
+        }
+      ]
     },
     {
       "id": "polish",
@@ -187,12 +300,56 @@
         "show",
         "funny"
       ],
-      "baseHealth": 28,
+      "baseHealth": 27,
       "region": {
         "en": "Netherlands",
         "ru": "Нидерланды",
         "iso": "NL"
-      }
+      },
+      "traits": [
+        {
+          "id": "showstopper-crest",
+          "name": {
+            "en": "Showstopper Crest",
+            "ru": "Эффектный хохолок"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "The flamboyant crest draws all eyes but slows it down.",
+            "ru": "Пышный хохолок притягивает взгляды, но замедляет."
+          }
+        },
+        {
+          "id": "blind-angle",
+          "name": {
+            "en": "Blind Angle",
+            "ru": "Слепой угол"
+          },
+          "effects": [
+            {
+              "stat": "Crit",
+              "mod": 0.12
+            },
+            {
+              "stat": "Accuracy",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Unpredictable head movement creates openings and misses.",
+            "ru": "Непредсказуемые движения дают шансы и промахи."
+          }
+        }
+      ]
     },
     {
       "id": "phoenix",
@@ -212,7 +369,7 @@
         },
         "genes": {
           "Long Stride": 1.3,
-          "Dawn Caller": 1.15
+          "Dawn Caller": 1.18
         }
       },
       "tendencies": [
@@ -254,7 +411,76 @@
         "en": "Germany",
         "ru": "Германия",
         "iso": "DE"
-      }
+      },
+      "traits": [
+        {
+          "id": "reborn-spirit",
+          "name": {
+            "en": "Reborn Spirit",
+            "ru": "Дух возрождения"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.12
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Bounces back fast, but burns its own defenses.",
+            "ru": "Быстро восстанавливается, но жертвует защитой."
+          }
+        },
+        {
+          "id": "ember-tail",
+          "name": {
+            "en": "Ember Tail",
+            "ru": "Угольный хвост"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.1
+            },
+            {
+              "stat": "Endurance",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A blazing tail carries it forward, but burns stamina.",
+            "ru": "Пылающий хвост ускоряет рывки, но жжёт выносливость."
+          }
+        },
+        {
+          "id": "ash-return",
+          "name": {
+            "en": "Ash Return",
+            "ru": "Возврат из пепла"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.08
+            },
+            {
+              "stat": "Luck",
+              "mod": 0.06
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "It finds a second wind when the fight turns ugly.",
+            "ru": "Находит второе дыхание, когда бой становится тяжёлым."
+          }
+        }
+      ]
     },
     {
       "id": "onagadori",
@@ -315,7 +541,76 @@
         "en": "Japan",
         "ru": "Япония",
         "iso": "JP"
-      }
+      },
+      "traits": [
+        {
+          "id": "endless-tail",
+          "name": {
+            "en": "Endless Tail",
+            "ru": "Бесконечный хвост"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.1
+            }
+          ],
+          "description": {
+            "en": "Its trailing tail is pure status — and a real drag.",
+            "ru": "Длинный хвост — чистый статус и реальная обуза."
+          }
+        },
+        {
+          "id": "royal-train",
+          "name": {
+            "en": "Royal Train",
+            "ru": "Королевский шлейф"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.12
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "The magnificent tail announces its presence to everyone.",
+            "ru": "Величественный хвост выдаёт его присутствие всем вокруг."
+          }
+        },
+        {
+          "id": "silken-drift",
+          "name": {
+            "en": "Silken Drift",
+            "ru": "Шёлковый дрейф"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.08
+            },
+            {
+              "stat": "Accuracy",
+              "mod": 0.06
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Long feathers guide elegant movement but leave gaps.",
+            "ru": "Длинные перья ведут движения, но оставляют бреши."
+          }
+        }
+      ]
     },
     {
       "id": "shamo",
@@ -381,7 +676,76 @@
         "en": "Japan",
         "ru": "Япония",
         "iso": "JP"
-      }
+      },
+      "traits": [
+        {
+          "id": "iron-stance",
+          "name": {
+            "en": "Iron Stance",
+            "ru": "Железная стойка"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.13
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.08
+            },
+            {
+              "stat": "Fertility",
+              "mod": -0.11
+            }
+          ],
+          "description": {
+            "en": "Relentless aggression that wears itself thin.",
+            "ru": "Беспощадный напор, что сам себя изматывает."
+          }
+        },
+        {
+          "id": "vertical-guard",
+          "name": {
+            "en": "Vertical Guard",
+            "ru": "Вертикальная стойка"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A tall upright guard absorbs pressure but starts slower.",
+            "ru": "Высокая стойка держит давление, но медленнее стартует."
+          }
+        },
+        {
+          "id": "stone-neck",
+          "name": {
+            "en": "Stone Neck",
+            "ru": "Каменная шея"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Hard muscle keeps it standing, even if recovery suffers.",
+            "ru": "Жёсткие мышцы держат на ногах, но восстановление хуже."
+          }
+        }
+      ]
     },
     {
       "id": "brahma",
@@ -447,7 +811,76 @@
         "en": "United States",
         "ru": "США",
         "iso": "US"
-      }
+      },
+      "traits": [
+        {
+          "id": "mountain-mass",
+          "name": {
+            "en": "Mountain Mass",
+            "ru": "Горная масса"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.12
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.1
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.1
+            }
+          ],
+          "description": {
+            "en": "Sheer bulk that almost nothing moves.",
+            "ru": "Громадная масса, которую почти не сдвинуть."
+          }
+        },
+        {
+          "id": "feathered-fortress",
+          "name": {
+            "en": "Feathered Fortress",
+            "ru": "Пернатая крепость"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.12
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Mass and leg feathering make a slow moving wall.",
+            "ru": "Масса и оперённые лапы делают из него медленную стену."
+          }
+        },
+        {
+          "id": "winter-bulk",
+          "name": {
+            "en": "Winter Bulk",
+            "ru": "Зимняя масса"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Built for harsh weather, not for subtle movement.",
+            "ru": "Создан для суровой погоды, а не для скрытности."
+          }
+        }
+      ]
     },
     {
       "id": "cochin",
@@ -510,7 +943,51 @@
         "en": "China",
         "ru": "Китай",
         "iso": "CN"
-      }
+      },
+      "traits": [
+        {
+          "id": "cushion-plumage",
+          "name": {
+            "en": "Cushion Plumage",
+            "ru": "Перина"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Thick padding cushions hits but slows steps.",
+            "ru": "Толстая перина гасит удары, но тормозит шаг."
+          }
+        },
+        {
+          "id": "soft-landing",
+          "name": {
+            "en": "Soft Landing",
+            "ru": "Мягкая посадка"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Plush feathers cushion mistakes, but slow every step.",
+            "ru": "Пышные перья смягчают ошибки, но замедляют шаг."
+          }
+        }
+      ]
     },
     {
       "id": "serama",
@@ -576,7 +1053,80 @@
         "en": "Malaysia",
         "ru": "Малайзия",
         "iso": "MY"
-      }
+      },
+      "traits": [
+        {
+          "id": "pocket-bravado",
+          "name": {
+            "en": "Pocket Bravado",
+            "ru": "Карманная дерзость"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.1
+            },
+            {
+              "stat": "Endurance",
+              "mod": -0.08
+            },
+            {
+              "stat": "Stealth",
+              "mod": 0.1
+            }
+          ],
+          "description": {
+            "en": "Tiny body, oversized courage, short stamina.",
+            "ru": "Крошечное тело, огромная дерзость, мало выносливости."
+          }
+        },
+        {
+          "id": "tiny-flare",
+          "name": {
+            "en": "Tiny Flare",
+            "ru": "Маленькая вспышка"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.12
+            },
+            {
+              "stat": "Health",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A tiny frame explodes forward, but cannot take much.",
+            "ru": "Крошечное тело взрывается вперёд, но плохо держит удар."
+          }
+        },
+        {
+          "id": "proud-chest",
+          "name": {
+            "en": "Proud Chest",
+            "ru": "Гордая грудь"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.1
+            },
+            {
+              "stat": "Luck",
+              "mod": 0.06
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Big attitude in a small bird can swing momentum.",
+            "ru": "Большой характер маленькой птицы меняет темп боя."
+          }
+        }
+      ]
     },
     {
       "id": "leghorn",
@@ -641,7 +1191,55 @@
         "en": "Italy",
         "ru": "Италия",
         "iso": "IT"
-      }
+      },
+      "traits": [
+        {
+          "id": "restless-mind",
+          "name": {
+            "en": "Restless Mind",
+            "ru": "Беспокойный ум"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.08
+            },
+            {
+              "stat": "Fertility",
+              "mod": 0.1
+            }
+          ],
+          "description": {
+            "en": "Always tinkering, never stands its ground.",
+            "ru": "Вечно что-то изобретает, но не держит оборону."
+          }
+        },
+        {
+          "id": "egghead-rush",
+          "name": {
+            "en": "Egghead Rush",
+            "ru": "Умный рывок"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.1
+            },
+            {
+              "stat": "Endurance",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Quick decisions come at the cost of staying power.",
+            "ru": "Быстрые решения стоят запаса сил."
+          }
+        }
+      ]
     },
     {
       "id": "rhode-island-red",
@@ -703,7 +1301,51 @@
         "en": "United States",
         "ru": "США",
         "iso": "US"
-      }
+      },
+      "traits": [
+        {
+          "id": "all-weather-grit",
+          "name": {
+            "en": "All-Weather Grit",
+            "ru": "Всепогодная закалка"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Crit",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Tough in any weather, but rarely lands the big hit.",
+            "ru": "Крепок в любую погоду, но редко бьёт критом."
+          }
+        },
+        {
+          "id": "barnyard-brawler",
+          "name": {
+            "en": "Barnyard Brawler",
+            "ru": "Дворовый боец"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.1
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Reliable farm grit turns direct and loud.",
+            "ru": "Фермерская стойкость становится прямой и шумной."
+          }
+        }
+      ]
     },
     {
       "id": "plymouth-rock",
@@ -765,7 +1407,55 @@
         "en": "United States",
         "ru": "США",
         "iso": "US"
-      }
+      },
+      "traits": [
+        {
+          "id": "steady-barred",
+          "name": {
+            "en": "Steady Barred",
+            "ru": "Надёжная полоса"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Dependable and durable, never in a hurry.",
+            "ru": "Надёжный и живучий, никогда не торопится."
+          }
+        },
+        {
+          "id": "barred-discipline",
+          "name": {
+            "en": "Barred Discipline",
+            "ru": "Полосатая дисциплина"
+          },
+          "effects": [
+            {
+              "stat": "Accuracy",
+              "mod": 0.08
+            },
+            {
+              "stat": "Endurance",
+              "mod": 0.06
+            },
+            {
+              "stat": "Crit",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Measured rhythm favors consistency over flash.",
+            "ru": "Размеренный ритм выбирает стабильность вместо вспышек."
+          }
+        }
+      ]
     },
     {
       "id": "orpington",
@@ -827,7 +1517,51 @@
         "en": "England",
         "ru": "Англия",
         "iso": "GB"
-      }
+      },
+      "traits": [
+        {
+          "id": "gentle-bulk",
+          "name": {
+            "en": "Gentle Bulk",
+            "ru": "Добродушная туша"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Calm mass that absorbs punishment.",
+            "ru": "Спокойная туша, что впитывает удары."
+          }
+        },
+        {
+          "id": "velvet-wall",
+          "name": {
+            "en": "Velvet Wall",
+            "ru": "Бархатная стена"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.1
+            },
+            {
+              "stat": "Crit",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A calm rounded body blocks cleanly but rarely spikes.",
+            "ru": "Спокойное округлое тело хорошо блокирует, но редко взрывается."
+          }
+        }
+      ]
     },
     {
       "id": "wyandotte",
@@ -889,7 +1623,55 @@
         "en": "United States",
         "ru": "США",
         "iso": "US"
-      }
+      },
+      "traits": [
+        {
+          "id": "frosthardy",
+          "name": {
+            "en": "Frosthardy",
+            "ru": "Морозостойкость"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Crit",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Rose comb and dense coat shrug off the cold.",
+            "ru": "Розовидный гребень и плотное перо держат холод."
+          }
+        },
+        {
+          "id": "laced-guard",
+          "name": {
+            "en": "Laced Guard",
+            "ru": "Кружевная защита"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.08
+            },
+            {
+              "stat": "Accuracy",
+              "mod": 0.06
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Precise feather balance helps defense, not acceleration.",
+            "ru": "Точный баланс пера помогает защите, а не ускорению."
+          }
+        }
+      ]
     },
     {
       "id": "sussex",
@@ -955,7 +1737,59 @@
         "en": "England",
         "ru": "Англия",
         "iso": "GB"
-      }
+      },
+      "traits": [
+        {
+          "id": "keen-mind",
+          "name": {
+            "en": "Keen Mind",
+            "ru": "Острый ум"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.08
+            },
+            {
+              "stat": "Fertility",
+              "mod": 0.1
+            }
+          ],
+          "description": {
+            "en": "Sharp-minded, light on defense.",
+            "ru": "Острый ум, слаб в защите."
+          }
+        },
+        {
+          "id": "field-sense",
+          "name": {
+            "en": "Field Sense",
+            "ru": "Полевое чутьё"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.08
+            },
+            {
+              "stat": "Luck",
+              "mod": 0.06
+            },
+            {
+              "stat": "Crow",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Reads the yard well, but wastes little energy showing off.",
+            "ru": "Хорошо читает двор, но не тратит силы на показуху."
+          }
+        }
+      ]
     },
     {
       "id": "marans",
@@ -1020,7 +1854,80 @@
         "en": "France",
         "ru": "Франция",
         "iso": "FR"
-      }
+      },
+      "traits": [
+        {
+          "id": "dark-yolk",
+          "name": {
+            "en": "Dark Yolk",
+            "ru": "Тёмный желток"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.12
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.1
+            },
+            {
+              "stat": "Fertility",
+              "mod": 0.12
+            }
+          ],
+          "description": {
+            "en": "A heavy premium producer, not a sprinter.",
+            "ru": "Тяжёлый премиальный производитель, не спринтер."
+          }
+        },
+        {
+          "id": "copper-patience",
+          "name": {
+            "en": "Copper Patience",
+            "ru": "Медное терпение"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Premium patience pays off, though it rarely rushes.",
+            "ru": "Премиальное терпение окупается, но редко спешит."
+          }
+        },
+        {
+          "id": "dark-shell",
+          "name": {
+            "en": "Dark Shell",
+            "ru": "Тёмная скорлупа"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.08
+            },
+            {
+              "stat": "Fertility",
+              "mod": 0.06
+            },
+            {
+              "stat": "Damage",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A prized layer with steady shell strength.",
+            "ru": "Ценная несушка с крепкой стабильной скорлупой."
+          }
+        }
+      ]
     },
     {
       "id": "araucana",
@@ -1082,7 +1989,76 @@
         "en": "Chile",
         "ru": "Чили",
         "iso": "CL"
-      }
+      },
+      "traits": [
+        {
+          "id": "rumpless-oddity",
+          "name": {
+            "en": "Rumpless Oddity",
+            "ru": "Бесхвостая диковина"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "No tail to steer with — odd luck instead.",
+            "ru": "Нет хвоста для манёвра — зато странная удача."
+          }
+        },
+        {
+          "id": "blue-egg-charm",
+          "name": {
+            "en": "Blue Egg Charm",
+            "ru": "Синее яйцо"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.12
+            },
+            {
+              "stat": "Damage",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Odd eggs bring fortune, not brute force.",
+            "ru": "Странные яйца приносят удачу, а не грубую силу."
+          }
+        },
+        {
+          "id": "rumpless-feint",
+          "name": {
+            "en": "Rumpless Feint",
+            "ru": "Бесхвостый финт"
+          },
+          "effects": [
+            {
+              "stat": "Stealth",
+              "mod": 0.08
+            },
+            {
+              "stat": "Accuracy",
+              "mod": 0.06
+            },
+            {
+              "stat": "Crow",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "The missing tail makes its movement harder to read.",
+            "ru": "Отсутствие хвоста делает движения труднее для чтения."
+          }
+        }
+      ]
     },
     {
       "id": "sebright",
@@ -1143,7 +2119,55 @@
         "en": "England",
         "ru": "Англия",
         "iso": "GB"
-      }
+      },
+      "traits": [
+        {
+          "id": "laced-featherweight",
+          "name": {
+            "en": "Laced Featherweight",
+            "ru": "Кружевной легковес"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.1
+            },
+            {
+              "stat": "Endurance",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Light and flashy, fades in long bouts.",
+            "ru": "Лёгкий и яркий, вянет в долгом бою."
+          }
+        },
+        {
+          "id": "duelist-footwork",
+          "name": {
+            "en": "Duelist Footwork",
+            "ru": "Дуэльная работа ног"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.08
+            },
+            {
+              "stat": "Accuracy",
+              "mod": 0.06
+            },
+            {
+              "stat": "Health",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Sharp steps and light weight make it evasive but fragile.",
+            "ru": "Резкие шаги и малый вес дают уклонение, но делают хрупким."
+          }
+        }
+      ]
     },
     {
       "id": "faverolles",
@@ -1206,7 +2230,55 @@
         "en": "France",
         "ru": "Франция",
         "iso": "FR"
-      }
+      },
+      "traits": [
+        {
+          "id": "docile-beard",
+          "name": {
+            "en": "Docile Beard",
+            "ru": "Кроткая борода"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.1
+            },
+            {
+              "stat": "Damage",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Too gentle to hit hard, quick to mend.",
+            "ru": "Слишком кроткий для сильных ударов, быстро заживает."
+          }
+        },
+        {
+          "id": "bearded-nurse",
+          "name": {
+            "en": "Bearded Nurse",
+            "ru": "Бородатый лекарь"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.08
+            },
+            {
+              "stat": "Intellect",
+              "mod": 0.06
+            },
+            {
+              "stat": "Crit",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Gentle instincts turn knowledge into recovery.",
+            "ru": "Мягкий характер превращает опыт в восстановление."
+          }
+        }
+      ]
     },
     {
       "id": "appenzeller-spitzhauben",
@@ -1268,7 +2340,51 @@
         "en": "Switzerland",
         "ru": "Швейцария",
         "iso": "CH"
-      }
+      },
+      "traits": [
+        {
+          "id": "punk-crest",
+          "name": {
+            "en": "Punk Crest",
+            "ru": "Панковский хохолок"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Wild, twitchy and quick — but careless.",
+            "ru": "Дикий, дёрганый и быстрый — но беспечный."
+          }
+        },
+        {
+          "id": "alpine-punk",
+          "name": {
+            "en": "Alpine Punk",
+            "ru": "Альпийский панк"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A sharp crest and mountain energy favor quick attacks.",
+            "ru": "Острый хохолок и горная энергия любят быстрые атаки."
+          }
+        }
+      ]
     },
     {
       "id": "asil",
@@ -1334,7 +2450,80 @@
         "en": "India",
         "ru": "Индия",
         "iso": "IN"
-      }
+      },
+      "traits": [
+        {
+          "id": "born-fighter",
+          "name": {
+            "en": "Born Fighter",
+            "ru": "Прирождённый боец"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.12
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.1
+            },
+            {
+              "stat": "Fertility",
+              "mod": -0.1
+            }
+          ],
+          "description": {
+            "en": "Lives to fight, slow to lick its wounds.",
+            "ru": "Живёт ради боя, медленно зализывает раны."
+          }
+        },
+        {
+          "id": "ancient-grip",
+          "name": {
+            "en": "Ancient Grip",
+            "ru": "Древняя хватка"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.08
+            },
+            {
+              "stat": "Endurance",
+              "mod": 0.06
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Old fighting blood holds the line without soft recovery.",
+            "ru": "Древняя бойцовая кровь держит линию без мягкого восстановления."
+          }
+        },
+        {
+          "id": "hard-feather",
+          "name": {
+            "en": "Hard Feather",
+            "ru": "Жёсткое перо"
+          },
+          "effects": [
+            {
+              "stat": "Crit",
+              "mod": 0.1
+            },
+            {
+              "stat": "Fertility",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Tight feathering sharpens combat focus over breeding ease.",
+            "ru": "Плотное перо усиливает боевой фокус, но мешает разведению."
+          }
+        }
+      ]
     },
     {
       "id": "malay",
@@ -1400,7 +2589,80 @@
         "en": "Malaysia",
         "ru": "Малайзия",
         "iso": "MY"
-      }
+      },
+      "traits": [
+        {
+          "id": "long-reach",
+          "name": {
+            "en": "Long Reach",
+            "ru": "Длинный замах"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.1
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.1
+            }
+          ],
+          "description": {
+            "en": "Strikes from far, but sparse feathers leave it open.",
+            "ru": "Бьёт издали, но редкое перо оставляет уязвимым."
+          }
+        },
+        {
+          "id": "towering-threat",
+          "name": {
+            "en": "Towering Threat",
+            "ru": "Высокая угроза"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.1
+            },
+            {
+              "stat": "Accuracy",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Reach creates pressure, though long limbs overcommit.",
+            "ru": "Размах давит, но длинные конечности переигрывают."
+          }
+        },
+        {
+          "id": "long-bone",
+          "name": {
+            "en": "Long Bone",
+            "ru": "Длинная кость"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.08
+            },
+            {
+              "stat": "Speed",
+              "mod": 0.06
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Tall structure controls space but heals slowly.",
+            "ru": "Высокое строение контролирует дистанцию, но медленно лечится."
+          }
+        }
+      ]
     },
     {
       "id": "old-english-game",
@@ -1462,7 +2724,55 @@
         "en": "England",
         "ru": "Англия",
         "iso": "GB"
-      }
+      },
+      "traits": [
+        {
+          "id": "game-spirit",
+          "name": {
+            "en": "Game Spirit",
+            "ru": "Бойцовый кураж"
+          },
+          "effects": [
+            {
+              "stat": "Crit",
+              "mod": 0.1
+            },
+            {
+              "stat": "Endurance",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "All daring and bursts, short on stamina.",
+            "ru": "Сплошной кураж и рывки, мало выносливости."
+          }
+        },
+        {
+          "id": "scrap-instinct",
+          "name": {
+            "en": "Scrap Instinct",
+            "ru": "Драчливый инстинкт"
+          },
+          "effects": [
+            {
+              "stat": "Crit",
+              "mod": 0.08
+            },
+            {
+              "stat": "Speed",
+              "mod": 0.06
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Fast scrappy instincts find openings and take risks.",
+            "ru": "Быстрый драчливый инстинкт ищет окна и рискует."
+          }
+        }
+      ]
     },
     {
       "id": "ayam-ketawa",
@@ -1523,7 +2833,72 @@
         "en": "Indonesia",
         "ru": "Индонезия",
         "iso": "ID"
-      }
+      },
+      "traits": [
+        {
+          "id": "mocking-laugh",
+          "name": {
+            "en": "Mocking Laugh",
+            "ru": "Издевательский смех"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.12
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Its strange laugh rattles foes — and tires itself.",
+            "ru": "Странный смех сбивает врага — и утомляет самого."
+          }
+        },
+        {
+          "id": "comic-timing",
+          "name": {
+            "en": "Comic Timing",
+            "ru": "Комический тайминг"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.1
+            },
+            {
+              "stat": "Accuracy",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "The laugh breaks rhythm in lucky, awkward ways.",
+            "ru": "Смех ломает ритм удачно и неловко одновременно."
+          }
+        },
+        {
+          "id": "laughing-pressure",
+          "name": {
+            "en": "Laughing Pressure",
+            "ru": "Смеющееся давление"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.12
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "A strange voice dominates the yard and hides nothing.",
+            "ru": "Странный голос давит на двор и ничего не скрывает."
+          }
+        }
+      ]
     },
     {
       "id": "denizli",
@@ -1584,7 +2959,55 @@
         "en": "Türkiye",
         "ru": "Турция",
         "iso": "TR"
-      }
+      },
+      "traits": [
+        {
+          "id": "long-song",
+          "name": {
+            "en": "Long Song",
+            "ru": "Долгая песнь"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "A long, deep crow that commands the yard.",
+            "ru": "Долгий низкий крик, что держит двор."
+          }
+        },
+        {
+          "id": "breath-control",
+          "name": {
+            "en": "Breath Control",
+            "ru": "Контроль дыхания"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.08
+            },
+            {
+              "stat": "Endurance",
+              "mod": 0.06
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A long song needs lungs, timing and patience.",
+            "ru": "Длинной песне нужны лёгкие, темп и терпение."
+          }
+        }
+      ]
     },
     {
       "id": "bergische-kraher",
@@ -1645,7 +3068,51 @@
         "en": "Germany",
         "ru": "Германия",
         "iso": "DE"
-      }
+      },
+      "traits": [
+        {
+          "id": "deep-caller",
+          "name": {
+            "en": "Deep Caller",
+            "ru": "Глубокий зов"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.1
+            },
+            {
+              "stat": "Crit",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Endless low calling, little finishing punch.",
+            "ru": "Бесконечный низкий зов, слабый добивающий удар."
+          }
+        },
+        {
+          "id": "valley-echo",
+          "name": {
+            "en": "Valley Echo",
+            "ru": "Эхо долины"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.1
+            },
+            {
+              "stat": "Accuracy",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A deep rolling call overwhelms more than it aims.",
+            "ru": "Глубокий перекатистый крик подавляет сильнее, чем целится."
+          }
+        }
+      ]
     },
     {
       "id": "jersey-giant",
@@ -1710,7 +3177,80 @@
         "en": "United States",
         "ru": "США",
         "iso": "US"
-      }
+      },
+      "traits": [
+        {
+          "id": "colossal-frame",
+          "name": {
+            "en": "Colossal Frame",
+            "ru": "Колоссальный костяк"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.12
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.1
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.12
+            }
+          ],
+          "description": {
+            "en": "The biggest body of all — and the slowest.",
+            "ru": "Самое крупное тело из всех — и самое медленное."
+          }
+        },
+        {
+          "id": "heavy-shadow",
+          "name": {
+            "en": "Heavy Shadow",
+            "ru": "Тяжёлая тень"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.12
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Huge mass is hard to move and harder to stop.",
+            "ru": "Огромную массу трудно сдвинуть и ещё труднее остановить."
+          }
+        },
+        {
+          "id": "slow-crusher",
+          "name": {
+            "en": "Slow Crusher",
+            "ru": "Медленный давитель"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.08
+            },
+            {
+              "stat": "Endurance",
+              "mod": 0.06
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "It wins by pressure, not surprise.",
+            "ru": "Побеждает давлением, а не внезапностью."
+          }
+        }
+      ]
     },
     {
       "id": "dorking",
@@ -1772,7 +3312,55 @@
         "en": "England",
         "ru": "Англия",
         "iso": "GB"
-      }
+      },
+      "traits": [
+        {
+          "id": "old-roots",
+          "name": {
+            "en": "Old Roots",
+            "ru": "Древние корни"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Ancient sturdy stock, never rushed.",
+            "ru": "Древняя крепкая порода, всегда без спешки."
+          }
+        },
+        {
+          "id": "five-toe-balance",
+          "name": {
+            "en": "Five-Toe Balance",
+            "ru": "Баланс пяти пальцев"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.08
+            },
+            {
+              "stat": "Accuracy",
+              "mod": 0.06
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Extra footing gives stable angles, not quick bursts.",
+            "ru": "Дополнительная опора даёт стабильные углы, но не рывки."
+          }
+        }
+      ]
     },
     {
       "id": "sumatra",
@@ -1838,7 +3426,76 @@
         "en": "Indonesia",
         "ru": "Индонезия",
         "iso": "ID"
-      }
+      },
+      "traits": [
+        {
+          "id": "jungle-flier",
+          "name": {
+            "en": "Jungle Flier",
+            "ru": "Лесной летун"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.12
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.1
+            },
+            {
+              "stat": "Stealth",
+              "mod": 0.1
+            }
+          ],
+          "description": {
+            "en": "Half-wild flier, agile but unarmored.",
+            "ru": "Полудикий летун: вёрткий, но без брони."
+          }
+        },
+        {
+          "id": "spur-dance",
+          "name": {
+            "en": "Spur Dance",
+            "ru": "Танец шпор"
+          },
+          "effects": [
+            {
+              "stat": "Crit",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Multiple spurs invite risky finishing strikes.",
+            "ru": "Несколько шпор зовут к рискованным добивающим ударам."
+          }
+        },
+        {
+          "id": "jungle-shadow",
+          "name": {
+            "en": "Jungle Shadow",
+            "ru": "Тень джунглей"
+          },
+          "effects": [
+            {
+              "stat": "Stealth",
+              "mod": 0.1
+            },
+            {
+              "stat": "Crow",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Dark jungle movement stays quiet until it strikes.",
+            "ru": "Тёмное движение джунглей молчит до удара."
+          }
+        }
+      ]
     },
     {
       "id": "yokohama",
@@ -1900,7 +3557,51 @@
         "en": "Japan",
         "ru": "Япония",
         "iso": "JP"
-      }
+      },
+      "traits": [
+        {
+          "id": "princely-plume",
+          "name": {
+            "en": "Princely Plume",
+            "ru": "Княжеский плюмаж"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.1
+            },
+            {
+              "stat": "Endurance",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Delicate showpiece, not built to last.",
+            "ru": "Хрупкий экспонат, не для долгих испытаний."
+          }
+        },
+        {
+          "id": "white-banner",
+          "name": {
+            "en": "White Banner",
+            "ru": "Белое знамя"
+          },
+          "effects": [
+            {
+              "stat": "Accuracy",
+              "mod": 0.1
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A bright ornamental tail guides aim but ruins cover.",
+            "ru": "Яркий декоративный хвост помогает цели, но портит маскировку."
+          }
+        }
+      ]
     },
     {
       "id": "naked-neck",
@@ -1961,7 +3662,76 @@
         "en": "Romania",
         "ru": "Румыния",
         "iso": "RO"
-      }
+      },
+      "traits": [
+        {
+          "id": "bare-neck",
+          "name": {
+            "en": "Bare Neck",
+            "ru": "Голая шея"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Heat-hardy and tough, but its bare neck is exposed.",
+            "ru": "Жаростойкий и крепкий, но голая шея уязвима."
+          }
+        },
+        {
+          "id": "heat-proof",
+          "name": {
+            "en": "Heat Proof",
+            "ru": "Жаростойкость"
+          },
+          "effects": [
+            {
+              "stat": "Endurance",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Bare skin sheds heat well but offers less cover.",
+            "ru": "Голая кожа сбрасывает жар, но хуже прикрывает."
+          }
+        },
+        {
+          "id": "raw-nerve",
+          "name": {
+            "en": "Raw Nerve",
+            "ru": "Открытый нерв"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.08
+            },
+            {
+              "stat": "Crit",
+              "mod": 0.06
+            },
+            {
+              "stat": "Stealth",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Exposed toughness reacts fast and visibly.",
+            "ru": "Открытая стойкость реагирует быстро и заметно."
+          }
+        }
+      ]
     },
     {
       "id": "sultan",
@@ -2022,7 +3792,80 @@
         "en": "Türkiye",
         "ru": "Турция",
         "iso": "TR"
-      }
+      },
+      "traits": [
+        {
+          "id": "pure-ornament",
+          "name": {
+            "en": "Pure Ornament",
+            "ru": "Чистое украшение"
+          },
+          "effects": [
+            {
+              "stat": "Crow",
+              "mod": 0.1
+            },
+            {
+              "stat": "Damage",
+              "mod": -0.1
+            }
+          ],
+          "description": {
+            "en": "Bred only for beauty, hopeless at hitting.",
+            "ru": "Выведен только ради красоты, бить не умеет."
+          }
+        },
+        {
+          "id": "palace-frill",
+          "name": {
+            "en": "Palace Frill",
+            "ru": "Дворцовая оборка"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.08
+            },
+            {
+              "stat": "Crow",
+              "mod": 0.06
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Ornament and confidence turn style into fortune.",
+            "ru": "Украшения и уверенность превращают стиль в удачу."
+          }
+        },
+        {
+          "id": "feathered-slippers",
+          "name": {
+            "en": "Feathered Slippers",
+            "ru": "Пернатые тапочки"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.08
+            },
+            {
+              "stat": "Stealth",
+              "mod": 0.06
+            },
+            {
+              "stat": "Damage",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Soft feet move quietly, not brutally.",
+            "ru": "Мягкие лапы движутся тихо, но не грубо."
+          }
+        }
+      ]
     },
     {
       "id": "frizzle",
@@ -2080,7 +3923,51 @@
         "en": "India",
         "ru": "Индия",
         "iso": "IN"
-      }
+      },
+      "traits": [
+        {
+          "id": "curled-coat",
+          "name": {
+            "en": "Curled Coat",
+            "ru": "Кудрявая шуба"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.1
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Curled feathers charm but insulate poorly.",
+            "ru": "Кудрявое перо очаровывает, но плохо греет."
+          }
+        },
+        {
+          "id": "static-fluff",
+          "name": {
+            "en": "Static Fluff",
+            "ru": "Статичный пух"
+          },
+          "effects": [
+            {
+              "stat": "Luck",
+              "mod": 0.1
+            },
+            {
+              "stat": "Accuracy",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Curled feathers make every exchange a little strange.",
+            "ru": "Завитые перья делают каждую стычку немного странной."
+          }
+        }
+      ]
     },
     {
       "id": "houdan",
@@ -2141,7 +4028,55 @@
         "en": "France",
         "ru": "Франция",
         "iso": "FR"
-      }
+      },
+      "traits": [
+        {
+          "id": "veiled-sight",
+          "name": {
+            "en": "Veiled Sight",
+            "ru": "Скрытый взор"
+          },
+          "effects": [
+            {
+              "stat": "Recovery",
+              "mod": 0.1
+            },
+            {
+              "stat": "Accuracy",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Crest and beard hide its eyes — and its aim.",
+            "ru": "Хохолок и борода скрывают глаза — и точность."
+          }
+        },
+        {
+          "id": "bearded-mask",
+          "name": {
+            "en": "Bearded Mask",
+            "ru": "Бородатая маска"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.08
+            },
+            {
+              "stat": "Stealth",
+              "mod": 0.06
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A masked face hides intent behind slower reactions.",
+            "ru": "Маска скрывает намерение, но реакции медленнее."
+          }
+        }
+      ]
     },
     {
       "id": "hamburg",
@@ -2202,7 +4137,51 @@
         "en": "Germany",
         "ru": "Германия",
         "iso": "DE"
-      }
+      },
+      "traits": [
+        {
+          "id": "sprightly",
+          "name": {
+            "en": "Sprightly",
+            "ru": "Юркость"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.1
+            },
+            {
+              "stat": "Endurance",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Quick, alert and flighty; tires early.",
+            "ru": "Быстрый, чуткий и пугливый; рано устаёт."
+          }
+        },
+        {
+          "id": "spangled-hustle",
+          "name": {
+            "en": "Spangled Hustle",
+            "ru": "Пятнистая суета"
+          },
+          "effects": [
+            {
+              "stat": "Speed",
+              "mod": 0.1
+            },
+            {
+              "stat": "Health",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A light active layer moves fast but stays fragile.",
+            "ru": "Лёгкая активная несушка быстра, но хрупка."
+          }
+        }
+      ]
     },
     {
       "id": "australorp",
@@ -2267,7 +4246,55 @@
         "en": "Australia",
         "ru": "Австралия",
         "iso": "AU"
-      }
+      },
+      "traits": [
+        {
+          "id": "tireless-layer",
+          "name": {
+            "en": "Tireless Layer",
+            "ru": "Неутомимая несушка"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.12
+            },
+            {
+              "stat": "Damage",
+              "mod": -0.1
+            },
+            {
+              "stat": "Fertility",
+              "mod": 0.12
+            }
+          ],
+          "description": {
+            "en": "Studious and productive, never aggressive.",
+            "ru": "Усидчивая и продуктивная, без агрессии."
+          }
+        },
+        {
+          "id": "record-rhythm",
+          "name": {
+            "en": "Record Rhythm",
+            "ru": "Рекордный ритм"
+          },
+          "effects": [
+            {
+              "stat": "Fertility",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Legendary laying rhythm favors production over bursts.",
+            "ru": "Легендарный ритм кладки выбирает продуктивность вместо рывков."
+          }
+        }
+      ]
     },
     {
       "id": "welsummer",
@@ -2328,7 +4355,55 @@
         "en": "Netherlands",
         "ru": "Нидерланды",
         "iso": "NL"
-      }
+      },
+      "traits": [
+        {
+          "id": "bold-mind",
+          "name": {
+            "en": "Bold Thinker",
+            "ru": "Смелый мыслитель"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.1
+            },
+            {
+              "stat": "Guard",
+              "mod": -0.081
+            }
+          ],
+          "description": {
+            "en": "Confident and curious, light on guard.",
+            "ru": "Уверенный и любопытный, слаб в защите."
+          }
+        },
+        {
+          "id": "rusty-nerve",
+          "name": {
+            "en": "Rusty Nerve",
+            "ru": "Рыжий нерв"
+          },
+          "effects": [
+            {
+              "stat": "Damage",
+              "mod": 0.08
+            },
+            {
+              "stat": "Intellect",
+              "mod": 0.06
+            },
+            {
+              "stat": "Recovery",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "A bold red temper thinks forward and heals later.",
+            "ru": "Смелый рыжий характер думает вперёд, а лечится потом."
+          }
+        }
+      ]
     },
     {
       "id": "barnevelder",
@@ -2389,7 +4464,51 @@
         "en": "Netherlands",
         "ru": "Нидерланды",
         "iso": "NL"
-      }
+      },
+      "traits": [
+        {
+          "id": "hardy-layer",
+          "name": {
+            "en": "Hardy Layer",
+            "ru": "Крепкая несушка"
+          },
+          "effects": [
+            {
+              "stat": "Intellect",
+              "mod": 0.1
+            },
+            {
+              "stat": "Speed",
+              "mod": -0.08
+            }
+          ],
+          "description": {
+            "en": "Hardy steady producer, never quick.",
+            "ru": "Крепкий стабильный производитель, не из быстрых."
+          }
+        },
+        {
+          "id": "double-laced-guard",
+          "name": {
+            "en": "Double-Laced Guard",
+            "ru": "Двойная кружевная защита"
+          },
+          "effects": [
+            {
+              "stat": "Guard",
+              "mod": 0.1
+            },
+            {
+              "stat": "Crit",
+              "mod": -0.06
+            }
+          ],
+          "description": {
+            "en": "Layered lacing favors protection over sudden spikes.",
+            "ru": "Слоистое кружево выбирает защиту вместо резких всплесков."
+          }
+        }
+      ]
     }
   ]
 }

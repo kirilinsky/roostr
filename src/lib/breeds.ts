@@ -5,9 +5,9 @@ import data from "@/data/BREEDS.json";
 import groupsData from "@/data/GROUPS.json";
 import type { Locale } from "@/i18n/config";
 
-// One fixed innate buff/debuff per breed — grounded in look/habitat/character.
-// It does NOT level up; it's a permanent distinguishing modifier (battle sim
-// applies `effects`; UI shows the label). See .notes/GENE-MODIFIERS.md.
+// Innate breed buff/debuff — grounded in look/habitat/character. It does NOT
+// level up; it's a permanent distinguishing modifier. A breed has a pool of
+// possible traits, while each hatched rooster stores one selected trait.
 export interface BreedTrait {
   id: string;
   name: { en: string; ru: string };
@@ -29,6 +29,7 @@ export interface BreedEntry {
   };
   tendencies: string[];
   trait: BreedTrait;
+  traits?: BreedTrait[];
   description: { en: string; ru: string };
   tags: string[];
   // Real-world country of origin. `iso` (ISO 3166-1 alpha-2) is the machine key

@@ -137,7 +137,8 @@ export interface Breed {
   group: string; // breed group (English category id)
   affinity: string[]; // light lean, not a guarantee
   baseHealth: number;
-  trait: BreedTrait; // fixed innate buff/debuff (not upgradeable)
+  trait: BreedTrait; // selected/default innate buff/debuff (not upgradeable)
+  traits: BreedTrait[]; // roll pool for this breed; first entry is the default
   geneAffinities?: {
     families?: Partial<Record<string, number>>;
     genes?: Partial<Record<string, number>>;
@@ -147,6 +148,11 @@ export interface Breed {
   weight: number; // roll weight (some breeds are simply more common)
 }
 
+function normalizeBreedTraits(b: { trait: BreedTrait; traits?: BreedTrait[] }): BreedTrait[] {
+  const out = b.traits?.length ? b.traits : [b.trait];
+  return out.some((t) => t.id === b.trait.id) ? out : [b.trait, ...out];
+}
+
 export const BREEDS: Breed[] = BREEDS_CATALOG.map((b) => ({
   id: b.id,
   name: b.name,
@@ -154,6 +160,7 @@ export const BREEDS: Breed[] = BREEDS_CATALOG.map((b) => ({
   affinity: b.tendencies,
   baseHealth: b.baseHealth,
   trait: b.trait,
+  traits: normalizeBreedTraits(b),
   geneAffinities: b.geneAffinities,
   tags: b.tags,
   region: b.region,
@@ -254,6 +261,19 @@ export function pickWeighted<T extends { weight: number }>(
     if (r <= 0) return e;
   }
   return entries[entries.length - 1];
+}
+
+export function pickBreedTrait(breed: Breed, rng: Rng = Math.random): BreedTrait {
+  const traits = breed.traits.length ? breed.traits : [breed.trait];
+  return traits[Math.floor(rng() * traits.length)] ?? traits[0];
+}
+
+export function breedWithTrait(breed: Breed, traitId?: string | null): Breed {
+  const trait =
+    breed.traits.find((t) => t.id === traitId) ??
+    breed.trait ??
+    breed.traits[0];
+  return { ...breed, trait };
 }
 
 // Gene count: 2 almost always. 3 is uncommon (~0.3%). 1 and 4 are both super-rare
@@ -471,7 +491,8 @@ export function computeRating(
 }
 
 export function rollRoostr(rng: Rng = Math.random): RolledRoostr {
-  const breed = pickWeighted(BREEDS, rng);
+  const baseBreed = pickWeighted(BREEDS, rng);
+  const breed = breedWithTrait(baseBreed, pickBreedTrait(baseBreed, rng).id);
   const weightClass = pickWeighted(WEIGHT_CLASSES, rng);
   const genes = pickGenes(breed, rng);
   return {
@@ -556,7 +577,10 @@ function parseWork(
 }
 
 export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
-  const breed = BREED_BY_ID[row.breedId] ?? BREEDS[0];
+  const baseBreed = BREED_BY_ID[row.breedId] ?? BREEDS[0];
+  const traitId =
+    typeof row.meta?.traitId === "string" ? row.meta.traitId : null;
+  const breed = breedWithTrait(baseBreed, traitId);
   const weightClass = WEIGHT_BY_ID[row.weightClassId] ?? WEIGHT_CLASSES[2];
   const genes = row.geneIds
     .map((id) => GENE_BY_ID[id])
