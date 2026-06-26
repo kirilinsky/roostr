@@ -311,14 +311,20 @@ export default function AppShell({
           >
             ☰
           </IconButton>
-          <Image
-            src="/roostr_logo.png"
-            alt="Roostr"
-            width={92}
-            height={40}
-            priority
-            style={{ height: 28, width: "auto" }}
-          />
+          {/* Phones (xs): hidden — the fixed HUD spans the bar and would overlap
+              it. Shown from sm up where there's room left of the HUD. */}
+          <Box
+            sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center" }}
+          >
+            <Image
+              src="/roostr_logo.png"
+              alt="Roostr"
+              width={92}
+              height={40}
+              priority
+              style={{ height: 28, width: "auto" }}
+            />
+          </Box>
         </Toolbar>
       </AppBar>
 

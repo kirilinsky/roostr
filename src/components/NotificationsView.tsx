@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import Pagination from "@mui/material/Pagination";
@@ -26,7 +27,7 @@ import {
 } from "@/app/[telegramid]/actions";
 import {
   claimNewsAction,
-  markNotificationsSeenAction,
+  markNotificationReadAction,
 } from "@/app/notifications/actions";
 import { claimQuestAction } from "@/app/quests/actions";
 import { BREEDS_CATALOG } from "@/lib/breeds";
@@ -168,9 +169,26 @@ export default function NotificationsView({
     lab: fullStations.includes("lab") ? 1 : 0,
     roostrdex: unreadDex,
   };
-  // "Mark all read" only matters for the informational (cursor-based) categories.
-  const anyUnread = unreadNews + unreadFriends + unreadAch + unreadDex > 0;
-  const markRead = () => act(() => markNotificationsSeenAction());
+  // Per-item read: marking one item read (✓ button or a CTA click) clears just
+  // that row from the unread badges, then refreshes.
+  const markRead = (key: string) => act(() => markNotificationReadAction(key));
+  // Fire-and-forget read mark for CTA links (navigation proceeds; no refresh).
+  const markReadAsync = (key: string) => {
+    void markNotificationReadAction(key);
+  };
+  // The ✓ control shown on every unread informational row.
+  const readBtn = (key: string) => (
+    <IconButton
+      size="small"
+      disabled={busy}
+      onClick={() => markRead(key)}
+      aria-label={t("notifications.markRead")}
+      title={t("notifications.markRead")}
+      sx={{ flexShrink: 0 }}
+    >
+      ✓
+    </IconButton>
+  );
 
   // Accent an unread row (left bar + faint tint) so read vs unread is obvious
   // without hiding read ones.
@@ -212,18 +230,6 @@ export default function NotificationsView({
     // minWidth:0 lets this flex column shrink below the tab-strip content width
     // (otherwise the scrollable Tabs force horizontal overflow on narrow screens).
     <Stack spacing={2} sx={{ minWidth: 0 }}>
-      {anyUnread && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            size="small"
-            color="neutral"
-            disabled={busy}
-            onClick={markRead}
-          >
-            ✓ {t("notifications.markAllRead")}
-          </Button>
-        </Box>
-      )}
       {/* Mobile: a 9-item scrollable tab strip is too fiddly to tap and hides
           which categories have unread items. A wrapping chip bar shows every
           category at once, each with its own unread badge. Desktop keeps tabs. */}
@@ -335,6 +341,7 @@ export default function NotificationsView({
                         href={n.link}
                         size="small"
                         variant="outlined"
+                        onClick={() => markReadAsync(`news:${n.id}`)}
                       >
                         {t("notifications.open")}
                       </Button>
@@ -344,13 +351,19 @@ export default function NotificationsView({
                         size="small"
                         variant="contained"
                         disabled={busy || n.claimed}
-                        onClick={() => act(() => claimNewsAction(n.id))}
+                        onClick={() =>
+                          act(async () => {
+                            await claimNewsAction(n.id);
+                            await markNotificationReadAction(`news:${n.id}`);
+                          })
+                        }
                       >
                         {n.claimed
                           ? t("notifications.claimed")
                           : t("notifications.claimEgg", { n: n.ctaAmount ?? 1 })}
                       </Button>
                     )}
+                    {n.unread && readBtn(`news:${n.id}`)}
                   </Stack>
                 </ListItem>
               ))}
@@ -441,14 +454,18 @@ export default function NotificationsView({
                           {new Date(f.createdAt).toLocaleDateString(locale)}
                         </Typography>
                       </Box>
-                      <Button
-                        component={Link}
-                        href={`/${f.id}`}
-                        size="small"
-                        variant="outlined"
-                      >
-                        {t("friends.profile")}
-                      </Button>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Button
+                          component={Link}
+                          href={`/${f.id}`}
+                          size="small"
+                          variant="outlined"
+                          onClick={() => markReadAsync(`friend:${f.id}`)}
+                        >
+                          {t("friends.profile")}
+                        </Button>
+                        {f.unread && readBtn(`friend:${f.id}`)}
+                      </Stack>
                     </ListItem>
                   );
                 })}
@@ -531,14 +548,18 @@ export default function NotificationsView({
                       {new Date(d.discoveredAt).toLocaleDateString(locale)}
                     </Typography>
                   </Box>
-                  <Button
-                    component={Link}
-                    href="/roostrdex"
-                    size="small"
-                    variant="outlined"
-                  >
-                    {t("nav.roostrdex")}
-                  </Button>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Button
+                      component={Link}
+                      href="/roostrdex"
+                      size="small"
+                      variant="outlined"
+                      onClick={() => markReadAsync(`dex:${d.breedId}`)}
+                    >
+                      {t("nav.roostrdex")}
+                    </Button>
+                    {d.unread && readBtn(`dex:${d.breedId}`)}
+                  </Stack>
                 </ListItem>
               );
             })}
@@ -584,16 +605,20 @@ export default function NotificationsView({
                         })}
                       </Typography>
                     </Box>
-                    <Button
-                      component={Link}
-                      href={href}
-                      size="small"
-                      variant="outlined"
-                    >
-                      {toRooster
-                        ? t("notifications.viewRooster")
-                        : t("profile.achievements")}
-                    </Button>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Button
+                        component={Link}
+                        href={href}
+                        size="small"
+                        variant="outlined"
+                        onClick={() => markReadAsync(`ach:${a.achievementId}`)}
+                      >
+                        {toRooster
+                          ? t("notifications.viewRooster")
+                          : t("profile.achievements")}
+                      </Button>
+                      {a.unread && readBtn(`ach:${a.achievementId}`)}
+                    </Stack>
                   </ListItem>
                 );
               })}

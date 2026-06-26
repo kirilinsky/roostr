@@ -126,6 +126,24 @@ export const newsClaims = pgTable(
   (t) => [primaryKey({ columns: [t.newsId, t.userId] })],
 );
 
+// Per-item "read" marks for the notifications feed. Presence of a row = that
+// specific item has been read by the user (clears it from the unread badge).
+// `key` is "<source>:<id>" — news:<uuid> | ach:<achievementId> | dex:<breedId> |
+// friend:<userId>. Replaces the old single read-cursor with per-message reads.
+export const notificationReads = pgTable(
+  "notification_reads",
+  {
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    readAt: timestamp("read_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.key] })],
+);
+
 // Onboarding quests: one row per (user, quest) that CLAIMED its reward. Quest defs
 // live in src/data/QUESTS.json; completion is derived from profile metrics, the
 // reward is granted once via the ledger on claim (CAS on this PK). Linear chain:

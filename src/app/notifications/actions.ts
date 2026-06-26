@@ -3,7 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
-import { markNotificationsSeen, claimNews, createNews } from "@/db/queries";
+import {
+  markNotificationsSeen,
+  markNotificationRead,
+  claimNews,
+  createNews,
+} from "@/db/queries";
 
 // Mark the feed read for the signed-in user (clears the HUD bell badge). Called
 // from the client AFTER the page actually mounts — not during render — so a Link
@@ -11,6 +16,13 @@ import { markNotificationsSeen, claimNews, createNews } from "@/db/queries";
 export async function markNotificationsSeenAction(): Promise<void> {
   const session = await getSession();
   if (session) await markNotificationsSeen(session.id);
+}
+
+// Mark ONE feed item read — `key` is "<source>:<id>" (news:… | ach:… | dex:… |
+// friend:…). Used by the per-item ✓ button and fired on CTA clicks too.
+export async function markNotificationReadAction(key: string): Promise<void> {
+  const session = await getSession();
+  if (session) await markNotificationRead(session.id, key);
 }
 
 // Claim a news CTA (e.g. a promo's free egg). Once per user, server-validated.

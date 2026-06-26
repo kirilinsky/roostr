@@ -93,7 +93,19 @@ const theme = createTheme({
     MuiButton: {
       defaultProps: { disableElevation: true, disableRipple: true },
       styleOverrides: {
-        root: { borderRadius: 0 },
+        // Mobile: tighter padding + a notch smaller text so CTAs stop dominating
+        // narrow (≤375px) screens. Desktop keeps the default chunky arcade key.
+        root: {
+          borderRadius: 0,
+          [mobile]: {
+            paddingTop: 4,
+            paddingBottom: 4,
+            paddingLeft: 10,
+            paddingRight: 10,
+            fontSize: "0.8125rem",
+            minWidth: 56,
+          },
+        },
         // Contained = physical key: ink border + hard shadow, "presses" on click.
         contained: {
           border: `2px solid ${INK}`,

@@ -88,13 +88,20 @@ export default function CollectionView({
 
   return (
     <Stack spacing={2}>
-      <Stack
-        direction="row"
-        spacing={1.5}
-        alignItems="center"
-        flexWrap="wrap"
-        useFlexGap
+      {/* Mobile: roostrdex sits under the page title (full width); filters get
+          the whole row to themselves below. Desktop keeps it inline at right. */}
+      <Button
+        component={Link}
+        href="/roostrdex"
+        variant="outlined"
+        color="neutral"
+        fullWidth
+        sx={{ display: { xs: "flex", md: "none" } }}
       >
+        📕 {t("nav.roostrdex")}
+      </Button>
+
+      <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Filters
             groups={groups}
@@ -110,7 +117,7 @@ export default function CollectionView({
           href="/roostrdex"
           variant="outlined"
           color="neutral"
-          sx={{ flexShrink: 0 }}
+          sx={{ flexShrink: 0, display: { xs: "none", md: "flex" } }}
         >
           📕 {t("nav.roostrdex")}
         </Button>

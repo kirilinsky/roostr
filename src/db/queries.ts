@@ -542,15 +542,10 @@ export async function getNewAchievements(
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
   try {
     const { db } = await import("@/db");
-    const { achievementUnlocks, users } = await import("@/db/schema");
+    const { achievementUnlocks } = await import("@/db/schema");
     const { desc, eq } = await import("drizzle-orm");
-    const [u] = await db
-      .select({ seen: users.notificationsSeenAt })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    const seen = u?.seen ?? null;
-    // Recent unlocks (read + unread); unread = newer than the cursor.
+    const reads = await getNotificationReads(userId);
+    // Recent unlocks (read + unread); unread = no per-item read row yet.
     const rows = await db
       .select({
         achievementId: achievementUnlocks.achievementId,
@@ -567,7 +562,7 @@ export async function getNewAchievements(
       scope: r.scope,
       roostrId: r.roostrId,
       unlockedAt: r.unlockedAt.toISOString(),
-      unread: seen ? r.unlockedAt > seen : true,
+      unread: !reads.has(`ach:${r.achievementId}`),
     }));
   } catch (e) {
     console.error("getNewAchievements failed:", e);
@@ -1073,97 +1068,69 @@ export async function declineFriendRequest(
   }
 }
 
-// Count UNREAD notifications for the HUD bell badge: incoming friend requests
-// newer than the user's read-cursor (`notificationsSeenAt`); all of them if the
-// cursor is unset. (Friend requests are the only notification type for now.)
+// All per-item read keys for a user → drives the `unread` flag on every feed
+// source. Cheap single-table fetch (PK-prefixed by userId).
+export async function getNotificationReads(
+  userId: number,
+): Promise<Set<string>> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return new Set();
+  try {
+    const { db } = await import("@/db");
+    const { notificationReads } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({ key: notificationReads.key })
+      .from(notificationReads)
+      .where(eq(notificationReads.userId, userId));
+    return new Set(rows.map((r) => r.key));
+  } catch (e) {
+    console.error("getNotificationReads failed:", e);
+    return new Set();
+  }
+}
+
+// Mark ONE feed item read (idempotent). `key` = "<source>:<id>" (see schema).
+export async function markNotificationRead(
+  userId: number,
+  key: string,
+): Promise<void> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId) || !key) return;
+  try {
+    const { db } = await import("@/db");
+    const { notificationReads } = await import("@/db/schema");
+    await db
+      .insert(notificationReads)
+      .values({ userId, key })
+      .onConflictDoNothing();
+  } catch (e) {
+    console.error("markNotificationRead failed:", e);
+  }
+}
+
+// Count UNREAD notifications for the HUD bell badge. Reuses the feed getters so
+// the badge count matches exactly what the page shows: informational items
+// (news / achievements / dex / new friends) that have no per-item read row, plus
+// the ACTIONABLE ones — incoming friend requests, claimable quests, full stations
+// — which clear by being resolved, not by a read mark.
 export async function countUnreadNotifications(userId: number): Promise<number> {
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
-    const { db } = await import("@/db");
-    const {
-      friendRequests,
-      friendships,
-      breedDiscoveries,
-      news,
-      achievementUnlocks,
-      users,
-    } = await import("@/db/schema");
-    const { and, eq, gt, or, sql } = await import("drizzle-orm");
-    const [u] = await db
-      .select({ seen: users.notificationsSeenAt })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    const seen = u?.seen ?? null;
-    const reqFilter = seen
-      ? and(
-          eq(friendRequests.toUserId, userId),
-          gt(friendRequests.createdAt, seen),
-        )
-      : eq(friendRequests.toUserId, userId);
-    const [row] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(friendRequests)
-      .where(reqFilter);
-    // Roostrdex discoveries newer than the read-cursor ("new entry").
-    const dexFilter = seen
-      ? and(
-          eq(breedDiscoveries.userId, userId),
-          gt(breedDiscoveries.discoveredAt, seen),
-        )
-      : eq(breedDiscoveries.userId, userId);
-    const [dex] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(breedDiscoveries)
-      .where(dexFilter);
-    // New friendships newer than the cursor ("you're now friends with X").
-    const mine = or(
-      eq(friendships.userAId, userId),
-      eq(friendships.userBId, userId),
-    );
-    const friendFilter = seen
-      ? and(mine, gt(friendships.createdAt, seen))
-      : mine;
-    const [nf] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(friendships)
-      .where(friendFilter);
-    // News published after the cursor ("new announcement").
-    const newsFilter = seen
-      ? and(eq(news.active, true), gt(news.createdAt, seen))
-      : eq(news.active, true);
-    const [nw] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(news)
-      .where(newsFilter);
-    // Achievements unlocked after the cursor ("you earned X").
-    const achFilter = seen
-      ? and(
-          eq(achievementUnlocks.userId, userId),
-          gt(achievementUnlocks.unlockedAt, seen),
-        )
-      : eq(achievementUnlocks.userId, userId);
-    const [ach] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(achievementUnlocks)
-      .where(achFilter);
-    // Quests ready to claim — a persistent reward nudge (cleared by claiming, not by
-    // visiting). Anti-plateau: "you have rewards waiting".
-    const readyQ = await countReadyQuests(userId);
-    // Plus: stations that filled up AFTER the read-cursor ("come claim it").
-    const seenMs = seen ? seen.getTime() : 0;
-    const stationUnread = (await getStationAlerts(userId)).filter(
-      (a) => a.fullAt > seenMs,
-    ).length;
-    return (
-      Number(row?.n ?? 0) +
-      Number(dex?.n ?? 0) +
-      Number(nf?.n ?? 0) +
-      Number(nw?.n ?? 0) +
-      Number(ach?.n ?? 0) +
-      readyQ +
-      stationUnread
-    );
+    const [news, ach, dex, friends, requests, readyQ, stations] =
+      await Promise.all([
+        getNews(userId),
+        getNewAchievements(userId),
+        getRecentDiscoveries(userId),
+        getNewFriends(userId),
+        getIncomingFriendRequests(userId),
+        countReadyQuests(userId),
+        getStationAlerts(userId),
+      ]);
+    const unread =
+      news.filter((n) => n.unread).length +
+      ach.filter((a) => a.unread).length +
+      dex.filter((d) => d.unread).length +
+      friends.filter((f) => f.unread).length;
+    return unread + requests.length + readyQ + stations.length;
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);
     return 0;
@@ -1224,14 +1191,9 @@ export async function getRecentDiscoveries(
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
   try {
     const { db } = await import("@/db");
-    const { breedDiscoveries, users } = await import("@/db/schema");
+    const { breedDiscoveries } = await import("@/db/schema");
     const { desc, eq } = await import("drizzle-orm");
-    const [u] = await db
-      .select({ seen: users.notificationsSeenAt })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    const seen = u?.seen ?? null;
+    const reads = await getNotificationReads(userId);
     const rows = await db
       .select({
         breedId: breedDiscoveries.breedId,
@@ -1244,7 +1206,7 @@ export async function getRecentDiscoveries(
     return rows.map((r) => ({
       breedId: r.breedId,
       discoveredAt: r.discoveredAt.toISOString(),
-      unread: seen ? r.discoveredAt > seen : true,
+      unread: !reads.has(`dex:${r.breedId}`),
     }));
   } catch (e) {
     console.error("getRecentDiscoveries failed:", e);
@@ -1263,12 +1225,7 @@ export async function getNewFriends(
     const { db } = await import("@/db");
     const { friendships, users } = await import("@/db/schema");
     const { desc, eq, or, sql } = await import("drizzle-orm");
-    const [u] = await db
-      .select({ seen: users.notificationsSeenAt })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    const seen = u?.seen ?? null;
+    const reads = await getNotificationReads(userId);
     const mine = or(
       eq(friendships.userAId, userId),
       eq(friendships.userBId, userId),
@@ -1293,7 +1250,7 @@ export async function getNewFriends(
       .limit(30);
     return rows.map((r) => ({
       ...r,
-      unread: seen ? r.createdAt > seen : true,
+      unread: !reads.has(`friend:${r.id}`),
     }));
   } catch (e) {
     console.error("getNewFriends failed:", e);
@@ -1323,14 +1280,9 @@ export async function getNews(
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
   try {
     const { db } = await import("@/db");
-    const { news, newsClaims, users } = await import("@/db/schema");
+    const { news, newsClaims } = await import("@/db/schema");
     const { and, desc, eq, sql } = await import("drizzle-orm");
-    const [u] = await db
-      .select({ seen: users.notificationsSeenAt })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-    const seen = u?.seen ?? null;
+    const reads = await getNotificationReads(userId);
     const rows = await db
       .select({
         id: news.id,
@@ -1361,7 +1313,7 @@ export async function getNews(
       ctaAmount: r.ctaAmount,
       createdAt: r.createdAt.toISOString(),
       claimed: !!r.claimed,
-      unread: seen ? r.createdAt > seen : true,
+      unread: !reads.has(`news:${r.id}`),
     }));
   } catch (e) {
     console.error("getNews failed:", e);
