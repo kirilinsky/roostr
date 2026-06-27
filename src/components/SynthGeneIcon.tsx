@@ -43,6 +43,8 @@ export default function SynthGeneIcon({
       component="img"
       src={`/genes/synth/${no}.png`}
       alt=""
+      loading="lazy"
+      decoding="async"
       onError={() => setOk(false)}
       sx={{
         width: size,

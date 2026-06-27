@@ -26,6 +26,8 @@ export default function AchievementIcon({
         component="img"
         src={`/achievements/${id}.png`}
         alt=""
+        loading="lazy"
+        decoding="async"
         onError={() => setOk(false)}
         sx={{ width: size, height: size, objectFit: "contain", flexShrink: 0, filter }}
       />

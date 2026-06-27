@@ -37,6 +37,8 @@ export default function GeneIcon({
       component="img"
       src={`/genes/${no}.png`}
       alt=""
+      loading="lazy"
+      decoding="async"
       onError={() => setOk(false)}
       sx={{
         width: size,

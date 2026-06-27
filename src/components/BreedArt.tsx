@@ -32,6 +32,8 @@ export default function BreedArt({
           component="img"
           src={`/breeds/${id}.png`}
           alt=""
+          loading="lazy"
+          decoding="async"
           onError={() => setErrored(true)}
           sx={{
             width: "100%",
