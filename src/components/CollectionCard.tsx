@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Box from "@mui/material/Box";
@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
 import RoostrAvatar from "@/components/RoostrAvatar";
 import BattleRecord from "@/components/BattleRecord";
+import { useNowTick } from "@/hooks/useNowTick";
 import { SKILLS, geneUpgradeCount, type HydratedRoostr } from "@/lib/roostr";
 import { STAT_KIND_COLOR, STAT_KIND_ORDER, type StatKind } from "@/lib/statKinds";
 import { countryFlag } from "@/lib/flag";
@@ -69,13 +70,7 @@ export default function CollectionCard({
   // mount (avoids SSR/client time mismatch) and ticks each minute.
   const isWorking = roostr.status === "working";
   const work = roostr.work;
-  const [nowMs, setNowMs] = useState<number | null>(null);
-  useEffect(() => {
-    if (!isWorking) return;
-    setNowMs(Date.now());
-    const id = window.setInterval(() => setNowMs(Date.now()), 60_000);
-    return () => window.clearInterval(id);
-  }, [isWorking]);
+  const nowMs = useNowTick(60_000, { enabled: isWorking });
 
   // Sum of stats per kind → shows where the build leans.
   const kindSum = useMemo(() => {

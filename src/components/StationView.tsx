@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { alpha } from "@mui/material/styles";
@@ -30,7 +30,8 @@ import {
 } from "@/app/stations/actions";
 import type { ResourceKind } from "@/db/queries";
 import { syncProfileAchievementsAction } from "@/app/achievements/actions";
-import { useAchievementToasts } from "@/components/useAchievementToasts";
+import { useAchievementToasts } from "@/hooks/useAchievementToasts";
+import { useNowTick } from "@/hooks/useNowTick";
 import { useT } from "@/i18n/I18nProvider";
 
 const rid = (r: HydratedRoostr) => String(r.id ?? r.seed);
@@ -121,17 +122,14 @@ export default function StationView({
   const [busy, startBusy] = useTransition();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickedId, setPickedId] = useState<string | null>(null);
-  const [now, setNow] = useState(lastSettleAtMs);
+  // Live clock for the buffer; resyncs when the station state changes.
+  const now = useNowTick(1000, {
+    initial: lastSettleAtMs,
+    deps: [pending, lastSettleAtMs],
+  });
   // Just-claimed amount → a floating "+N" that rises over the buffer. `key` restarts
   // the CSS animation on repeat claims.
   const [reward, setReward] = useState<{ n: number; key: number } | null>(null);
-
-  // Tick the live buffer once a second.
-  useEffect(() => {
-    setNow(Date.now());
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, [pending, lastSettleAtMs]);
 
   const totalStat = useMemo(
     () => workers.reduce((s, r) => s + (r.stats[def.stat] ?? 0), 0),

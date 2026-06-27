@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAchievementToasts } from "@/components/useAchievementToasts";
+import { useAchievementToasts } from "@/hooks/useAchievementToasts";
 import type { Achievement } from "@/lib/achievements";
 
 // Fires an "achievement" toast for each newly-unlocked achievement the server
