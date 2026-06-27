@@ -15,6 +15,7 @@ import {
   roleLabel,
   skillLabel,
 } from "@/lib/roostr";
+import { contrastText } from "@/lib/contrast";
 import { getTranslations } from "@/i18n/server";
 import { MONO_FONT } from "@/lib/tokens";
 
@@ -57,6 +58,7 @@ export default async function PediaGenesPage() {
         >
           {genes.map((g) => {
             const color = FAMILY_COLOR[g.family] ?? "#888";
+            const textColor = contrastText(color);
             return (
               <Card key={g.id} sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 0.75 }}>
                 <Stack direction="row" alignItems="center" spacing={1}>
@@ -74,14 +76,13 @@ export default async function PediaGenesPage() {
                     <Chip
                       label={FAMILY_NAME[g.family]?.[locale] ?? g.family}
                       size="small"
-                      sx={(theme) => ({
+                      sx={{
                         height: 18,
                         fontSize: 11,
                         fontWeight: 700,
                         bgcolor: color,
-                        // contrast against the family color (was dark-on-dark)
-                        color: theme.palette.getContrastText(color),
-                      })}
+                        color: textColor,
+                      }}
                     />
                   </Box>
                 </Stack>

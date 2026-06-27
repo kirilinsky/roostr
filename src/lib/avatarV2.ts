@@ -60,6 +60,8 @@ export interface AvatarTraits {
   // Weight class id (tiny…huge) — scales the belly so heavy birds look chunkier.
   // Not breed/colorway data; injected from the bird's rolled weightClass.
   weight?: string;
+  // Super-rare premium colorway id (gold/silver/…) when the bird rolled one.
+  premium?: string;
 }
 
 // Belly (body) size multiplier per weight class.
@@ -122,7 +124,14 @@ export interface BreedCosmetic {
   legs: string;
   neck: string;
   patterns: string[];
-  palettes: { base: string; accent1: string; accent2: string; skin: string }[];
+  // `weight` biases the roll (default: signature/first palette is ~3× the rest).
+  palettes: {
+    base: string;
+    accent1: string;
+    accent2: string;
+    skin: string;
+    weight?: number;
+  }[];
 }
 
 export const BREED_COSMETICS = (cosmetics as { breeds?: Record<string, BreedCosmetic> })
@@ -146,6 +155,40 @@ export interface Colorway {
   pattern: string;
   patternColor: string;
   accessory: string;
+  premium?: string; // set when a super-rare premium colorway rolled (gold/silver/…)
+}
+
+// Super-rare PREMIUM colorways — can override ANY breed's colors (features stay,
+// so a "Golden Australorp" keeps its silhouette). Rolled at PREMIUM_RATE.
+export const PREMIUM_RATE = 0.012; // ~1.2% of hatches
+export const PREMIUM_COLORWAYS: {
+  id: string;
+  base: string;
+  accent1: string;
+  accent2: string;
+  skin: string;
+}[] = [
+  { id: "gold", base: "#E8C24A", accent1: "#A87A12", accent2: "#D6342B", skin: "#E9A23B" },
+  { id: "silver", base: "#D9DBE2", accent1: "#9298A6", accent2: "#D6342B", skin: "#B9BEC9" },
+  { id: "platinum", base: "#EDEFF5", accent1: "#AEB6C6", accent2: "#7FA8C9", skin: "#CCD2DD" },
+  { id: "obsidian", base: "#1b1c24", accent1: "#0c0d14", accent2: "#7A33FF", skin: "#2b2b34" },
+];
+
+// Seeded weighted pick (deterministic from seed+salt).
+function pickWeighted<T>(
+  items: T[],
+  weightOf: (t: T, i: number) => number,
+  seed: number,
+  salt: number,
+): T {
+  const total = items.reduce((s, t, i) => s + Math.max(0, weightOf(t, i)), 0);
+  if (total <= 0) return items[0];
+  let r = mix(seed, salt) % total;
+  for (let i = 0; i < items.length; i++) {
+    r -= Math.max(0, weightOf(items[i], i));
+    if (r < 0) return items[i];
+  }
+  return items[items.length - 1];
 }
 
 // Breed-DICTATED features (silhouette + tail/comb/legs/neck). Always recomputed
@@ -189,7 +232,27 @@ export function rollColorway(breedId: string, seed: number): Colorway {
       accessory: "none",
     };
   }
-  const pal = b.palettes[mix(seed, 1) % b.palettes.length];
+  // Super-rare premium roll first — overrides colors (breed features stay).
+  if (mix(seed, 9) / 0xffffffff < PREMIUM_RATE) {
+    const pr = PREMIUM_COLORWAYS[mix(seed, 10) % PREMIUM_COLORWAYS.length];
+    return {
+      base: pr.base,
+      accent1: pr.accent1,
+      accent2: pr.accent2,
+      skin: pr.skin,
+      pattern: "none", // premium metallics read best solid
+      patternColor: pr.accent1,
+      accessory: "none",
+      premium: pr.id,
+    };
+  }
+  // Weighted palette pick — signature (first) palette is ~3× the rest by default.
+  const pal = pickWeighted(
+    b.palettes,
+    (p, i) => p.weight ?? (i === 0 ? 3 : 1),
+    seed,
+    1,
+  );
   const pattern = b.patterns[mix(seed, 2) % b.patterns.length] ?? "none";
   return {
     base: pal.base,

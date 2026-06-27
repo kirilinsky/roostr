@@ -4,6 +4,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import BreedArt from "@/components/BreedArt";
+import { contrastText } from "@/lib/contrast";
 import { MONO_FONT } from "@/lib/tokens";
 
 // Each breed group maps to a design-system palette token (no ad-hoc colors).
@@ -196,7 +197,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
             alignItems: "center",
             gap: 1,
             bgcolor: alpha(c, 0.95),
-            color: theme.palette.getContrastText(c),
+            color: contrastText(c),
           };
         }}
       >

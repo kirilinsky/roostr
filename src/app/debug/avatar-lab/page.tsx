@@ -24,6 +24,7 @@ import {
   NECKS,
   PALETTE_PRESETS,
   PATTERNS,
+  PREMIUM_COLORWAYS,
   SILHOUETTES,
   TAILS,
   WEIGHTS,
@@ -249,6 +250,27 @@ export default function AvatarLabPage() {
                 {PALETTE_PRESETS.map((p) => (
                   <Button key={p.name} size="small" variant="outlined" onClick={() => set(p.t)}>
                     {p.name}
+                  </Button>
+                ))}
+                {PREMIUM_COLORWAYS.map((p) => (
+                  <Button
+                    key={p.id}
+                    size="small"
+                    variant="contained"
+                    color="tertiary"
+                    onClick={() =>
+                      set({
+                        base: p.base,
+                        accent1: p.accent1,
+                        accent2: p.accent2,
+                        skin: p.skin,
+                        pattern: "none",
+                        patternColor: p.accent1,
+                        premium: p.id,
+                      })
+                    }
+                  >
+                    ✨ {p.id}
                   </Button>
                 ))}
               </Stack>

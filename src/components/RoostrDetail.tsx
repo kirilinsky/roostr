@@ -24,6 +24,7 @@ import SellRoostrForm from "@/components/SellRoostrForm";
 import GiftRoostrButton, { type GiftFriend } from "@/components/GiftRoostrButton";
 import { countryFlag } from "@/lib/flag";
 import { groupName } from "@/lib/breeds";
+import { contrastText } from "@/lib/contrast";
 import { tierBackground } from "@/lib/tierBg";
 import { MONO_FONT } from "@/lib/tokens";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
@@ -292,14 +293,14 @@ export default function RoostrDetail({
             </Box>
             <Chip
               label={`★ ${tier.id}`}
-              sx={(theme) => ({
+              sx={{
                 position: "absolute",
                 top: 12,
                 left: 12,
                 fontWeight: 800,
                 bgcolor: tier.color,
-                color: theme.palette.getContrastText(tier.color),
-              })}
+                color: contrastText(tier.color),
+              }}
             />
           </Box>
 

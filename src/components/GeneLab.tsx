@@ -10,6 +10,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import StatModBadges from "@/components/StatModBadges";
+import { contrastText } from "@/lib/contrast";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import { MONO_FONT } from "@/lib/tokens";
 import {
@@ -80,11 +81,11 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
           <Chip
             label={`${tier.id} · ${rating}`}
             size="small"
-            sx={(theme) => ({
+            sx={{
               bgcolor: tier.color,
-              color: theme.palette.getContrastText(tier.color),
+              color: contrastText(tier.color),
               fontWeight: 800,
-            })}
+            }}
           />
           <Chip
             label={`🌽 ${coins}`}

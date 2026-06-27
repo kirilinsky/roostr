@@ -11,6 +11,7 @@ import { alpha } from "@mui/material/styles";
 import GeneIcon from "@/components/GeneIcon";
 import RoostrAvatar from "@/components/RoostrAvatar";
 import { cosmeticForRoostr } from "@/lib/avatarV2";
+import { contrastText } from "@/lib/contrast";
 import StatModBadges from "@/components/StatModBadges";
 import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
 import { tierBackground } from "@/lib/tierBg";
@@ -148,13 +149,13 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
               label={`${tier.id} · ${rating}`}
               size="small"
               title={`${t("card.rating")} ${rating}`}
-              sx={(theme) => ({
+              sx={{
                 bgcolor: tier.color,
-                color: theme.palette.getContrastText(tier.color),
+                color: contrastText(tier.color),
                 fontWeight: 800,
                 borderRadius: 0.75,
                 boxShadow: 2,
-              })}
+              }}
             />
           </Stack>
         </Stack>
