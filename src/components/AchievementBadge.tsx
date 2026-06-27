@@ -31,7 +31,7 @@ export default function AchievementBadge({
       <AchievementIcon
         id={achievement.id}
         icon={achievement.icon}
-        size={36}
+        size={49}
         unlocked={unlocked}
       />
       <Box sx={{ minWidth: 0 }}>
