@@ -32,7 +32,15 @@ export default async function AchievementsPage({
     at: unlockedAt.get(s.def.id),
   }));
   // Collectible-tier are SECRET: hidden until earned, shown in their own block.
-  const regular = items.filter((i) => i.def.tier !== "collectible");
+  // Sort: earned first (most recently unlocked on top), then the locked ones.
+  const regular = items
+    .filter((i) => i.def.tier !== "collectible")
+    .sort((a, b) => {
+      if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
+      const ta = a.at ? new Date(a.at).getTime() : 0;
+      const tb = b.at ? new Date(b.at).getTime() : 0;
+      return tb - ta;
+    });
   const secretEarned = items.filter(
     (i) => i.def.tier === "collectible" && i.unlocked,
   );
