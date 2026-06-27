@@ -21,8 +21,9 @@
           "Voice": 1.15
         },
         "genes": {
-          "Cold Head": 1.25,
-          "Patient Eye": 1.2
+          "cold-head": 1.25,
+          "patient-eye": 1.2,
+          "dusk-camouflage": 1.15
         }
       },
       "tendencies": [
@@ -103,7 +104,7 @@
           },
           "effects": [
             {
-              "stat": "Mind",
+              "stat": "Intellect",
               "mod": 0.12
             },
             {
@@ -143,7 +144,7 @@
       "id": "silkie",
       "name": {
         "en": "Silkie",
-        "ru": "Шёлковая"
+        "ru": "Шёлковый"
       },
       "group": "Show Birds",
       "origin": "real",
@@ -156,8 +157,8 @@
           "Mind": 1.1
         },
         "genes": {
-          "Silver Throat": 1.25,
-          "Lucky Claw": 1.15
+          "silver-throat": 1.25,
+          "lucky-claw": 1.15
         }
       },
       "tendencies": [
@@ -249,7 +250,7 @@
       "id": "polish",
       "name": {
         "en": "Polish",
-        "ru": "Польская"
+        "ru": "Польский"
       },
       "group": "Show Birds",
       "origin": "real",
@@ -262,8 +263,9 @@
           "Mobility": 1.1
         },
         "genes": {
-          "Patient Eye": 1.25,
-          "Mocking Call": 1.15
+          "patient-eye": 1.25,
+          "mocking-call": 1.15,
+          "bright-comb": 1.15
         }
       },
       "tendencies": [
@@ -368,8 +370,8 @@
           "Voice": 1.1
         },
         "genes": {
-          "Long Stride": 1.3,
-          "Dawn Caller": 1.18
+          "split-second-reflex": 1.3,
+          "deep-lungs": 1.18
         }
       },
       "tendencies": [
@@ -498,8 +500,8 @@
           "Voice": 1.25
         },
         "genes": {
-          "Long Stride": 1.35,
-          "Silver Throat": 1.25
+          "silver-throat": 1.25,
+          "split-second-reflex": 1.35
         }
       },
       "tendencies": [
@@ -628,9 +630,9 @@
           "Stamina": 1.2
         },
         "genes": {
-          "Razor Spurs": 1.3,
-          "War Chant": 1.15,
-          "Stressproof": 1.1
+          "razor-spurs": 1.3,
+          "stressproof": 1.1,
+          "war-talons": 1.15
         }
       },
       "tendencies": [
@@ -763,9 +765,9 @@
           "Stamina": 1.25
         },
         "genes": {
-          "Iron Feathers": 1.25,
-          "Broad Chest": 1.25,
-          "Stressproof": 1.25
+          "iron-feathers": 1.25,
+          "broad-chest": 1.25,
+          "stressproof": 1.25
         }
       },
       "tendencies": [
@@ -899,9 +901,9 @@
           "Work": 1.1
         },
         "genes": {
-          "Dense Plumage": 1.25,
-          "Old Blood": 1.15,
-          "Stressproof": 1.2
+          "dense-plumage": 1.25,
+          "old-blood": 1.15,
+          "stressproof": 1.2
         }
       },
       "tendencies": [
@@ -1006,8 +1008,9 @@
           "Mind": 1.1
         },
         "genes": {
-          "Quick Step": 1.25,
-          "Lucky Claw": 1.2
+          "quick-step": 1.25,
+          "lucky-claw": 1.2,
+          "split-second-reflex": 1.25
         }
       },
       "tendencies": [
@@ -1144,8 +1147,9 @@
           "Mobility": 1.15
         },
         "genes": {
-          "Egghead": 1.25,
-          "Quick Step": 1.1
+          "egghead": 1.25,
+          "quick-step": 1.1,
+          "split-second-reflex": 1.15
         }
       },
       "tendencies": [
@@ -1258,8 +1262,8 @@
           "Stamina": 1.1
         },
         "genes": {
-          "Heavy Beak": 1.15,
-          "Egghead": 1.15
+          "heavy-beak": 1.15,
+          "egghead": 1.15
         }
       },
       "tendencies": [
@@ -1363,9 +1367,9 @@
           "Stamina": 1.2
         },
         "genes": {
-          "Tireless Worker": 1.2,
-          "Deep Grit": 1.15,
-          "Stressproof": 1.15
+          "tireless-worker": 1.2,
+          "stressproof": 1.15,
+          "deep-lungs": 1.15
         }
       },
       "tendencies": [
@@ -1473,9 +1477,9 @@
           "Stamina": 1.2
         },
         "genes": {
-          "Dense Plumage": 1.2,
-          "Old Blood": 1.2,
-          "Stressproof": 1.2
+          "dense-plumage": 1.2,
+          "old-blood": 1.2,
+          "stressproof": 1.2
         }
       },
       "tendencies": [
@@ -1580,8 +1584,8 @@
           "Voice": 1.1
         },
         "genes": {
-          "Mirror Plume": 1.2,
-          "Patient Eye": 1.15
+          "patient-eye": 1.15,
+          "bright-comb": 1.2
         }
       },
       "tendencies": [
@@ -1689,9 +1693,9 @@
           "Stamina": 1.15
         },
         "genes": {
-          "Tireless Worker": 1.25,
-          "Nest Finder": 1.15,
-          "Stressproof": 1.15
+          "tireless-worker": 1.25,
+          "nest-finder": 1.15,
+          "stressproof": 1.15
         }
       },
       "tendencies": [
@@ -1725,7 +1729,7 @@
       },
       "description": {
         "en": "A reliable farm breed with steady egg output and strong stamina.",
-        "ru": "Надёжная фермерская порода со стабильной яйценоскостью и выносливостью."
+        "ru": "Надёжная фермерская порода со стабильной продуктивностью и выносливостью."
       },
       "tags": [
         "farm",
@@ -1807,8 +1811,8 @@
           "Mind": 1.1
         },
         "genes": {
-          "Nest Finder": 1.25,
-          "Lucky Claw": 1.2
+          "nest-finder": 1.25,
+          "lucky-claw": 1.2
         }
       },
       "tendencies": [
@@ -1924,7 +1928,7 @@
           ],
           "description": {
             "en": "A prized layer with steady shell strength.",
-            "ru": "Ценная несушка с крепкой стабильной скорлупой."
+            "ru": "Ценный фермерский боец с крепкой стабильной скорлупной линией."
           }
         }
       ]
@@ -1946,8 +1950,8 @@
           "Voice": 1.1
         },
         "genes": {
-          "Lucky Claw": 1.25,
-          "Market Nose": 1.15
+          "lucky-claw": 1.25,
+          "nest-finder": 1.15
         }
       },
       "tendencies": [
@@ -2076,8 +2080,9 @@
           "Mind": 1.2
         },
         "genes": {
-          "Quick Step": 1.2,
-          "Patient Eye": 1.2
+          "quick-step": 1.2,
+          "patient-eye": 1.2,
+          "split-second-reflex": 1.15
         }
       },
       "tendencies": [
@@ -2186,9 +2191,9 @@
           "Voice": 1.1
         },
         "genes": {
-          "Tireless Worker": 1.2,
-          "Dawn Caller": 1.15,
-          "Stressproof": 1.1
+          "tireless-worker": 1.2,
+          "stressproof": 1.1,
+          "deep-lungs": 1.15
         }
       },
       "tendencies": [
@@ -2297,8 +2302,9 @@
           "Voice": 1.1
         },
         "genes": {
-          "Quick Step": 1.25,
-          "Patient Eye": 1.2
+          "quick-step": 1.25,
+          "patient-eye": 1.2,
+          "bright-comb": 1.25
         }
       },
       "tendencies": [
@@ -2403,8 +2409,8 @@
           "Stamina": 1.1
         },
         "genes": {
-          "Razor Spurs": 1.3,
-          "Wild Rage": 1.2
+          "razor-spurs": 1.3,
+          "wild-rage": 1.2
         }
       },
       "tendencies": [
@@ -2529,7 +2535,7 @@
       "id": "malay",
       "name": {
         "en": "Malay",
-        "ru": "Малайская"
+        "ru": "Малайский"
       },
       "group": "Fighters",
       "origin": "real",
@@ -2542,8 +2548,8 @@
           "Stamina": 1.15
         },
         "genes": {
-          "Heavy Beak": 1.3,
-          "Iron Feathers": 1.15
+          "heavy-beak": 1.3,
+          "iron-feathers": 1.15
         }
       },
       "tendencies": [
@@ -2577,7 +2583,7 @@
       },
       "description": {
         "en": "The towering hard-feather game fowl — long legs, long reach, fierce stare.",
-        "ru": "Громадная жесткопёрая бойцовая птица: длинные ноги, дальний замах, свирепый взгляд."
+        "ru": "Громадный жесткопёрый боец: длинные ноги, дальний замах, свирепый взгляд."
       },
       "tags": [
         "tall",
@@ -2668,7 +2674,7 @@
       "id": "old-english-game",
       "name": {
         "en": "Old English Game",
-        "ru": "Староанглийская бойцовая"
+        "ru": "Староанглийский боец"
       },
       "group": "Fighters",
       "origin": "real",
@@ -2681,8 +2687,9 @@
           "Mind": 1.1
         },
         "genes": {
-          "Razor Spurs": 1.2,
-          "Quick Step": 1.15
+          "razor-spurs": 1.2,
+          "quick-step": 1.15,
+          "split-second-reflex": 1.15
         }
       },
       "tendencies": [
@@ -2712,7 +2719,7 @@
       },
       "description": {
         "en": "A classic scrappy game fowl — fast, brave and endlessly tenacious.",
-        "ru": "Классическая задиристая бойцовая птица: быстрая, смелая и упрямая."
+        "ru": "Классический задиристый боец: быстрый, смелый и упрямый."
       },
       "tags": [
         "classic",
@@ -2790,8 +2797,9 @@
           "Mind": 1.1
         },
         "genes": {
-          "Thunder Crow": 1.3,
-          "Silver Throat": 1.25
+          "thunder-crow": 1.3,
+          "silver-throat": 1.25,
+          "deep-lungs": 1.2
         }
       },
       "tendencies": [
@@ -2916,8 +2924,9 @@
           "Stamina": 1.1
         },
         "genes": {
-          "Silver Throat": 1.3,
-          "Thunder Crow": 1.2
+          "silver-throat": 1.3,
+          "thunder-crow": 1.2,
+          "deep-lungs": 1.25
         }
       },
       "tendencies": [
@@ -3025,8 +3034,9 @@
           "Stamina": 1.15
         },
         "genes": {
-          "Thunder Crow": 1.25,
-          "Silver Throat": 1.2
+          "thunder-crow": 1.25,
+          "silver-throat": 1.2,
+          "deep-lungs": 1.2
         }
       },
       "tendencies": [
@@ -3130,8 +3140,8 @@
           "Stamina": 1.35
         },
         "genes": {
-          "Broad Chest": 1.3,
-          "Iron Feathers": 1.2
+          "broad-chest": 1.3,
+          "iron-feathers": 1.2
         }
       },
       "tendencies": [
@@ -3165,7 +3175,7 @@
       },
       "description": {
         "en": "The largest chicken breed there is — a calm, slow, enormous tank.",
-        "ru": "Самая крупная порода кур — спокойный, медлительный, огромный танк."
+        "ru": "Самый крупный петушиный гигант — спокойный, медлительный, огромный танк."
       },
       "tags": [
         "largest",
@@ -3269,8 +3279,8 @@
           "Work": 1.15
         },
         "genes": {
-          "Dense Plumage": 1.15,
-          "Broad Chest": 1.15
+          "dense-plumage": 1.15,
+          "broad-chest": 1.15
         }
       },
       "tendencies": [
@@ -3379,8 +3389,9 @@
           "Mind": 1.1
         },
         "genes": {
-          "Light Bones": 1.2,
-          "Razor Spurs": 1.15
+          "light-bones": 1.2,
+          "razor-spurs": 1.15,
+          "dusk-camouflage": 1.25
         }
       },
       "tendencies": [
@@ -3514,8 +3525,9 @@
           "Voice": 1.1
         },
         "genes": {
-          "Quick Step": 1.2,
-          "Patient Eye": 1.15
+          "quick-step": 1.2,
+          "patient-eye": 1.15,
+          "split-second-reflex": 1.15
         }
       },
       "tendencies": [
@@ -3607,7 +3619,7 @@
       "id": "naked-neck",
       "name": {
         "en": "Naked Neck",
-        "ru": "Голошейная"
+        "ru": "Голошейный"
       },
       "group": "Oddities",
       "origin": "real",
@@ -3619,8 +3631,9 @@
           "Work": 1.15
         },
         "genes": {
-          "Stressproof": 1.25,
-          "Old Blood": 1.15
+          "stressproof": 1.25,
+          "old-blood": 1.15,
+          "dusk-camouflage": 1.15
         }
       },
       "tendencies": [
@@ -3737,7 +3750,7 @@
       "id": "sultan",
       "name": {
         "en": "Sultan",
-        "ru": "Султанка"
+        "ru": "Султан"
       },
       "group": "Oddities",
       "origin": "real",
@@ -3750,7 +3763,8 @@
           "Work": 1.1
         },
         "genes": {
-          "Silver Throat": 1.15
+          "silver-throat": 1.15,
+          "bright-comb": 1.15
         }
       },
       "tendencies": [
@@ -3871,7 +3885,7 @@
       "id": "frizzle",
       "name": {
         "en": "Frizzle",
-        "ru": "Курчавая"
+        "ru": "Курчавый"
       },
       "group": "Oddities",
       "origin": "real",
@@ -3986,7 +4000,8 @@
           "Voice": 1.1
         },
         "genes": {
-          "Patient Eye": 1.2
+          "patient-eye": 1.2,
+          "bright-comb": 1.15
         }
       },
       "tendencies": [
@@ -4082,7 +4097,7 @@
       "id": "hamburg",
       "name": {
         "en": "Hamburg",
-        "ru": "Гамбургская"
+        "ru": "Гамбургский"
       },
       "group": "Show Birds",
       "origin": "real",
@@ -4095,7 +4110,8 @@
           "Mind": 1.1
         },
         "genes": {
-          "Quick Step": 1.15
+          "quick-step": 1.15,
+          "bright-comb": 1.15
         }
       },
       "tendencies": [
@@ -4125,7 +4141,7 @@
       },
       "description": {
         "en": "A small, sprightly spangled breed and a tireless little layer.",
-        "ru": "Маленькая бойкая крапчатая порода и неутомимая несушка."
+        "ru": "Маленький бойкий крапчатый петух с неутомимым фермерским темпом."
       },
       "tags": [
         "spangled",
@@ -4178,7 +4194,7 @@
           ],
           "description": {
             "en": "A light active layer moves fast but stays fragile.",
-            "ru": "Лёгкая активная несушка быстра, но хрупка."
+            "ru": "Лёгкий активный петух быстр, но хрупок."
           }
         }
       ]
@@ -4199,8 +4215,8 @@
           "Stamina": 1.2
         },
         "genes": {
-          "Tireless Worker": 1.3,
-          "Egghead": 1.15
+          "tireless-worker": 1.3,
+          "egghead": 1.15
         }
       },
       "tendencies": [
@@ -4211,7 +4227,7 @@
         "id": "tireless-layer",
         "name": {
           "en": "Tireless Layer",
-          "ru": "Неутомимая несушка"
+          "ru": "Неутомимый работник"
         },
         "effects": [
           {
@@ -4234,7 +4250,7 @@
       },
       "description": {
         "en": "The record-setting layer — steady, calm and endlessly productive.",
-        "ru": "Рекордсменка-несушка: ровная, спокойная и бесконечно продуктивная."
+        "ru": "Рекордный фермерский петух: ровный, спокойный и бесконечно продуктивный."
       },
       "tags": [
         "record-layer",
@@ -4252,7 +4268,7 @@
           "id": "tireless-layer",
           "name": {
             "en": "Tireless Layer",
-            "ru": "Неутомимая несушка"
+            "ru": "Неутомимый работник"
           },
           "effects": [
             {
@@ -4291,7 +4307,7 @@
           ],
           "description": {
             "en": "Legendary laying rhythm favors production over bursts.",
-            "ru": "Легендарный ритм кладки выбирает продуктивность вместо рывков."
+            "ru": "Легендарный рабочий ритм выбирает продуктивность вместо рывков."
           }
         }
       ]
@@ -4313,7 +4329,7 @@
           "Mind": 1.1
         },
         "genes": {
-          "Egghead": 1.2
+          "egghead": 1.2
         }
       },
       "tendencies": [
@@ -4343,7 +4359,7 @@
       },
       "description": {
         "en": "Deep red-brown layer of dark speckled eggs — the iconic cereal rooster.",
-        "ru": "Тёмно-красно-бурая несушка тёмных крапчатых яиц — культовый «петух с пачки»."
+        "ru": "Тёмно-красно-бурый фермерский петух тёмной яичной линии — культовый «петух с пачки»."
       },
       "tags": [
         "dark-eggs",
@@ -4422,7 +4438,7 @@
           "Mind": 1.1
         },
         "genes": {
-          "Egghead": 1.15
+          "egghead": 1.15
         }
       },
       "tendencies": [
@@ -4433,7 +4449,7 @@
         "id": "hardy-layer",
         "name": {
           "en": "Hardy Layer",
-          "ru": "Крепкая несушка"
+          "ru": "Крепкий работник"
         },
         "effects": [
           {
@@ -4470,7 +4486,7 @@
           "id": "hardy-layer",
           "name": {
             "en": "Hardy Layer",
-            "ru": "Крепкая несушка"
+            "ru": "Крепкий работник"
           },
           "effects": [
             {

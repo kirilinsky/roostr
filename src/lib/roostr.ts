@@ -109,7 +109,7 @@ export interface Gene {
   weakness: string; // human-readable trade-off
   role: string; // role this gene leans toward
   statMods?: StatMods; // small starting buff/debuff
-  passive?: string; // human-readable special behavior for future battle sim
+  passive?: { en: string; ru: string }; // localized flavor hook for future battle sim
 }
 
 // MVP gene set — data in GENES.json.
@@ -141,7 +141,7 @@ export interface Breed {
   traits: BreedTrait[]; // roll pool for this breed; first entry is the default
   geneAffinities?: {
     families?: Partial<Record<string, number>>;
-    genes?: Partial<Record<string, number>>;
+    genes?: Partial<Record<string, number>>; // gene id -> roll weight multiplier
   };
   tags: string[]; // visual/identity tags — drive avatar silhouette & add-on layers
   region: { en: string; ru: string; iso: string }; // country of origin (iso = championships key)
@@ -288,7 +288,7 @@ const GENE_COUNT_WEIGHTS = [
 
 function geneRollWeight(gene: Gene, breed: Breed): number {
   const familyBias = breed.geneAffinities?.families?.[gene.family] ?? 1;
-  const geneBias = breed.geneAffinities?.genes?.[gene.name.en] ?? 1;
+  const geneBias = breed.geneAffinities?.genes?.[gene.id] ?? 1;
   return familyBias * geneBias;
 }
 

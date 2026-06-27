@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   BREEDS,
+  ARCHETYPES,
+  FAMILIES,
   GENES,
   GENE_MAX_LEVEL,
   SKILL_IDS,
@@ -27,6 +29,123 @@ import {
 
 const BASE_STAT = 4;
 const byFamily = (f: string) => GENES.filter((g) => g.family === f);
+
+describe("relation catalog", () => {
+  it("keeps families, archetypes, genes, weights, and tiers wired by ids", () => {
+    const skills = new Set<string>(SKILL_IDS);
+    const families = new Set(FAMILIES.map((family) => family.id));
+    const archetypes = new Set(ARCHETYPES.map((archetype) => archetype.id));
+
+    expect(families.size).toBe(FAMILIES.length);
+    expect(archetypes.size).toBe(ARCHETYPES.length);
+
+    for (const family of FAMILIES) {
+      expect(archetypes.has(family.role)).toBe(true);
+      expect(family.boosts.every((skill) => skills.has(skill))).toBe(true);
+      expect(family.weakens.every((skill) => skills.has(skill))).toBe(true);
+    }
+
+    for (const archetype of ARCHETYPES) {
+      expect(archetype.families.every((family) => families.has(family))).toBe(true);
+      expect(archetype.strengths.every((skill) => skills.has(skill))).toBe(true);
+      expect(archetype.weaknesses.every((skill) => skills.has(skill))).toBe(true);
+    }
+
+    for (const gene of GENES) {
+      expect(families.has(gene.family)).toBe(true);
+      expect(archetypes.has(gene.role)).toBe(true);
+      expect(gene.boosts.every((skill) => skills.has(skill))).toBe(true);
+    }
+
+    for (const weightClass of WEIGHT_CLASSES) {
+      expect(weightClass.weight).toBeGreaterThan(0);
+      expect(
+        Object.keys(weightClass.statMods ?? {}).every((stat) => skills.has(stat)),
+      ).toBe(true);
+    }
+
+    expect(TIERS.map((tier) => tier.min)).toEqual(
+      [...TIERS].map((tier) => tier.min).sort((a, b) => a - b),
+    );
+  });
+
+  it("keeps family boosts aligned with rolled gene boost branches", () => {
+    const familyBoosts = Object.fromEntries(
+      FAMILIES.map((family) => [family.id, new Set<string>(family.boosts)]),
+    );
+
+    for (const gene of GENES) {
+      const boosts = familyBoosts[gene.family];
+      expect(boosts).toBeDefined();
+      expect(gene.boosts.every((skill) => boosts.has(skill))).toBe(true);
+
+      for (const [stat, value] of Object.entries(gene.statMods ?? {})) {
+        if (stat !== "Health" && typeof value === "number" && value > 0) {
+          expect(boosts.has(stat)).toBe(true);
+        }
+      }
+    }
+  });
+});
+
+describe("gene catalog", () => {
+  it("has unique ids and sequential gene numbers", () => {
+    expect(new Set(GENES.map((g) => g.id)).size).toBe(GENES.length);
+    expect(new Set(GENES.map((g) => g.no)).size).toBe(GENES.length);
+    expect([...GENES].map((g) => g.no).sort((a, b) => a - b)).toEqual(
+      Array.from({ length: GENES.length }, (_, i) => i + 1),
+    );
+  });
+
+  it("covers utility and tradeoff stats in rolled genes", () => {
+    const boosted = (stat: string) =>
+      GENES.filter((g) => (g.statMods?.[stat as keyof typeof g.statMods] ?? 0) > 0)
+        .length;
+    const debuffed = (stat: string) =>
+      GENES.filter((g) => (g.statMods?.[stat as keyof typeof g.statMods] ?? 0) < 0)
+        .length;
+
+    expect(boosted("Endurance")).toBeGreaterThanOrEqual(2);
+    expect(boosted("Intellect")).toBeGreaterThanOrEqual(4);
+    expect(boosted("Stealth")).toBeGreaterThanOrEqual(4);
+    expect(debuffed("Accuracy")).toBeGreaterThanOrEqual(2);
+    expect(debuffed("Crow")).toBeGreaterThanOrEqual(2);
+    expect(debuffed("Luck")).toBeGreaterThanOrEqual(2);
+  });
+
+  it("keeps gene passives localized when present", () => {
+    const passiveGenes = GENES.filter((g) => g.passive);
+    expect(passiveGenes.length).toBeGreaterThanOrEqual(12);
+    for (const gene of passiveGenes) {
+      expect(gene.passive?.en).toEqual(expect.any(String));
+      expect(gene.passive?.ru).toEqual(expect.any(String));
+      expect(gene.passive?.en.length).toBeGreaterThan(0);
+      expect(gene.passive?.ru.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("keeps breed gene affinities pointed at existing rolled gene ids", () => {
+    const geneIds = new Set(GENES.map((g) => g.id));
+    const missing = BREEDS.flatMap((breed) =>
+      Object.keys(breed.geneAffinities?.genes ?? {})
+        .filter((id) => !geneIds.has(id))
+        .map((id) => `${breed.id}:${id}`),
+    );
+    expect(missing).toEqual([]);
+  });
+
+  it("keeps breed trait effects pointed at existing stat ids", () => {
+    const stats = new Set<string>([...SKILL_IDS, "Health"]);
+    const missing = BREEDS.flatMap((breed) =>
+      breed.traits.flatMap((trait) =>
+        trait.effects
+          .filter((effect) => !stats.has(effect.stat))
+          .map((effect) => `${breed.id}:${trait.id}:${effect.stat}`),
+      ),
+    );
+    expect(missing).toEqual([]);
+  });
+});
 
 describe("geneUpgradeCost", () => {
   it("is strictly increasing with level", () => {

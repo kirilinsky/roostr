@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 10,
   "description": {
     "en": "Key genes. family + boosts define native upgrade branches; statMods is the small starting buff/debuff.",
     "ru": "Ключевые гены. family + boosts задают родные ветки; statMods — маленький стартовый баф/дебаф."
@@ -24,6 +24,10 @@
         "Guard": 1,
         "Speed": -1,
         "Stealth": -1
+      },
+      "passive": {
+        "en": "Heavy plating shrugs off pressure, but every move is loud.",
+        "ru": "Тяжёлая броня держит давление, но каждое движение шумное."
       }
     },
     {
@@ -85,6 +89,10 @@
         "Crit": 1,
         "Guard": -1,
         "Intellect": -1
+      },
+      "passive": {
+        "en": "Clean cuts reward aggression, but leave the guard open.",
+        "ru": "Чистые порезы награждают агрессию, но открывают защиту."
       }
     },
     {
@@ -182,7 +190,10 @@
         "Accuracy": -1,
         "Guard": -1
       },
-      "passive": "Springy hops dodge attacks but throw off its own aim."
+      "passive": {
+        "en": "Springy hops dodge attacks but throw off its own aim.",
+        "ru": "Пружинистые прыжки помогают уклоняться, но сбивают собственную точность."
+      }
     },
     {
       "id": "broad-chest",
@@ -246,7 +257,10 @@
         "Recovery": 1,
         "Damage": -1
       },
-      "passive": "Resists pressure and recovers faster after heavy hits."
+      "passive": {
+        "en": "Resists pressure and recovers faster after heavy hits.",
+        "ru": "Держит давление и быстрее приходит в себя после тяжёлых ударов."
+      }
     },
     {
       "id": "wild-rage",
@@ -308,7 +322,10 @@
         "Damage": -1,
         "Speed": -1
       },
-      "passive": "Stays calm — steadier hits, less wild burst."
+      "passive": {
+        "en": "Stays calm — steadier hits, less wild burst.",
+        "ru": "Сохраняет хладнокровие: стабильнее попадает, но меньше взрывного урона."
+      }
     },
     {
       "id": "egghead",
@@ -327,6 +344,10 @@
         "Intellect": 2,
         "Damage": -1,
         "Fertility": 1
+      },
+      "passive": {
+        "en": "Solves farm routines quickly, but overthinks direct fights.",
+        "ru": "Быстро решает фермерские задачи, но переусложняет прямой бой."
       }
     },
     {
@@ -385,6 +406,10 @@
         "Crow": 3,
         "Recovery": -1,
         "Stealth": -2
+      },
+      "passive": {
+        "en": "A booming call shakes the yard and gives away every hiding spot.",
+        "ru": "Громовой крик трясёт двор и выдаёт каждое укрытие."
       }
     },
     {
@@ -424,7 +449,10 @@
         "Luck": 1,
         "Recovery": -1
       },
-      "passive": "Taunts rattle stronger foes into mistakes."
+      "passive": {
+        "en": "Taunts rattle stronger foes into mistakes.",
+        "ru": "Насмешливый зов выбивает сильных соперников из ритма."
+      }
     },
     {
       "id": "shadow-step",
@@ -442,7 +470,11 @@
         "Stealth": 2,
         "Guard": -1
       },
-      "no": 22
+      "no": 22,
+      "passive": {
+        "en": "Slips past heavy guards, but folds if caught clean.",
+        "ru": "Проскальзывает мимо тяжёлой защиты, но проседает при чистом попадании."
+      }
     },
     {
       "id": "silent-plumage",
@@ -544,6 +576,102 @@
         "Endurance": -1
       },
       "no": 27
+    },
+    {
+      "id": "deep-lungs",
+      "name": {
+        "en": "Deep Lungs",
+        "ru": "Глубокие лёгкие"
+      },
+      "family": "Stamina",
+      "boosts": [
+        "Endurance",
+        "Crow"
+      ],
+      "weakness": "Accuracy",
+      "role": "Grinder",
+      "statMods": {
+        "Endurance": 2,
+        "Crow": 1,
+        "Accuracy": -1
+      },
+      "passive": {
+        "en": "Long breath keeps pressure steady, but careful aim suffers.",
+        "ru": "Долгое дыхание держит давление, но мешает точному прицелу."
+      },
+      "no": 28
+    },
+    {
+      "id": "bright-comb",
+      "name": {
+        "en": "Bright Comb",
+        "ru": "Яркий гребень"
+      },
+      "family": "Mind",
+      "boosts": [
+        "Intellect",
+        "Accuracy"
+      ],
+      "weakness": "Luck",
+      "role": "Tactician",
+      "statMods": {
+        "Intellect": 2,
+        "Accuracy": 1,
+        "Luck": -1
+      },
+      "passive": {
+        "en": "Sharp blood flow improves focus, but leaves fewer lucky breaks.",
+        "ru": "Яркий гребень усиливает фокус, но оставляет меньше удачных случайностей."
+      },
+      "no": 29
+    },
+    {
+      "id": "dusk-camouflage",
+      "name": {
+        "en": "Dusk Camouflage",
+        "ru": "Сумеречный камуфляж"
+      },
+      "family": "Stealth",
+      "boosts": [
+        "Stealth",
+        "Speed"
+      ],
+      "weakness": "Crow",
+      "role": "Thief",
+      "statMods": {
+        "Stealth": 2,
+        "Speed": 1,
+        "Crow": -1
+      },
+      "passive": {
+        "en": "Moves fast in low light, but keeps its voice down.",
+        "ru": "Быстро движется в сумерках, но держит голос тише."
+      },
+      "no": 30
+    },
+    {
+      "id": "split-second-reflex",
+      "name": {
+        "en": "Split-Second Reflex",
+        "ru": "Мгновенный рефлекс"
+      },
+      "family": "Mobility",
+      "boosts": [
+        "Speed",
+        "Accuracy"
+      ],
+      "weakness": "Intellect",
+      "role": "Duelist",
+      "statMods": {
+        "Speed": 1,
+        "Accuracy": 1,
+        "Intellect": -2
+      },
+      "passive": {
+        "en": "Acts before thinking, landing quick moves but missing deeper plans.",
+        "ru": "Действует раньше мысли: быстрые движения есть, глубокого плана меньше."
+      },
+      "no": 31
     }
   ]
 }

@@ -97,8 +97,8 @@
       },
       "kind": "defense",
       "description": {
-        "en": "Charisma: intimidate, break tempo, show rating.",
-        "ru": "Харизма: запугать, сбить темп, шоу-рейтинг."
+        "en": "Base defense on watch: loud roosters on guard cut the damage enemy raids deal to your coop.",
+        "ru": "Защита базы в дозоре: крикливые петухи на страже снижают урон, который вражеские рейды наносят твоему курятнику."
       }
     },
     {

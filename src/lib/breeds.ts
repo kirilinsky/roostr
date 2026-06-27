@@ -25,7 +25,7 @@ export interface BreedEntry {
   baseHealth: number;
   geneAffinities?: {
     families?: Partial<Record<string, number>>;
-    genes?: Partial<Record<string, number>>;
+    genes?: Partial<Record<string, number>>; // gene id -> roll weight multiplier
   };
   tendencies: string[];
   trait: BreedTrait;

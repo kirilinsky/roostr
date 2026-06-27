@@ -97,7 +97,7 @@ export default async function PediaGenesPage() {
                 </Typography>
                 {g.passive && (
                   <Typography variant="caption" sx={{ fontStyle: "italic" }}>
-                    {g.passive}
+                    {g.passive[locale]}
                   </Typography>
                 )}
               </Card>

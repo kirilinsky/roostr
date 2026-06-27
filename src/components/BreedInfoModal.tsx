@@ -12,9 +12,9 @@ import { FAMILIES, GENES, formatTraitEffects } from "@/lib/roostr";
 import { countryFlag } from "@/lib/flag";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
-// Localized names for gene families (by id) and genes (by canonical en name).
+// Localized names for gene families and genes by stable id.
 const FAMILY_NAME = Object.fromEntries(FAMILIES.map((f) => [f.id, f.name]));
-const GENE_NAME = Object.fromEntries(GENES.map((g) => [g.name.en, g.name]));
+const GENE_NAME = Object.fromEntries(GENES.map((g) => [g.id, g.name]));
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -136,12 +136,12 @@ export default function BreedInfoModal({
                   label={`${FAMILY_NAME[id]?.[locale] ?? id} ×${mult}`}
                 />
               ))}
-              {Object.entries(gen).map(([name, mult]) => (
+              {Object.entries(gen).map(([id, mult]) => (
                 <Chip
-                  key={name}
+                  key={id}
                   size="small"
                   variant="outlined"
-                  label={`${GENE_NAME[name]?.[locale] ?? name} ×${mult}`}
+                  label={`${GENE_NAME[id]?.[locale] ?? id} ×${mult}`}
                 />
               ))}
             </Stack>
