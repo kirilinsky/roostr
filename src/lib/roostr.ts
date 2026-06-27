@@ -280,10 +280,10 @@ export function breedWithTrait(breed: Breed, traitId?: string | null): Breed {
 // (~1/50000 each) — a lone gene or a rich four-combo. Weights sum to 100000 so
 // they read as direct odds. (Decision: GAME-DESIGN §11.)
 const GENE_COUNT_WEIGHTS = [
-  { count: 1, weight: 20 },
+  { count: 1, weight: 50 },
   { count: 2, weight: 99696 },
-  { count: 3, weight: 419 },
-  { count: 4, weight: 3 },
+  { count: 3, weight: 919 },
+  { count: 4, weight: 5 },
 ];
 
 function geneRollWeight(gene: Gene, breed: Breed): number {

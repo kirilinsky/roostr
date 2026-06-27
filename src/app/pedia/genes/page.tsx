@@ -74,13 +74,14 @@ export default async function PediaGenesPage() {
                     <Chip
                       label={FAMILY_NAME[g.family]?.[locale] ?? g.family}
                       size="small"
-                      sx={{
+                      sx={(theme) => ({
                         height: 18,
                         fontSize: 11,
                         fontWeight: 700,
                         bgcolor: color,
-                        color: "text.primary",
-                      }}
+                        // contrast against the family color (was dark-on-dark)
+                        color: theme.palette.getContrastText(color),
+                      })}
                     />
                   </Box>
                 </Stack>
