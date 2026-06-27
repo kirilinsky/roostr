@@ -330,6 +330,8 @@ export default function CollectionCard({
         component="button"
         type="button"
         onClick={onClick}
+        data-testid="collection-card"
+        data-roostr-id={roostr.id ?? ""}
         sx={[baseSx, { font: "inherit", width: "100%", cursor: "pointer" }] as SxProps<Theme>}
       >
         {inner}
@@ -337,7 +339,13 @@ export default function CollectionCard({
     );
   }
   return (
-    <Card component={Link} href={href ?? `/collection/${roostr.id}`} sx={baseSx}>
+    <Card
+      component={Link}
+      href={href ?? `/collection/${roostr.id}`}
+      data-testid="collection-card"
+      data-roostr-id={roostr.id ?? ""}
+      sx={baseSx}
+    >
       {inner}
     </Card>
   );

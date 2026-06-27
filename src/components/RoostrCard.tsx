@@ -70,6 +70,8 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
 
   return (
     <Card
+      data-testid="roostr-card"
+      data-breed={breed.id}
       sx={(theme) => ({
         width: "100%",
         maxWidth: 1100,

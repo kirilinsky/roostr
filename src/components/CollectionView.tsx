@@ -135,6 +135,7 @@ export default function CollectionView({
         label={t("sort.title")}
         value={sort}
         onChange={(e) => setSort(e.target.value)}
+        data-testid="collection-sort"
         sx={{ minWidth: 180, alignSelf: { xs: "stretch", sm: "flex-start" } }}
       >
         <MenuItem value="">{t("sort.default")}</MenuItem>
@@ -145,11 +146,17 @@ export default function CollectionView({
       </TextField>
 
       {view.length === 0 ? (
-        <Typography color="text.secondary" sx={{ py: 4 }} textAlign="center">
+        <Typography
+          color="text.secondary"
+          sx={{ py: 4 }}
+          textAlign="center"
+          data-testid="collection-empty"
+        >
           {t("filter.empty")}
         </Typography>
       ) : (
         <Box
+          data-testid="collection-grid"
           sx={{
             display: "grid",
             gap: 2,

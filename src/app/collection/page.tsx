@@ -33,7 +33,11 @@ export default async function CollectionPage() {
   const roostrs = rows.map(hydrateRoostr);
 
   return (
-    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
+    <Container
+      maxWidth="lg"
+      data-testid="collection-page"
+      sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}
+    >
       <Stack spacing={3}>
         <Typography variant="h4" component="h1">
           {t("collection.title")}

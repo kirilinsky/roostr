@@ -57,6 +57,7 @@ export default function Filters({
           label={g.label}
           value={value[g.key] ?? ""}
           onChange={(e) => onChange(g.key, e.target.value)}
+          data-testid={`filter-${g.key}`}
           sx={{ width: "100%", minWidth: 0 }}
         >
           <MenuItem value="">{allLabel}</MenuItem>
