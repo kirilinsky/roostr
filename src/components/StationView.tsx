@@ -584,6 +584,7 @@ export default function StationView({
         onClose={closePicker}
         title={t(ui.pickKey)}
         maxWidth="lg"
+        fullScreenOnMobile
       >
         <Stack spacing={2}>
           {available.length === 0 ? (
@@ -594,10 +595,11 @@ export default function StationView({
             <Box
               sx={{
                 display: "grid",
-                gap: 1,
+                gap: 1.25,
                 gridTemplateColumns: {
-                  xs: "repeat(4, minmax(0, 1fr))",
-                  sm: "repeat(6, minmax(0, 1fr))",
+                  xs: "repeat(2, minmax(0, 1fr))",
+                  sm: "repeat(4, minmax(0, 1fr))",
+                  md: "repeat(6, minmax(0, 1fr))",
                 },
               }}
             >
@@ -606,7 +608,6 @@ export default function StationView({
                   key={rid(r)}
                   roostr={r}
                   metric={ui.metric}
-                  compact
                   selected={pickedId === rid(r)}
                   onClick={() => setPickedId(rid(r))}
                 />
