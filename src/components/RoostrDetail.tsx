@@ -10,6 +10,7 @@ import CombatCard from "@/components/roostr-detail/CombatCard";
 import StatusNotices from "@/components/roostr-detail/StatusNotices";
 import OwnerActions from "@/components/roostr-detail/OwnerActions";
 import GeneUpgradeGrid from "@/components/roostr-detail/GeneUpgradeGrid";
+import SynthGeneStrip from "@/components/roostr-detail/SynthGeneStrip";
 import type { GiftFriend } from "@/components/GiftRoostrButton";
 import type { HydratedRoostr } from "@/lib/roostr";
 import { useT } from "@/i18n/I18nProvider";
@@ -21,6 +22,7 @@ export default function RoostrDetail({
   roostr,
   roostrId,
   coins,
+  sci = 0,
   isOwner,
   locked = false,
   friends = [],
@@ -28,13 +30,18 @@ export default function RoostrDetail({
   roostr: HydratedRoostr;
   roostrId: string;
   coins: number;
+  sci?: number;
   isOwner: boolean;
   locked?: boolean;
   friends?: GiftFriend[];
 }) {
   const t = useT();
-  // Manage (sell / upgrade) only an ACTIVE bird; renaming is allowed at any status.
+  // Sell / gift only an ACTIVE bird (market actions). Upgrading genes is allowed
+  // on any ROSTER bird — active OR working (farm/lab/defense) — only market/transit
+  // states lock it. Renaming is allowed at any status.
   const canManage = isOwner && !locked;
+  const canUpgrade =
+    isOwner && (roostr.status === "active" || roostr.status === "working");
   const canRename = isOwner;
 
   return (
@@ -69,7 +76,15 @@ export default function RoostrDetail({
         roostrId={roostrId}
         coins={coins}
         isOwner={isOwner}
-        canManage={canManage}
+        canManage={canUpgrade}
+      />
+
+      <SynthGeneStrip
+        roostr={roostr}
+        roostrId={roostrId}
+        sci={sci}
+        isOwner={isOwner}
+        canUpgrade={canUpgrade}
       />
     </Stack>
   );

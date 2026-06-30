@@ -192,6 +192,21 @@ export const roostrs = pgTable("roostrs", {
     .$type<Record<string, number>>()
     .notNull()
     .default({}),
+  // Synthetic genes spliced in at the lab (bought with science). Separate from the
+  // rolled `geneIds` DNA above: these are purchased lab add-ons, max 2 per bird,
+  // each pumps one skill with no debuff. Upgrade levels (later) will mirror
+  // geneLevels. Empty = no synth genes.
+  synthGeneIds: jsonb("synth_gene_ids")
+    .$type<string[]>()
+    .notNull()
+    .default([]),
+  // Synth-gene upgrade levels (synthGeneId -> level). Missing/empty = level 1.
+  // Separate from geneLevels: synth-gene upgrades cost SCIENCE on a much steeper
+  // curve (synthGeneUpgradeCost) than the coin-priced rolled-gene upgrades.
+  synthGeneLevels: jsonb("synth_gene_levels")
+    .$type<Record<string, number>>()
+    .notNull()
+    .default({}),
   // LEGACY cosmetic columns (pre-V2 per-part colors). No longer written or read —
   // the look now lives in `meta.cosmetic` (V2). Kept nullable so old rows survive;
   // safe to drop later.
@@ -307,6 +322,22 @@ export const resourceTxns = pgTable("resource_txns", {
   kind: text("kind").notNull(),
   ref: text("ref"), // optional reference id (roostrId, battleId, …)
   balanceAfter: integer("balance_after").notNull(), // balance of `resource` after this op
+  at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Synth-gene splice log — one row per gene successfully spliced into a bird
+// (written by buySynthGeneAction AFTER the splice succeeds, so refunded/failed
+// attempts never appear). Powers the "gene applied" entries in the notifications
+// Lab tab. Append-only; unread = no per-item read row (key `synth:<id>`).
+export const synthGeneEvents = pgTable("synth_gene_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: bigint("user_id", { mode: "number" })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  roostrId: uuid("roostr_id")
+    .notNull()
+    .references(() => roostrs.id, { onDelete: "cascade" }),
+  geneId: text("gene_id").notNull(),
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
 });
 

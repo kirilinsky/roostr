@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getSession } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
-import { grantCoins, backfillCosmetics } from "@/db/queries";
+import { grantCoins, grantResource, backfillCosmetics } from "@/db/queries";
 
 // DEV faucet — admin-only grant of Corn Coins to self (for testing upgrades/
 // economy until battle/farm rewards are wired). Guarded server-side; writes a
@@ -16,6 +16,18 @@ export async function grantSelfCoinsAction(
   const coins = await grantCoins(session.id, amount, "admin_grant");
   revalidatePath("/debug");
   return { ok: coins !== null, coins: coins ?? undefined };
+}
+
+// DEV faucet — admin-only grant of Science to self (for testing the synth-gene
+// shop / lab sinks). Same guard + ledger row (kind = admin_grant) as coins.
+export async function grantSelfSciAction(
+  amount: number,
+): Promise<{ ok: boolean; sci?: number }> {
+  const session = await getSession();
+  if (!session || !isAdmin(session.id)) return { ok: false };
+  const sci = await grantResource(session.id, "sci", amount, "admin_grant");
+  revalidatePath("/debug");
+  return { ok: sci !== null, sci: sci ?? undefined };
 }
 
 // Bake the V2 avatar look (`meta.cosmetic`) onto existing roostrs that lack it.

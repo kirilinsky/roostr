@@ -8,7 +8,7 @@
     {
       "id": "syn-adrenal-overclock",
       "no": 1,
-      "name": { "en": "Adrenal Overclock", "ru": "Адренал-оверклок" },
+      "name": { "en": "Adrenaline Booster", "ru": "Адреналиновый усилитель" },
       "skill": "Damage",
       "statMods": { "Damage": 2 },
       "lore": {
@@ -19,7 +19,7 @@
     {
       "id": "syn-killchip-splice",
       "no": 2,
-      "name": { "en": "Killchip Splice", "ru": "Киллчип-сплайс" },
+      "name": { "en": "Targeting Implant", "ru": "Прицельный имплант" },
       "skill": "Crit",
       "statMods": { "Crit": 2 },
       "lore": {
@@ -30,7 +30,7 @@
     {
       "id": "syn-optic-servo",
       "no": 3,
-      "name": { "en": "Optic Servo Array", "ru": "Оптик-серво массив" },
+      "name": { "en": "Bionic Eyes", "ru": "Бионические глаза" },
       "skill": "Accuracy",
       "statMods": { "Accuracy": 2 },
       "lore": {
@@ -41,7 +41,7 @@
     {
       "id": "syn-myofiber-boost",
       "no": 4,
-      "name": { "en": "Myofiber Boost", "ru": "Миофибра-буст" },
+      "name": { "en": "Reflex Booster", "ru": "Ускоритель рефлексов" },
       "skill": "Speed",
       "statMods": { "Speed": 2 },
       "lore": {
@@ -52,7 +52,7 @@
     {
       "id": "syn-chitin-plating",
       "no": 5,
-      "name": { "en": "Chitin Plating Mod", "ru": "Хитин-платинг мод" },
+      "name": { "en": "Armor Plating", "ru": "Бронепластины" },
       "skill": "Guard",
       "statMods": { "Guard": 2 },
       "lore": {
@@ -63,7 +63,7 @@
     {
       "id": "syn-mito-forge",
       "no": 6,
-      "name": { "en": "Mito Forge", "ru": "Мито-форж" },
+      "name": { "en": "Stamina Implant", "ru": "Имплант выносливости" },
       "skill": "Endurance",
       "statMods": { "Endurance": 2 },
       "lore": {
@@ -74,7 +74,7 @@
     {
       "id": "syn-nanite-swarm",
       "no": 7,
-      "name": { "en": "Nanite Regen Swarm", "ru": "Нанит-регенрой" },
+      "name": { "en": "Healing Nanites", "ru": "Лечащие наниты" },
       "skill": "Recovery",
       "statMods": { "Recovery": 2 },
       "lore": {
@@ -85,7 +85,7 @@
     {
       "id": "syn-sonic-larynx",
       "no": 8,
-      "name": { "en": "Sonic Larynx Implant", "ru": "Соник-ларинкс имплант" },
+      "name": { "en": "Sonic Implant", "ru": "Звуковой имплант" },
       "skill": "Crow",
       "statMods": { "Crow": 2 },
       "lore": {
@@ -96,18 +96,18 @@
     {
       "id": "syn-cortex-coprocessor",
       "no": 9,
-      "name": { "en": "Cortex Coprocessor", "ru": "Кортекс-копроцессор" },
+      "name": { "en": "Brain Chip", "ru": "Нейрочип" },
       "skill": "Intellect",
       "statMods": { "Intellect": 2 },
       "lore": {
         "en": "A wetware coprocessor wired to the brain crunches research faster.",
-        "ru": "Wetware-копроцессор, подключённый к мозгу, считает исследования быстрее."
+        "ru": "Чип, подключённый к мозгу, считает исследования быстрее."
       }
     },
     {
       "id": "syn-quantum-dice-gland",
       "no": 10,
-      "name": { "en": "Quantum Dice Gland", "ru": "Квантовая железа удачи" },
+      "name": { "en": "Luck Gland", "ru": "Железа удачи" },
       "skill": "Luck",
       "statMods": { "Luck": 2 },
       "lore": {
@@ -118,7 +118,7 @@
     {
       "id": "syn-chromakloak",
       "no": 11,
-      "name": { "en": "Chromakloak Skin", "ru": "Хромаклоак-кожа" },
+      "name": { "en": "Camouflage Skin", "ru": "Маскировочная кожа" },
       "skill": "Stealth",
       "statMods": { "Stealth": 2 },
       "lore": {
@@ -129,7 +129,7 @@
     {
       "id": "syn-gamete-bioreactor",
       "no": 12,
-      "name": { "en": "Gamete Bioreactor", "ru": "Гамета-биореактор" },
+      "name": { "en": "Fertility Implant", "ru": "Имплант плодовитости" },
       "skill": "Fertility",
       "statMods": { "Fertility": 2 },
       "lore": {

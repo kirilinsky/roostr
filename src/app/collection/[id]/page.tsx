@@ -38,7 +38,9 @@ export default async function RoostrDetailPage({
   const { t, locale } = await getTranslations();
   const session = await getSession();
   const isOwner = !!session && session.id === row.ownerId;
-  const coins = isOwner ? (await getUserById(session.id))?.coins ?? 0 : 0;
+  const me = isOwner && session ? await getUserById(session.id) : null;
+  const coins = me?.coins ?? 0;
+  const sci = me?.sci ?? 0;
   // Friends list powers the gift picker (owner only — only the owner can gift).
   const friends = isOwner && session ? await getFriends(session.id) : [];
   const roostr = hydrateRoostr(row);
@@ -91,6 +93,7 @@ export default async function RoostrDetailPage({
         roostr={roostr}
         roostrId={id}
         coins={coins}
+        sci={sci}
         isOwner={isOwner}
         locked={row.status !== "active"}
         friends={friends}

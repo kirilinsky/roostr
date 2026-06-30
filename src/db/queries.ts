@@ -365,6 +365,7 @@ export async function getProfileMetrics(
       workStations,
       referrals,
       gifts,
+      synthGeneEvents,
     } = await import("@/db/schema");
     const { and, eq, gt, inArray, or, sql } = await import("drizzle-orm");
     const { hydrateRoostr, TIERS } = await import("@/lib/roostr");
@@ -381,6 +382,28 @@ export async function getProfileMetrics(
         ),
       );
     metrics.sciEarned = Number(sci?.s ?? 0);
+
+    // Synthetic genes: how many spliced (Biohacker), distinct kinds (Mad
+    // Geneticist), and total science SUNK into synth genes + their upgrades, net
+    // of refunds (rare "Gene Tycoon"). Splices are counted from the event log
+    // (only-on-success); the sci sink reads the ledger.
+    const [synthCounts] = await db
+      .select({
+        bought: sql<number>`count(*)`,
+        kinds: sql<number>`count(distinct ${synthGeneEvents.geneId})`,
+      })
+      .from(synthGeneEvents)
+      .where(eq(synthGeneEvents.userId, userId));
+    metrics.synthGenesBought = Number(synthCounts?.bought ?? 0);
+    metrics.synthGeneKinds = Number(synthCounts?.kinds ?? 0);
+
+    const [synthSpend] = await db
+      .select({
+        s: sql<number>`coalesce(sum(case when ${resourceTxns.kind} in ('synth_gene', 'synth_gene_upgrade') or (${resourceTxns.kind} = 'refund' and ${resourceTxns.ref} in ('synth_gene', 'synth_gene_upgrade')) then -${resourceTxns.amount} else 0 end), 0)`,
+      })
+      .from(resourceTxns)
+      .where(and(eq(resourceTxns.userId, userId), eq(resourceTxns.resource, "sci")));
+    metrics.synthSciSpent = Math.max(0, Number(synthSpend?.s ?? 0));
 
     // Friends (a friendship row stores the pair canonically; match either side).
     const [fr] = await db
@@ -676,6 +699,77 @@ export async function getNewAchievements(
     }));
   } catch (e) {
     console.error("getNewAchievements failed:", e);
+    return [];
+  }
+}
+
+// --- Synth-gene splice notifications ---
+
+export interface SynthGeneNotification {
+  id: string;
+  roostrId: string;
+  geneId: string;
+  breedId: string;
+  nickname: string | null;
+  at: string;
+  unread?: boolean;
+}
+
+// Record a successful synth-gene splice (called by the buy action AFTER apply
+// succeeds). Best-effort: a failure here just means no notification, the gene is
+// already on the bird. Never write this for a failed/refunded purchase.
+export async function recordSynthGeneEvent(
+  userId: number,
+  roostrId: string,
+  geneId: string,
+): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { synthGeneEvents } = await import("@/db/schema");
+    await db.insert(synthGeneEvents).values({ userId, roostrId, geneId });
+  } catch (e) {
+    console.error("recordSynthGeneEvent failed:", e);
+  }
+}
+
+// Recent synth-gene splices for a user → "gene applied to bird" notifications,
+// newest first. Joins the bird for its breed/nickname (display name). `unread` =
+// no per-item read row yet (key `synth:<id>`).
+export async function getSynthGeneNotifications(
+  userId: number,
+): Promise<SynthGeneNotification[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { synthGeneEvents, roostrs } = await import("@/db/schema");
+    const { desc, eq } = await import("drizzle-orm");
+    const reads = await getNotificationReads(userId);
+    const rows = await db
+      .select({
+        id: synthGeneEvents.id,
+        roostrId: synthGeneEvents.roostrId,
+        geneId: synthGeneEvents.geneId,
+        at: synthGeneEvents.at,
+        breedId: roostrs.breedId,
+        nickname: roostrs.nickname,
+      })
+      .from(synthGeneEvents)
+      .innerJoin(roostrs, eq(synthGeneEvents.roostrId, roostrs.id))
+      .where(eq(synthGeneEvents.userId, userId))
+      .orderBy(desc(synthGeneEvents.at))
+      .limit(50);
+    return rows.map((r) => ({
+      id: r.id,
+      roostrId: r.roostrId,
+      geneId: r.geneId,
+      breedId: r.breedId,
+      nickname: r.nickname,
+      at: r.at.toISOString(),
+      unread: !reads.has(`synth:${r.id}`),
+    }));
+  } catch (e) {
+    console.error("getSynthGeneNotifications failed:", e);
     return [];
   }
 }
@@ -1118,7 +1212,7 @@ export async function bumpGeneLevel(
   try {
     const { db } = await import("@/db");
     const { roostrs } = await import("@/db/schema");
-    const { and, eq, sql } = await import("drizzle-orm");
+    const { and, eq, inArray, sql } = await import("drizzle-orm");
     const res = await db
       .update(roostrs)
       .set({
@@ -1128,7 +1222,8 @@ export async function bumpGeneLevel(
         and(
           eq(roostrs.id, id),
           eq(roostrs.ownerId, ownerId),
-          eq(roostrs.status, "active"),
+          // Roster birds only (active or working) — gifting/listed/sold are locked.
+          inArray(roostrs.status, ["active", "working"]),
           sql`coalesce((${roostrs.geneLevels} ->> ${geneId})::int, 1) = ${expected}`,
         ),
       )
@@ -1136,6 +1231,85 @@ export async function bumpGeneLevel(
     return res.length > 0;
   } catch (e) {
     console.error("bumpGeneLevel failed:", e);
+    return false;
+  }
+}
+
+// Splice a synth gene into a bird's DNA — owner-guarded, roster-only (active or
+// working), atomic. The WHERE clause is the race fix + slot guard in one shot: it
+// appends ONLY if the bird still has a free slot AND doesn't already carry this
+// gene, so two concurrent buys can't overfill or double-add. Returns true if it
+// was applied (false = not owner / locked status / no free slot / already has it).
+// Caller spends science first and refunds on a false return.
+export async function applySynthGene(
+  id: string,
+  ownerId: number,
+  geneId: string,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { SYNTH_GENE_MAX_SLOTS } = await import("@/lib/roostr");
+    const { and, eq, inArray, sql } = await import("drizzle-orm");
+    const res = await db
+      .update(roostrs)
+      .set({
+        synthGeneIds: sql`coalesce(${roostrs.synthGeneIds}, '[]'::jsonb) || to_jsonb(${geneId}::text)`,
+      })
+      .where(
+        and(
+          eq(roostrs.id, id),
+          eq(roostrs.ownerId, ownerId),
+          // Roster birds only (active or working) — gifting/listed/sold are locked.
+          inArray(roostrs.status, ["active", "working"]),
+          sql`jsonb_array_length(coalesce(${roostrs.synthGeneIds}, '[]'::jsonb)) < ${SYNTH_GENE_MAX_SLOTS}`,
+          sql`NOT (coalesce(${roostrs.synthGeneIds}, '[]'::jsonb) @> ${JSON.stringify([geneId])}::jsonb)`,
+        ),
+      )
+      .returning({ id: roostrs.id });
+    return res.length > 0;
+  } catch (e) {
+    console.error("applySynthGene failed:", e);
+    return false;
+  }
+}
+
+// Atomically bump ONE synth gene's level by 1 — owner-guarded, roster-only, and
+// only if the gene is actually spliced in AND its stored level is still
+// `expected` (the CAS race fix, same as bumpGeneLevel). Missing key = level 1.
+// Returns true if it bumped; the caller refunds science on false.
+export async function bumpSynthGeneLevel(
+  id: string,
+  ownerId: number,
+  geneId: string,
+  expected: number,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq, inArray, sql } = await import("drizzle-orm");
+    const res = await db
+      .update(roostrs)
+      .set({
+        synthGeneLevels: sql`jsonb_set(coalesce(${roostrs.synthGeneLevels}, '{}'::jsonb), array[${geneId}], to_jsonb((${expected + 1})::int))`,
+      })
+      .where(
+        and(
+          eq(roostrs.id, id),
+          eq(roostrs.ownerId, ownerId),
+          inArray(roostrs.status, ["active", "working"]),
+          // the gene must actually be spliced into this bird
+          sql`coalesce(${roostrs.synthGeneIds}, '[]'::jsonb) @> ${JSON.stringify([geneId])}::jsonb`,
+          // level CAS — only the upgrade still at `expected` wins
+          sql`coalesce((${roostrs.synthGeneLevels} ->> ${geneId})::int, 1) = ${expected}`,
+        ),
+      )
+      .returning({ id: roostrs.id });
+    return res.length > 0;
+  } catch (e) {
+    console.error("bumpSynthGeneLevel failed:", e);
     return false;
   }
 }
@@ -1584,7 +1758,7 @@ export async function markNotificationRead(
 export async function countUnreadNotifications(userId: number): Promise<number> {
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
-    const [news, ach, dex, friends, requests, gifts, giftUpdates, readyQ, stations] =
+    const [news, ach, dex, friends, requests, gifts, giftUpdates, synth, readyQ, stations] =
       await Promise.all([
         getNews(userId),
         getNewAchievements(userId),
@@ -1593,6 +1767,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
         getIncomingFriendRequests(userId),
         getIncomingGifts(userId),
         getSenderGiftUpdates(userId),
+        getSynthGeneNotifications(userId),
         countReadyQuests(userId),
         getStationAlerts(userId),
       ]);
@@ -1602,7 +1777,8 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       dex.filter((d) => d.unread).length +
       friends.filter((f) => f.unread).length +
       gifts.filter((g) => g.unread).length +
-      giftUpdates.filter((g) => g.unread).length;
+      giftUpdates.filter((g) => g.unread).length +
+      synth.filter((s) => s.unread).length;
     return unread + requests.length + readyQ + stations.length;
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);

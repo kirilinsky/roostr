@@ -425,6 +425,21 @@
       "value": 12
     },
     {
+      "id": "synth-tycoon",
+      "icon": "💉",
+      "tier": "rare",
+      "name": {
+        "en": "Gene Tycoon",
+        "ru": "Генный магнат"
+      },
+      "desc": {
+        "en": "Spend 1,500 science on synthetic genes and their upgrades.",
+        "ru": "Потрать 1 500 очков науки на синт-гены и их улучшения."
+      },
+      "metric": "synthSciSpent",
+      "value": 1500
+    },
+    {
       "id": "all-genes",
       "icon": "🧬",
       "tier": "collectible",
@@ -659,7 +674,7 @@
       },
       "desc": {
         "en": "Raise your base defense to 25.",
-        "ru": "Подними защиту базы до 20."
+        "ru": "Подними защиту базы до 25."
       },
       "metric": "defenseValue",
       "value": 25

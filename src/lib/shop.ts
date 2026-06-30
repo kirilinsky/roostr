@@ -12,3 +12,12 @@ export const EGG_SHOP_GROWTH = 1.35;
 export function eggShopPrice(bought: number): number {
   return Math.round(EGG_SHOP_BASE * EGG_SHOP_GROWTH ** Math.max(0, bought));
 }
+
+// Synth-gene shop: splice a lab-built gene into a bird's DNA. Flat science price
+// (a science sink — science is otherwise only spent on the lab). Charged + checked
+// server-side. Kept a function so it can ramp/vary per gene later if needed.
+export const SYNTH_GENE_PRICE = 150;
+
+export function synthGenePrice(): number {
+  return SYNTH_GENE_PRICE;
+}

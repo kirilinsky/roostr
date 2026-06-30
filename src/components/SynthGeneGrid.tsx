@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
@@ -7,13 +8,18 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import SynthGeneIcon from "@/components/SynthGeneIcon";
 import StatModBadges from "@/components/StatModBadges";
-import { SYNTH_GENES, skillLabel } from "@/lib/roostr";
+import { SYNTH_GENES, skillLabel, type SynthGene } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { MONO_FONT } from "@/lib/tokens";
 
 // Shared synthetic-gene catalog grid — rendered both in the lab gene shop and the
-// Roostrpedia synth-genes article so the two never drift. Read-only.
-export default function SynthGeneGrid() {
+// Roostrpedia synth-genes article so the two never drift. Read-only by default;
+// pass `renderAction` to append a per-gene control (e.g. the shop's Buy button).
+export default function SynthGeneGrid({
+  renderAction,
+}: {
+  renderAction?: (gene: SynthGene) => ReactNode;
+} = {}) {
   const locale = useLocale();
   const t = useT();
   const genes = [...SYNTH_GENES].sort((a, b) => a.no - b.no);
@@ -64,6 +70,8 @@ export default function SynthGeneGrid() {
           <Typography variant="caption" sx={{ fontStyle: "italic" }}>
             {g.lore[locale]}
           </Typography>
+
+          {renderAction && <Box sx={{ mt: "auto", pt: 0.5 }}>{renderAction(g)}</Box>}
         </Card>
       ))}
     </Box>

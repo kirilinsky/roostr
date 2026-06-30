@@ -130,6 +130,53 @@ export interface SynthGene {
 
 export const SYNTH_GENES = synthGenesData.genes as SynthGene[];
 
+// Max synthetic genes that can be spliced into one bird (DNA slots). Each is a
+// distinct gene; you can't stack the same synth gene twice.
+export const SYNTH_GENE_MAX_SLOTS = 2;
+
+// synth-gene id -> definition (catalog lookup for hydration / shop / detail).
+export const SYNTH_GENE_BY_ID = Object.fromEntries(
+  SYNTH_GENES.map((g) => [g.id, g]),
+) as Record<string, SynthGene>;
+
+// Free synth-gene slots left on a bird carrying `ids` already.
+export function synthSlotsLeft(ids: string[]): number {
+  return Math.max(0, SYNTH_GENE_MAX_SLOTS - ids.length);
+}
+
+// --- Synth-gene upgrade rules (pure; shared by the server action + the UI) ---
+// Synth genes level up like rolled genes, but the cost is in SCIENCE and ramps
+// MUCH harder: each level roughly TRIPLES the price, so a maxed synth gene is a
+// serious long-term science sink (not a quick buy like the rolled-gene coin path).
+export const SYNTH_GENE_MAX_LEVEL = 10;
+const SYNTH_UPGRADE_BASE = 150; // = the splice price; level 1→2 costs this
+const SYNTH_UPGRADE_GROWTH = 2.6; // steep: ~×2.6 per level
+
+// Science to upgrade a synth gene FROM `level` to level+1 (rises steeply).
+export function synthGeneUpgradeCost(level: number): number {
+  return Math.round(SYNTH_UPGRADE_BASE * SYNTH_UPGRADE_GROWTH ** (level - 1));
+}
+
+// Current level of a synth gene (missing = level 1).
+export function synthGeneLevelOf(
+  levels: Record<string, number>,
+  geneId: string,
+): number {
+  return levels[geneId] ?? 1;
+}
+
+// Can the synth gene be upgraded further?
+export function canUpgradeSynthGene(level: number): boolean {
+  return level < SYNTH_GENE_MAX_LEVEL;
+}
+
+// Can gene `geneId` be spliced into a bird that already has `ids`? Blocked when
+// no slots are free OR the bird already carries this exact gene. Pure — shared by
+// the shop picker filter AND the server action's guard (so they never disagree).
+export function canApplySynthGene(ids: string[], geneId: string): boolean {
+  return synthSlotsLeft(ids) > 0 && !ids.includes(geneId);
+}
+
 // --- Breed (identity modifier, real chicken breeds) ---
 export interface Breed {
   id: string;
@@ -430,12 +477,15 @@ export function sellPriceBounds(
   return { min, max };
 }
 
-// Skill block = base + weight body-mods + Σ over genes of (level × statMods).
-// Health is tracked separately (computeMaxHealth), not one of the skills.
+// Skill block = base + weight body-mods + Σ over genes of (level × statMods) +
+// Σ over synth genes of (synth level × statMods). Health is tracked separately
+// (computeMaxHealth), not one of the skills.
 export function computeStats(
   genes: Gene[],
   levels: GeneLevels = {},
   weightClass?: WeightClass,
+  synthGenes: SynthGene[] = [],
+  synthLevels: Record<string, number> = {},
 ): Record<Skill, number> {
   const stats = Object.fromEntries(
     SKILL_IDS.map((s) => [s, BASE_STAT]),
@@ -450,6 +500,14 @@ export function computeStats(
       if (stat !== "Health" && stat in stats) {
         stats[stat as Skill] += value * lvl;
       }
+    }
+  }
+  // Lab-spliced synth genes — single positive skill bump, no debuff, scaled by
+  // the synth gene's upgrade level (missing = level 1).
+  for (const sg of synthGenes) {
+    const lvl = synthLevels[sg.id] ?? 1;
+    for (const [stat, value] of Object.entries(sg.statMods ?? {})) {
+      if (stat !== "Health" && stat in stats) stats[stat as Skill] += value * lvl;
     }
   }
   // Skills floor at 0: a fully debuffed combat skill CAN hit zero — the rooster
@@ -534,6 +592,8 @@ export interface RoostrRow {
   weightClassId: string;
   geneIds: string[];
   geneLevels?: Record<string, number> | null;
+  synthGeneIds?: string[] | null; // lab-spliced synth genes (max 2)
+  synthGeneLevels?: Record<string, number> | null; // synth gene upgrade levels
   seed: number;
   nickname?: string | null;
   role?: string; // recommended archetype (stored at hatch)
@@ -550,6 +610,9 @@ export interface HydratedRoostr {
   weightClass: WeightClass;
   genes: Gene[];
   geneLevels: GeneLevels;
+  synthGeneIds: string[]; // raw ids spliced in (for slot/availability checks)
+  synthGenes: SynthGene[]; // resolved synth-gene defs (catalog lookup)
+  synthGeneLevels: GeneLevels; // synth gene upgrade levels (missing = level 1)
   seed: number;
   nickname: string | null;
   role: string; // recommended archetype id
@@ -586,7 +649,18 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     .map((id) => GENE_BY_ID[id])
     .filter((g): g is Gene => Boolean(g));
   const geneLevels = row.geneLevels ?? {};
-  const stats = computeStats(genes, geneLevels, weightClass);
+  const synthGeneIds = row.synthGeneIds ?? [];
+  const synthGeneLevels = row.synthGeneLevels ?? {};
+  const synthGenes = synthGeneIds
+    .map((id) => SYNTH_GENE_BY_ID[id])
+    .filter((g): g is SynthGene => Boolean(g));
+  const stats = computeStats(
+    genes,
+    geneLevels,
+    weightClass,
+    synthGenes,
+    synthGeneLevels,
+  );
   const maxHealth = computeMaxHealth(breed, weightClass, genes, geneLevels);
   const rating = computeRating(stats, maxHealth);
   return {
@@ -595,6 +669,9 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     weightClass,
     genes,
     geneLevels,
+    synthGeneIds,
+    synthGenes,
+    synthGeneLevels,
     seed: row.seed,
     nickname: row.nickname ?? null,
     role: row.role ?? deriveRole(genes),

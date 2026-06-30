@@ -14,6 +14,7 @@ import type {
   AchievementNotification,
   IncomingGift,
   GiftUpdate,
+  SynthGeneNotification,
 } from "@/db/queries";
 import type { QuestState } from "@/lib/quests";
 import { useT } from "@/i18n/I18nProvider";
@@ -23,6 +24,7 @@ import QuestsList from "@/components/notifications/QuestsList";
 import FriendsTab from "@/components/notifications/FriendsTab";
 import DexList from "@/components/notifications/DexList";
 import AchievementsList from "@/components/notifications/AchievementsList";
+import SynthGeneList from "@/components/notifications/SynthGeneList";
 import StationNotice from "@/components/notifications/StationNotice";
 
 // Filter categories. Only "friends" carries data today (incoming requests);
@@ -51,6 +53,7 @@ export default function NotificationsView({
   readyQuests = [],
   incomingGifts = [],
   giftUpdates = [],
+  synthGenes = [],
   selfId = null,
 }: {
   requests: FriendRequestSummary[];
@@ -62,6 +65,7 @@ export default function NotificationsView({
   readyQuests?: QuestState[];
   incomingGifts?: IncomingGift[];
   giftUpdates?: GiftUpdate[];
+  synthGenes?: SynthGeneNotification[];
   selfId?: number | null;
 }) {
   const t = useT();
@@ -78,7 +82,7 @@ export default function NotificationsView({
       requests.length + unread(newFriends) + unread(incomingGifts) + unread(giftUpdates),
     achievements: unread(achievements),
     farm: fullStations.includes("farm") ? 1 : 0,
-    lab: fullStations.includes("lab") ? 1 : 0,
+    lab: (fullStations.includes("lab") ? 1 : 0) + unread(synthGenes),
     roostrdex: unread(discoveries),
   };
 
@@ -146,6 +150,15 @@ export default function NotificationsView({
         <DexList discoveries={discoveries} />
       ) : tab === "achievements" ? (
         <AchievementsList achievements={achievements} selfId={selfId} />
+      ) : tab === "lab" ? (
+        fullStations.includes("lab") || synthGenes.length > 0 ? (
+          <Stack spacing={2}>
+            {fullStations.includes("lab") && <StationNotice kind="lab" />}
+            {synthGenes.length > 0 && <SynthGeneList events={synthGenes} />}
+          </Stack>
+        ) : (
+          <EmptyNotice />
+        )
       ) : stationFull ? (
         <StationNotice kind={tab as "farm" | "lab"} />
       ) : (

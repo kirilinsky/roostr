@@ -6,14 +6,20 @@ import {
   canUpgradeGene,
   geneLevelOf,
   geneUpgradeCost,
+  canUpgradeSynthGene,
+  synthGeneLevelOf,
+  synthGeneUpgradeCost,
 } from "@/lib/roostr";
 import { validateText, NICKNAME_RULE } from "@/lib/validation";
 import {
   getRoostr,
   bumpGeneLevel,
+  bumpSynthGeneLevel,
   setNickname,
   spendCoins,
   grantCoins,
+  spendResource,
+  grantResource,
   createGift,
 } from "@/db/queries";
 
@@ -45,8 +51,11 @@ export async function upgradeGeneAction(
   const row = await getRoostr(roostrId);
   if (!row) return { ok: false, error: "notfound" };
   if (row.ownerId !== session.id) return { ok: false, error: "owner" };
-  // A listed / sold / recycled bird is locked — no upgrades while on the market.
-  if (row.status !== "active") return { ok: false, error: "locked" };
+  // Upgrading is allowed on roster birds (active OR working — at farm/lab/defense).
+  // Only market/transit states (listed/sold/recycled/gifting) lock upgrades.
+  if (row.status !== "active" && row.status !== "working") {
+    return { ok: false, error: "locked" };
+  }
   if (!row.geneIds.includes(geneId)) return { ok: false, error: "gene" };
 
   const levels = row.geneLevels ?? {};
@@ -67,6 +76,49 @@ export async function upgradeGeneAction(
 
   revalidatePath(`/collection/${roostrId}`);
   return { ok: true, level: level + 1, coins };
+}
+
+export type SynthUpgradeResult =
+  | { ok: true; level: number; sci: number }
+  | {
+      ok: false;
+      error: "auth" | "notfound" | "owner" | "locked" | "gene" | "max" | "sci" | "save";
+    };
+
+// Upgrade one SYNTH gene by a level. Like upgradeGeneAction but the cost is in
+// SCIENCE on a much steeper curve (synthGeneUpgradeCost). Owner-guarded,
+// roster-only (active/working), spend-then-CAS with a refund on a lost CAS.
+export async function upgradeSynthGeneAction(
+  roostrId: string,
+  geneId: string,
+): Promise<SynthUpgradeResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "auth" };
+
+  const row = await getRoostr(roostrId);
+  if (!row) return { ok: false, error: "notfound" };
+  if (row.ownerId !== session.id) return { ok: false, error: "owner" };
+  if (row.status !== "active" && row.status !== "working") {
+    return { ok: false, error: "locked" };
+  }
+  if (!(row.synthGeneIds ?? []).includes(geneId)) return { ok: false, error: "gene" };
+
+  const levels = row.synthGeneLevels ?? {};
+  const level = synthGeneLevelOf(levels, geneId);
+  if (!canUpgradeSynthGene(level)) return { ok: false, error: "max" };
+
+  const cost = synthGeneUpgradeCost(level);
+  const sci = await spendResource(session.id, "sci", cost, "synth_gene_upgrade", roostrId);
+  if (sci === null) return { ok: false, error: "sci" };
+
+  const saved = await bumpSynthGeneLevel(roostrId, session.id, geneId, level);
+  if (!saved) {
+    await grantResource(session.id, "sci", cost, "refund", "synth_gene_upgrade");
+    return { ok: false, error: "save" };
+  }
+
+  revalidatePath(`/collection/${roostrId}`);
+  return { ok: true, level: level + 1, sci };
 }
 
 export type RenameResult =

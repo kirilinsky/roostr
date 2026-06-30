@@ -69,12 +69,12 @@ export function evaluate(
 }
 
 // Build the rooster (per-bird) metrics map from a hydrated roostr. Everything here
-// is derivable from the bird itself — no DB round-trip. `synthSlotsFilled` stays
-// absent (→ 0, locked) until synthetic genes are actually stored on the bird.
-// Structural param so this stays decoupled from the full HydratedRoostr type.
+// is derivable from the bird itself — no DB round-trip. Structural param so this
+// stays decoupled from the full HydratedRoostr type.
 export function roosterMetricsFrom(r: {
   genes: { id: string }[];
   geneLevels: Record<string, number>;
+  synthGeneIds?: string[];
   tier: { id: string };
   wins: number;
   losses: number;
@@ -97,6 +97,7 @@ export function roosterMetricsFrom(r: {
     soloGene: r.genes.length === 1 ? 1 : 0,
     minStat: statVals.length ? Math.min(...statVals) : 0,
     guardDays,
+    synthSlotsFilled: r.synthGeneIds?.length ?? 0,
   };
 }
 

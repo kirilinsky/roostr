@@ -58,19 +58,47 @@ export default async function PediaShopPage() {
           title={t("pedia.mech.shop.priceTitle")}
           body={t("pedia.mech.shop.price")}
         />
+
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
+          <Typography variant="h6" sx={{ mb: 0.5 }}>
+            {t("pedia.mech.shop.synthTitle")}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {t("pedia.mech.shop.synth")}
+          </Typography>
+          <Button
+            component={Link}
+            href="/pedia/synth-genes"
+            size="small"
+            variant="outlined"
+            color="neutral"
+          >
+            {t("pedia.synthGenes.title")}
+          </Button>
+        </Card>
+
         <Section
           title={t("pedia.mech.shop.soonTitle")}
           body={t("pedia.mech.shop.soon")}
         />
 
-        <Button
-          component={Link}
-          href="/shop/eggs"
-          variant="contained"
-          sx={{ alignSelf: "flex-start" }}
-        >
-          {t("pedia.mech.shop.cta")}
-        </Button>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Button
+            component={Link}
+            href="/shop/eggs"
+            variant="contained"
+          >
+            {t("pedia.mech.shop.cta")}
+          </Button>
+          <Button
+            component={Link}
+            href="/shop/synth-genes"
+            variant="contained"
+            color="secondary"
+          >
+            {t("pedia.mech.shop.synthCta")}
+          </Button>
+        </Stack>
       </Stack>
     </Container>
   );

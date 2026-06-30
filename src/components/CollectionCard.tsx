@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import type { SxProps, Theme } from "@mui/material/styles";
 import RoostrAvatar from "@/components/RoostrAvatar";
 import BattleRecord from "@/components/BattleRecord";
+import SynthGeneIcon from "@/components/SynthGeneIcon";
 import { useNowTick } from "@/hooks/useNowTick";
 import { SKILLS, geneUpgradeCount, type HydratedRoostr } from "@/lib/roostr";
 import { STAT_KIND_COLOR, STAT_KIND_ORDER, type StatKind } from "@/lib/statKinds";
@@ -61,9 +62,10 @@ export default function CollectionCard({
   const intellect = roostr.stats.Intellect ?? 0;
   const fertility = roostr.stats.Fertility ?? 0;
   const crow = roostr.stats.Crow ?? 0;
-  // "Sergeant" rank insignia: any bought upgrade earns chevrons (1–3 by amount).
+  // Total bought rolled-gene upgrades → a single gold "level" badge (number, not
+  // chevrons). Synth genes show their own marks (icon + level) alongside it.
   const upgrades = geneUpgradeCount(roostr.geneLevels);
-  const rank = upgrades >= 10 ? 3 : upgrades >= 4 ? 2 : 1;
+  const synthGenes = roostr.synthGenes;
 
   // Station badge — keyed on STATUS so EVERY working bird is flagged; kind + how
   // long are extra detail (from meta.work) shown when available. `nowMs` set after
@@ -104,27 +106,74 @@ export default function CollectionCard({
             sx={{ position: "absolute", top: 6, right: 6, fontWeight: 800 }}
           />
         )}
-        {/* upgraded insignia — gold sergeant chevrons, count scales with upgrades */}
-        {upgrades > 0 && (
-          <Chip
-            label={"⌃".repeat(rank)}
-            size="small"
-            title={`${t("card.upgraded")}: ${upgrades}`}
-            sx={(theme) => ({
-              position: "absolute",
-              top: 6,
-              left: 6,
-              height: 22,
-              fontWeight: 900,
-              fontSize: "0.8rem",
-              letterSpacing: "-1px",
-              bgcolor: "tertiary.main",
-              color: theme.palette.tertiary.contrastText,
-              "& .MuiChip-label": { px: 0.75 },
+        {/* enhancement marks (top-left, stacked): gold upgrade-level badge, then a
+            mark per spliced synth gene (its icon + level). */}
+        {(upgrades > 0 || synthGenes.length > 0) && (
+          <Stack
+            direction="row"
+            spacing={0.5}
+            alignItems="center"
+            sx={{ position: "absolute", top: 6, left: 6 }}
+          >
+            {upgrades > 0 && (
+              <Box
+                title={`${t("card.upgraded")}: ${upgrades}`}
+                sx={(theme) => ({
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.25,
+                  height: 20,
+                  px: 0.6,
+                  bgcolor: "tertiary.main",
+                  color: theme.palette.tertiary.contrastText,
+                  fontWeight: 900,
+                  fontSize: 11,
+                  lineHeight: 1,
+                  fontVariantNumeric: "tabular-nums",
+                })}
+              >
+                <Box component="span" sx={{ fontSize: 8 }}>
+                  ▲
+                </Box>
+                {upgrades}
+              </Box>
+            )}
+            {synthGenes.map((g) => {
+              const lvl = roostr.synthGeneLevels[g.id] ?? 1;
+              return (
+                <Box
+                  key={g.id}
+                  title={`${g.name[locale]} · ${t("detail.lvl")} ${lvl}`}
+                  sx={{ position: "relative", display: "inline-flex", lineHeight: 0 }}
+                >
+                  <SynthGeneIcon no={g.no} size={compact ? 18 : 22} />
+                  <Box
+                    component="span"
+                    sx={(theme) => ({
+                      position: "absolute",
+                      bottom: -3,
+                      right: -3,
+                      minWidth: 13,
+                      height: 13,
+                      px: 0.25,
+                      bgcolor: "secondary.main",
+                      color: theme.palette.secondary.contrastText,
+                      fontSize: 9,
+                      fontWeight: 900,
+                      lineHeight: "13px",
+                      textAlign: "center",
+                      fontVariantNumeric: "tabular-nums",
+                    })}
+                  >
+                    {lvl}
+                  </Box>
+                </Box>
+              );
             })}
-          />
+          </Stack>
         )}
-        {/* station badge — any working bird is flagged; kind + elapsed if known */}
+        {/* station badge — any working bird is flagged; kind + elapsed if known.
+            Defense (дозор) uses the watch shield logo instead of an emoji. */}
         {isWorking && (
           <Chip
             size="small"
@@ -133,9 +182,26 @@ export default function CollectionCard({
                 ? "card.onFarm"
                 : work?.kind === "lab"
                   ? "card.onLab"
-                  : "card.working",
+                  : work?.kind === "defense"
+                    ? "card.onDefense"
+                    : "card.working",
             )}
-            label={`${work?.kind === "farm" ? "🌾" : work?.kind === "lab" ? "🧪" : "🔧"}${work && nowMs ? " " + shortAgo(work.since, nowMs) : ""}`}
+            label={
+              <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.375 }}>
+                {work?.kind === "defense" ? (
+                  <Image
+                    src="/defense.png"
+                    alt=""
+                    width={14}
+                    height={14}
+                    style={{ height: 13, width: "auto" }}
+                  />
+                ) : (
+                  <span>{work?.kind === "farm" ? "🌾" : work?.kind === "lab" ? "🧪" : "🔧"}</span>
+                )}
+                {work && nowMs ? <span>{shortAgo(work.since, nowMs)}</span> : null}
+              </Box>
+            }
             sx={(theme) => ({
               position: "absolute",
               bottom: 6,
