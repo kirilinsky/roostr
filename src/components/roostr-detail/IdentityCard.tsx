@@ -126,6 +126,18 @@ export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
             />
           ))}
         </Stack>
+
+        {/* Hatch date — when this bird was minted (createdAt). */}
+        {roostr.hatchedAt != null && (
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              🥚 {t("detail.hatched")}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
+              {new Date(roostr.hatchedAt).toLocaleDateString(locale)}
+            </Typography>
+          </Stack>
+        )}
       </Card>
     </Stack>
   );

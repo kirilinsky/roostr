@@ -617,6 +617,7 @@ export interface RoostrRow {
   draws?: number;
   status?: string; // active | working | listed | sold | recycled
   meta?: Record<string, unknown> | null; // forward catch-all (holds work info)
+  createdAt?: Date | string | number | null; // hatch/mint time
 }
 
 export interface HydratedRoostr {
@@ -639,6 +640,7 @@ export interface HydratedRoostr {
   losses: number;
   draws: number;
   status: string; // active | working | listed | sold | recycled
+  hatchedAt: number | null; // hatch/mint time (ms epoch), null if unknown
   work: { kind: string; since: number } | null; // station assignment (lab/farm)
   cosmetic: AvatarTraits; // V2 avatar look — baked at hatch (meta.cosmetic), else derived
 }
@@ -698,6 +700,7 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     losses: row.losses ?? 0,
     draws: row.draws ?? 0,
     status: row.status ?? "active",
+    hatchedAt: row.createdAt ? new Date(row.createdAt).getTime() : null,
     work: parseWork(row.meta),
     // Look = breed features (always fresh) + the bird's colorway. The colorway is
     // baked at hatch (meta.cosmetic); if a row isn't backfilled yet, roll it from
