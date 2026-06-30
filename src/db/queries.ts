@@ -1104,25 +1104,38 @@ export async function getRoostr(id: string) {
   }
 }
 
-// Overwrite a roostr's gene levels (owner-guarded). Returns true on success.
-export async function setGeneLevels(
+// Atomically bump ONE gene's level by 1 — but ONLY if its stored level is still
+// `expected` (owner-guarded, active-only). The level CAS is the race fix: two
+// concurrent upgrades both spend, but only ONE matches `expected` and writes; the
+// loser returns false so the caller refunds. Missing gene key = level 1.
+export async function bumpGeneLevel(
   id: string,
   ownerId: number,
-  levels: Record<string, number>,
+  geneId: string,
+  expected: number,
 ): Promise<boolean> {
   if (!process.env.DATABASE_URL) return false;
   try {
     const { db } = await import("@/db");
     const { roostrs } = await import("@/db/schema");
-    const { and, eq } = await import("drizzle-orm");
+    const { and, eq, sql } = await import("drizzle-orm");
     const res = await db
       .update(roostrs)
-      .set({ geneLevels: levels })
-      .where(and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId)))
+      .set({
+        geneLevels: sql`jsonb_set(coalesce(${roostrs.geneLevels}, '{}'::jsonb), array[${geneId}], to_jsonb((${expected + 1})::int))`,
+      })
+      .where(
+        and(
+          eq(roostrs.id, id),
+          eq(roostrs.ownerId, ownerId),
+          eq(roostrs.status, "active"),
+          sql`coalesce((${roostrs.geneLevels} ->> ${geneId})::int, 1) = ${expected}`,
+        ),
+      )
       .returning({ id: roostrs.id });
     return res.length > 0;
   } catch (e) {
-    console.error("setGeneLevels failed:", e);
+    console.error("bumpGeneLevel failed:", e);
     return false;
   }
 }

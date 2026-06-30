@@ -6,12 +6,11 @@ import {
   canUpgradeGene,
   geneLevelOf,
   geneUpgradeCost,
-  upgradeGeneLevel,
 } from "@/lib/roostr";
 import { validateText, NICKNAME_RULE } from "@/lib/validation";
 import {
   getRoostr,
-  setGeneLevels,
+  bumpGeneLevel,
   setNickname,
   spendCoins,
   grantCoins,
@@ -58,11 +57,9 @@ export async function upgradeGeneAction(
   const coins = await spendCoins(session.id, cost, "upgrade", roostrId);
   if (coins === null) return { ok: false, error: "coins" };
 
-  const saved = await setGeneLevels(
-    roostrId,
-    session.id,
-    upgradeGeneLevel(levels, geneId),
-  );
+  // Level CAS: applies only if the gene is STILL at `level` — so a concurrent
+  // double-upgrade can't double-charge for one level. Loser refunds.
+  const saved = await bumpGeneLevel(roostrId, session.id, geneId, level);
   if (!saved) {
     await grantCoins(session.id, cost, "refund", roostrId); // spend bought nothing
     return { ok: false, error: "save" };
