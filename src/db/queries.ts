@@ -1,6 +1,6 @@
 import type { SessionUser } from "@/lib/auth";
 import { parseReferralId } from "@/lib/referrals";
-import { hydrateRoostr, type RolledRoostr } from "@/lib/roostr";
+import { hydrateRoostr, type RolledRoostr, type RoostrRow } from "@/lib/roostr";
 import { rollColorway } from "@/lib/avatarV2";
 import {
   STATIONS,
@@ -1179,6 +1179,41 @@ export async function getCollectionRoostrs(ownerId: number) {
       .orderBy(desc(roostrs.createdAt));
   } catch (e) {
     console.error("getCollectionRoostrs failed:", e);
+    return [];
+  }
+}
+
+// Global leaderboard pool: every ROSTER bird (active or working) across ALL
+// players, each with its owner's display name. The page hydrates these + computes
+// the offense/defense/utility sums to rank the top 10. Capped at 300 to stay cheap
+// — far above any realistic top-10 cutoff at current scale.
+export interface LeaderboardEntry {
+  row: RoostrRow;
+  ownerId: number;
+  ownerName: string;
+}
+
+export async function getLeaderboardRoostrs(): Promise<LeaderboardEntry[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, users } = await import("@/db/schema");
+    const { eq, inArray } = await import("drizzle-orm");
+    const rows = await db
+      .select({ roostr: roostrs, owner: users })
+      .from(roostrs)
+      .innerJoin(users, eq(roostrs.ownerId, users.id))
+      .where(inArray(roostrs.status, ["active", "working"]))
+      .limit(300);
+    return rows.map((r) => ({
+      row: r.roostr as RoostrRow,
+      ownerId: r.owner.id,
+      ownerName:
+        [r.owner.firstName, r.owner.lastName].filter(Boolean).join(" ") ||
+        (r.owner.username ? `@${r.owner.username}` : `#${r.owner.id}`),
+    }));
+  } catch (e) {
+    console.error("getLeaderboardRoostrs failed:", e);
     return [];
   }
 }
