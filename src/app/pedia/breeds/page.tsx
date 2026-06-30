@@ -7,7 +7,7 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import BreedArt from "@/components/BreedArt";
-import { BREEDS_CATALOG, groupName, localize } from "@/lib/breeds";
+import { BREEDS_CATALOG, groupName, localize, rarityLabel, tagLabel } from "@/lib/breeds";
 import { formatTraitEffects } from "@/lib/roostr";
 import { countryFlag } from "@/lib/flag";
 import { getTranslations } from "@/i18n/server";
@@ -57,7 +57,12 @@ export default async function PediaBreedsPage() {
                   <Typography variant="subtitle2" sx={{ fontWeight: 800 }} noWrap>
                     {b.name[locale]}
                   </Typography>
-                  <Chip label={b.rarity} size="small" color="secondary" />
+                  <Chip
+                    label={rarityLabel(b.rarity, locale)}
+                    title={t("breedInfo.rarityHint")}
+                    size="small"
+                    color="secondary"
+                  />
                 </Stack>
 
                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
@@ -95,7 +100,7 @@ export default async function PediaBreedsPage() {
 
                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
                   {b.tags.map((tag) => (
-                    <Chip key={tag} label={tag} size="small" variant="outlined" />
+                    <Chip key={tag} label={tagLabel(tag, locale)} size="small" variant="outlined" />
                   ))}
                 </Stack>
               </Box>

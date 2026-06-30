@@ -4,10 +4,17 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import Popup from "@/components/Popup";
 import BreedArt from "@/components/BreedArt";
-import { BREEDS_CATALOG, groupName, groupDescription } from "@/lib/breeds";
+import {
+  BREEDS_CATALOG,
+  groupName,
+  groupDescription,
+  rarityLabel,
+  tagLabel,
+} from "@/lib/breeds";
 import { FAMILIES, GENES, formatTraitEffects } from "@/lib/roostr";
 import { countryFlag } from "@/lib/flag";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -69,9 +76,15 @@ export default function BreedInfoModal({
         {/* meta chips */}
         <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
           <Chip size="small" label={groupName(breed.group, locale)} />
-          <Chip size="small" color="secondary" label={breed.rarity} />
+          <Tooltip title={t("breedInfo.rarityHint")} enterTouchDelay={0}>
+            <Chip
+              size="small"
+              color="secondary"
+              label={rarityLabel(breed.rarity, locale)}
+            />
+          </Tooltip>
           {breed.tags.map((tag) => (
-            <Chip key={tag} size="small" variant="outlined" label={tag} />
+            <Chip key={tag} size="small" variant="outlined" label={tagLabel(tag, locale)} />
           ))}
         </Stack>
         <Typography variant="caption" color="text.secondary">

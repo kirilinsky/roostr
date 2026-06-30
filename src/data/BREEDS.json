@@ -3755,7 +3755,7 @@
       "group": "Oddities",
       "origin": "real",
       "rarity": "rare",
-      "dropWeight": 24,
+      "dropWeight": 20,
       "geneAffinities": {
         "families": {
           "Mind": 1.2,

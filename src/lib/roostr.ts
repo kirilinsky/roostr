@@ -243,6 +243,21 @@ export function skillLabel(stat: string, locale: Locale): string {
   return SKILL_NAME[stat]?.[locale] ?? stat;
 }
 
+// Gene `weakness` is free text: usually a skill name, sometimes a phrase ("Burst
+// Damage") or a comma list ("Speed, Crit"). Localize each part — skill names via
+// skillLabel, non-skill phrases via this small map — so nothing stays English.
+const WEAKNESS_NAME: Record<string, { en: string; ru: string }> = {
+  "Burst Damage": { en: "Burst Damage", ru: "Взрывной урон" },
+};
+
+export function weaknessLabel(weakness: string, locale: Locale): string {
+  return weakness
+    .split(",")
+    .map((w) => w.trim())
+    .map((w) => WEAKNESS_NAME[w]?.[locale] ?? skillLabel(w, locale))
+    .join(", ");
+}
+
 // Localized label for an archetype/role id.
 export function roleLabel(role: string, locale: Locale): string {
   return ROLE_NAME[role]?.[locale] ?? role;

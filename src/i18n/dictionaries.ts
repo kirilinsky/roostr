@@ -305,6 +305,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "sell.outOfRange": "Enter a price between {min} and {max}.",
     "sell.list": "List for sale",
     "breedInfo.info": "Breed info",
+    "breedInfo.rarityHint":
+      "Rarity is just how often this breed drops — it doesn't affect stats. Any rooster of any rarity can be raised into a champion.",
     "breedInfo.about": "About the breed",
     "breedInfo.inGame": "In game",
     "breedInfo.region": "Origin",
@@ -878,6 +880,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "sell.outOfRange": "Введи цену от {min} до {max}.",
     "sell.list": "Выставить на продажу",
     "breedInfo.info": "О породе",
+    "breedInfo.rarityHint":
+      "Редкость — это лишь шанс выпадения породы, она не влияет на статы. Чемпионом можно вырастить петуха любой редкости.",
     "breedInfo.about": "О породе",
     "breedInfo.inGame": "В игре",
     "breedInfo.region": "Родина",

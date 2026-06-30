@@ -44,7 +44,7 @@ export default function NewsList({ news }: { news: NewsItem[] }) {
                 {new Date(n.createdAt).toLocaleDateString(locale)}
               </Typography>
             </Box>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               {n.link && (
                 <Button
                   component={Link}

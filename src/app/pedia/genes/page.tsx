@@ -14,6 +14,7 @@ import {
   FAMILY_COLOR,
   roleLabel,
   skillLabel,
+  weaknessLabel,
 } from "@/lib/roostr";
 import { contrastText } from "@/lib/contrast";
 import { getTranslations } from "@/i18n/server";
@@ -94,7 +95,7 @@ export default async function PediaGenesPage() {
                   {g.boosts.map((b) => skillLabel(b, locale)).join(" · ")}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" component="div">
-                  {t("pedia.genes.weakness")}: {skillLabel(g.weakness, locale)} ·{" "}
+                  {t("pedia.genes.weakness")}: {weaknessLabel(g.weakness, locale)} ·{" "}
                   {t("pedia.genes.role")}: {roleLabel(g.role, locale)}
                 </Typography>
                 {g.passive && (
