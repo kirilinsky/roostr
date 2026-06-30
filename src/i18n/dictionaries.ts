@@ -322,6 +322,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "arena.top": "Overall top",
     "arena.topDesc": "Top 10 roosters by total stats. Filter by attack, defense or utility.",
     "arena.topEmpty": "No roosters yet.",
+    "arena.pve": "PvE (debug)",
+    "arena.pveDesc": "Roll a random enemy. No combat yet — just the matchup.",
+    "arena.pveFind": "Find enemy",
+    "arena.pveEnemy": "Enemy",
+    "arena.pveNone": "No enemy found yet.",
     "archetype.intro":
       "An archetype is the recommended build for a rooster, derived from its key genes — not a fixed class. It hints which skills are cheaper and stronger to upgrade.",
     "archetype.profile": "Profile",
@@ -903,6 +908,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "arena.top": "Общий топ",
     "arena.topDesc": "Топ-10 петухов по сумме статов. Фильтр по атаке, защите и пользе.",
     "arena.topEmpty": "Пока нет петухов.",
+    "arena.pve": "PvE (дебаг)",
+    "arena.pveDesc": "Подбери случайного врага. Боя пока нет — только матч.",
+    "arena.pveFind": "Найти врага",
+    "arena.pveEnemy": "Враг",
+    "arena.pveNone": "Враг пока не найден.",
     "archetype.intro":
       "Архетип — рекомендованный билд петуха, выведенный из его ключевых генов. Это не жёсткий класс, а подсказка: какие навыки качать дешевле и сильнее.",
     "archetype.profile": "Профиль",

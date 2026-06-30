@@ -189,9 +189,6 @@ export default async function BankPage() {
           spacing={1}
         >
           <Box>
-            <Typography variant="overline" color="text.secondary">
-              {t("pedia.mech.bank.desc")}
-            </Typography>
             <Typography
               variant="h4"
               component="h1"
@@ -260,7 +257,11 @@ export default async function BankPage() {
               <Box
                 component={Link}
                 href="/rarities"
-                sx={{ display: "block", textDecoration: "none", color: "inherit" }}
+                sx={{
+                  display: "block",
+                  textDecoration: "none",
+                  color: "inherit",
+                }}
               >
                 <BalanceTile
                   icon="/rarity.png"
@@ -273,7 +274,9 @@ export default async function BankPage() {
                 icon="/feather.png"
                 label={t("resource.feathers")}
                 value={`${feathers.current}/${feathers.max}`}
-                progress={feathers.max > 0 ? feathers.current / feathers.max : 0}
+                progress={
+                  feathers.max > 0 ? feathers.current / feathers.max : 0
+                }
                 caption={
                   feathers.full
                     ? t("bank.feathersFull")
@@ -305,10 +308,7 @@ export default async function BankPage() {
                       sx={{ borderRadius: 0.75 }}
                     />
                   </Stack>
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={1}
-                  >
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
                     <Button
                       variant="text"
                       color="neutral"

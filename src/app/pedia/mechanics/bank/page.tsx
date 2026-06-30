@@ -27,7 +27,10 @@ export default async function PediaBankPage() {
   const { t } = await getTranslations();
 
   return (
-    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
+    <Container
+      maxWidth="lg"
+      sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}
+    >
       <Stack spacing={2.5}>
         <Button
           component={Link}
@@ -41,9 +44,6 @@ export default async function PediaBankPage() {
         <Box>
           <Typography variant="h4" component="h1">
             {t("pedia.mech.bank.title")}
-          </Typography>
-          <Typography color="text.secondary">
-            {t("pedia.mech.bank.desc")}
           </Typography>
         </Box>
 

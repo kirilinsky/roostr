@@ -1246,6 +1246,43 @@ export async function getTopCategoryLeaders(): Promise<Set<string>> {
   return leaders;
 }
 
+// A random enemy bird for the debug PvE mode: any roster bird (active/working)
+// NOT owned by the caller, picked at random. Returns the row + owner name, or null
+// if nobody else has a bird yet. No matchmaking logic — purely random for now.
+export async function getRandomEnemyRoostr(
+  excludeOwnerId: number,
+): Promise<{ row: RoostrRow; ownerName: string } | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, users } = await import("@/db/schema");
+    const { and, ne, inArray, sql } = await import("drizzle-orm");
+    const rows = await db
+      .select({ roostr: roostrs, owner: users })
+      .from(roostrs)
+      .innerJoin(users, sql`${roostrs.ownerId} = ${users.id}`)
+      .where(
+        and(
+          ne(roostrs.ownerId, excludeOwnerId),
+          inArray(roostrs.status, ["active", "working"]),
+        ),
+      )
+      .orderBy(sql`random()`)
+      .limit(1);
+    const r = rows[0];
+    if (!r) return null;
+    return {
+      row: r.roostr as RoostrRow,
+      ownerName:
+        [r.owner.firstName, r.owner.lastName].filter(Boolean).join(" ") ||
+        (r.owner.username ? `@${r.owner.username}` : `#${r.owner.id}`),
+    };
+  } catch (e) {
+    console.error("getRandomEnemyRoostr failed:", e);
+    return null;
+  }
+}
+
 // A single roostr by id (null if absent / DB unavailable).
 export async function getRoostr(id: string) {
   if (!process.env.DATABASE_URL) return null;
