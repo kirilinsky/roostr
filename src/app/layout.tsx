@@ -16,6 +16,7 @@ import {
   getHudStationStats,
 } from "@/db/queries";
 import { isAdmin } from "@/lib/admin";
+import { currentFeathers } from "@/lib/feathers";
 import { headlineFont, bodyFont } from "@/app/fonts";
 
 // Absolute base so relative OG image paths resolve for crawlers (Telegram fetches
@@ -92,6 +93,15 @@ export default async function RootLayout({
     : { defenseValue: 0, sciPerDay: 0, eggPerDay: 0 };
   const sciPerHour = Math.round(hud.sciPerDay / 24);
   const eggPerDay = Math.round(hud.eggPerDay);
+  // Feathers regenerate 1/hour up to featherMax — compute the current value now.
+  const feathers = dbUser
+    ? currentFeathers(
+        dbUser.feathers,
+        dbUser.featherMax,
+        new Date(dbUser.feathersAt).getTime(),
+        Date.now(),
+      )
+    : 0;
 
   // Game nav is for logged-in players only; guests do not get the app sidebar.
   const mainNav: NavItem[] = loggedIn
@@ -143,7 +153,7 @@ export default async function RootLayout({
                     eggsPerDay={user ? eggPerDay : undefined}
                     perHourLabel={t("resource.perHour")}
                     perDayLabel={t("resource.perDay")}
-                    energy={user ? { current: 10, max: 10 } : undefined}
+                    feathersBalance={user ? feathers : undefined}
                     feathersLabel={t("resource.feathers")}
                     eggsLabel={t("resource.eggs")}
                     sciLabel={t("resource.sci")}

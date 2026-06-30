@@ -27,7 +27,15 @@ export const users = pgTable(
     photoUrl: text("photo_url"),
     languageCode: text("language_code"),
     coins: integer("coins").notNull().default(0),
+    // Feathers = battle energy. Regenerate 1/hour up to `featherMax` (settled
+    // lazily off `feathersAt`, the last-settle anchor). `featherMax` is a per-user
+    // cap (default 10) that a shop upgrade can raise later. Spending battles will
+    // settle current → store, reset the anchor; for now regen is display-only.
     feathers: integer("feathers").notNull().default(0),
+    featherMax: integer("feather_max").notNull().default(10),
+    feathersAt: timestamp("feathers_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     eggs: integer("eggs").notNull().default(0),
     sci: integer("sci").notNull().default(0), // science points (lab research)
     // Denormalized lifetime battle record (source of truth = the `battles` log).

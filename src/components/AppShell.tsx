@@ -35,11 +35,6 @@ export interface ShellUser {
   photoUrl?: string;
 }
 
-export interface EnergyState {
-  current: number;
-  max: number;
-}
-
 export default function AppShell({
   user,
   coinBalance,
@@ -50,7 +45,7 @@ export default function AppShell({
   eggsPerDay,
   perHourLabel,
   perDayLabel,
-  energy,
+  feathersBalance,
   feathersLabel,
   eggsLabel,
   sciLabel,
@@ -72,7 +67,7 @@ export default function AppShell({
   eggsPerDay?: number;
   perHourLabel?: string;
   perDayLabel?: string;
-  energy?: EnergyState;
+  feathersBalance?: number;
   feathersLabel?: string;
   eggsLabel?: string;
   sciLabel?: string;
@@ -285,7 +280,7 @@ export default function AppShell({
         eggsPerDay={eggsPerDay}
         perHourLabel={perHourLabel}
         perDayLabel={perDayLabel}
-        energy={energy}
+        feathersBalance={feathersBalance}
         feathersLabel={feathersLabel}
         eggsLabel={eggsLabel}
         notificationsLabel={notificationsLabel}

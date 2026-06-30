@@ -9,7 +9,6 @@ import Card from "@mui/material/Card";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import type { EnergyState } from "@/components/AppShell";
 
 // Tween a balance from its previous value to the new one (easeOutCubic, ~520ms) and
 // pulse (scale + accent color) when it GROWS — so a claim visibly "lands" in the HUD.
@@ -138,7 +137,7 @@ export default function ResourceBar({
   eggsPerDay,
   perHourLabel,
   perDayLabel,
-  energy,
+  feathersBalance,
   feathersLabel,
   eggsLabel,
   sciLabel,
@@ -153,7 +152,7 @@ export default function ResourceBar({
   eggsPerDay?: number;
   perHourLabel?: string;
   perDayLabel?: string;
-  energy?: EnergyState;
+  feathersBalance?: number;
   feathersLabel?: string;
   eggsLabel?: string;
   sciLabel?: string;
@@ -216,11 +215,11 @@ export default function ResourceBar({
               rateUnit={perDayLabel}
             />
           )}
-          {energy && (
+          {typeof feathersBalance === "number" && (
             <Counter
               src="/feather.png"
               label={feathersLabel ?? "Feathers"}
-              value={`${energy.current}/${energy.max}`}
+              value={feathersBalance}
             />
           )}
           {/* Base defense — live Σ Crow of guards on watch (0 when none assigned). */}

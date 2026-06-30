@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import type { SxProps, Theme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
@@ -9,9 +10,11 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import LinearProgress from "@mui/material/LinearProgress";
 import BankHistory from "@/components/BankHistory";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
+import { featherState, DEFAULT_FEATHER_MAX } from "@/lib/feathers";
 import {
   getUserById,
   getResourceTxns,
@@ -57,17 +60,23 @@ function SurfaceCard({
 }
 
 // Uniform balance/stat tile. `value` optional (rarities has none); `soonLabel`
-// renders a small "soon" footnote for not-yet-shipped resources.
+// renders a small "soon" footnote for not-yet-shipped resources. `progress`
+// (0..1) renders a fill bar under the value (feathers → regen toward max), with an
+// optional `caption` footnote (e.g. the regen countdown).
 function BalanceTile({
   icon,
   label,
   value,
   soonLabel,
+  progress,
+  caption,
 }: {
   icon?: string;
   label: string;
   value?: number | string;
   soonLabel?: string;
+  progress?: number;
+  caption?: string;
 }) {
   return (
     <SurfaceCard minHeight={132}>
@@ -112,6 +121,22 @@ function BalanceTile({
             {typeof value === "number" ? value.toLocaleString() : value}
           </Typography>
         )}
+        {progress !== undefined && (
+          <LinearProgress
+            variant="determinate"
+            value={Math.max(0, Math.min(100, progress * 100))}
+            sx={{ height: 6, borderRadius: 0, mt: 0.25 }}
+          />
+        )}
+        {caption && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ fontSize: "0.65rem", lineHeight: 1 }}
+          >
+            {caption}
+          </Typography>
+        )}
         {soonLabel && (
           <Typography
             variant="caption"
@@ -142,6 +167,14 @@ export default async function BankPage() {
   };
   // Live base defense (Σ Crow of guards on watch).
   const defenseValue = session ? await getDefenseValue(session.id) : 0;
+  // Feathers: regenerated current vs max + countdown to the next one (1/hour).
+  const feathers = featherState(
+    dbUser?.feathers ?? 0,
+    dbUser?.featherMax ?? DEFAULT_FEATHER_MAX,
+    dbUser ? new Date(dbUser.feathersAt).getTime() : Date.now(),
+    Date.now(),
+  );
+  const featherNextMin = Math.max(1, Math.ceil(feathers.nextInMs / 60000));
 
   return (
     <Container
@@ -222,17 +255,30 @@ export default async function BankPage() {
                 gap: 1.25,
               }}
             >
-              {/* Rarities (soon) — collectible tokens, not shipped yet. */}
-              <BalanceTile
-                label={t("bank.rarities")}
-                soonLabel={t("pedia.soon")}
-              />
-              {/* Feathers (battle energy, soon). */}
+              {/* Rarities (soon) — collectible tokens, not shipped yet. Links to
+                  the placeholder rarities page. */}
+              <Box
+                component={Link}
+                href="/rarities"
+                sx={{ display: "block", textDecoration: "none", color: "inherit" }}
+              >
+                <BalanceTile
+                  icon="/rarity.png"
+                  label={t("bank.rarities")}
+                  soonLabel={t("pedia.soon")}
+                />
+              </Box>
+              {/* Feathers (battle energy) — current/max + regen progress (1/hour). */}
               <BalanceTile
                 icon="/feather.png"
                 label={t("resource.feathers")}
-                value={balances.feather}
-                soonLabel={t("pedia.soon")}
+                value={`${feathers.current}/${feathers.max}`}
+                progress={feathers.max > 0 ? feathers.current / feathers.max : 0}
+                caption={
+                  feathers.full
+                    ? t("bank.feathersFull")
+                    : t("bank.feathersRegen", { min: featherNextMin })
+                }
               />
               {/* Base defense — live Σ Crow of guards on watch. */}
               <BalanceTile
