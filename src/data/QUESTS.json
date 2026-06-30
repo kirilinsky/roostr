@@ -193,5 +193,19 @@
     "value": 5,
     "reward": { "resource": "egg", "amount": 4 },
     "href": "/pedia/mechanics/referrals"
+  },
+  {
+    "id": "buy-synth-gene",
+    "order": 15,
+    "icon": "🧬",
+    "name": { "en": "First synth gene", "ru": "Первый синт-ген" },
+    "desc": {
+      "en": "Buy a synthetic gene in the Shop and splice it into one of your roosters.",
+      "ru": "Купи синтетический ген в Магазине и вживи его одному из своих петухов."
+    },
+    "metric": "synthGenesBought",
+    "value": 1,
+    "reward": { "resource": "sci", "amount": 150 },
+    "href": "/shop/synth-genes"
   }
 ]

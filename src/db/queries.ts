@@ -1975,7 +1975,7 @@ export async function getNews(
 export async function claimNews(
   userId: number,
   newsId: string,
-): Promise<{ ok: boolean; egg?: number }> {
+): Promise<{ ok: boolean; resource?: ResourceKind; amount?: number }> {
   if (!process.env.DATABASE_URL) return { ok: false };
   try {
     const { db } = await import("@/db");
@@ -1990,16 +1990,20 @@ export async function claimNews(
       .from(news)
       .where(eq(news.id, newsId))
       .limit(1);
-    if (!n || !n.active || n.ctaType !== "claim_egg") return { ok: false };
+    if (!n || !n.active) return { ok: false };
+    // CTA type → which resource is granted. claim_egg → eggs, claim_sci → science.
+    const resource: ResourceKind | null =
+      n.ctaType === "claim_egg" ? "egg" : n.ctaType === "claim_sci" ? "sci" : null;
+    if (!resource) return { ok: false };
     const claimed = await db
       .insert(newsClaims)
       .values({ newsId, userId })
       .onConflictDoNothing()
       .returning({ newsId: newsClaims.newsId });
     if (claimed.length === 0) return { ok: false }; // already claimed
-    const egg = n.ctaAmount ?? 0;
-    if (egg > 0) await grantResource(userId, "egg", egg, "news");
-    return { ok: true, egg };
+    const amount = n.ctaAmount ?? 0;
+    if (amount > 0) await grantResource(userId, resource, amount, "news");
+    return { ok: true, resource, amount };
   } catch (e) {
     console.error("claimNews failed:", e);
     return { ok: false };
