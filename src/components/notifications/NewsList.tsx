@@ -56,7 +56,7 @@ export default function NewsList({ news }: { news: NewsItem[] }) {
                   {t("notifications.open")}
                 </Button>
               )}
-              {n.ctaType === "claim_egg" && (
+              {(n.ctaType === "claim_egg" || n.ctaType === "claim_sci") && (
                 <Button
                   size="small"
                   variant="contained"
@@ -70,7 +70,12 @@ export default function NewsList({ news }: { news: NewsItem[] }) {
                 >
                   {n.claimed
                     ? t("notifications.claimed")
-                    : t("notifications.claimEgg", { n: n.ctaAmount ?? 1 })}
+                    : t(
+                        n.ctaType === "claim_sci"
+                          ? "notifications.claimSci"
+                          : "notifications.claimEgg",
+                        { n: n.ctaAmount ?? 1 },
+                      )}
                 </Button>
               )}
               {n.unread && readBtn(`news:${n.id}`)}

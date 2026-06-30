@@ -33,10 +33,11 @@ export async function claimNewsAction(
   if (!session) return { ok: false };
   const res = await claimNews(session.id, newsId);
   if (res.ok) revalidatePath("/notifications");
-  return res;
+  return { ok: res.ok };
 }
 
-// Publish a news item — ADMIN only. CTA "claim_egg" + amount grants that many eggs.
+// Publish a news item — ADMIN only. CTA "claim_egg"/"claim_sci" + amount grants
+// that many eggs / science points (claim-once per player).
 export async function createNewsAction(input: {
   titleEn: string;
   titleRu: string;
@@ -48,7 +49,10 @@ export async function createNewsAction(input: {
 }): Promise<{ ok: boolean }> {
   const session = await getSession();
   if (!session || !isAdmin(session.id)) return { ok: false };
-  const ctaType = input.ctaType === "claim_egg" ? "claim_egg" : null;
+  const ctaType =
+    input.ctaType === "claim_egg" || input.ctaType === "claim_sci"
+      ? input.ctaType
+      : null;
   const id = await createNews({
     titleEn: input.titleEn.trim(),
     titleRu: input.titleRu.trim(),

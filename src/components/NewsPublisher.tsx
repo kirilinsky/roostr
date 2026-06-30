@@ -23,7 +23,7 @@ export default function NewsPublisher() {
   const [bodyEn, setBodyEn] = useState("");
   const [bodyRu, setBodyRu] = useState("");
   const [link, setLink] = useState("");
-  const [cta, setCta] = useState<"none" | "claim_egg">("none");
+  const [cta, setCta] = useState<"none" | "claim_egg" | "claim_sci">("none");
   const [amount, setAmount] = useState(1);
 
   const ready =
@@ -38,8 +38,8 @@ export default function NewsPublisher() {
         bodyEn,
         bodyRu,
         link: link || undefined,
-        ctaType: cta === "claim_egg" ? "claim_egg" : undefined,
-        ctaAmount: cta === "claim_egg" ? amount : undefined,
+        ctaType: cta === "none" ? undefined : cta,
+        ctaAmount: cta === "none" ? undefined : amount,
       });
       toast.show({
         variant: res.ok ? "success" : "error",
@@ -114,17 +114,20 @@ export default function NewsPublisher() {
               select
               label="CTA"
               value={cta}
-              onChange={(e) => setCta(e.target.value as "none" | "claim_egg")}
+              onChange={(e) =>
+                setCta(e.target.value as "none" | "claim_egg" | "claim_sci")
+              }
               sx={{ minWidth: 160 }}
             >
               <MenuItem value="none">None</MenuItem>
               <MenuItem value="claim_egg">Claim eggs</MenuItem>
+              <MenuItem value="claim_sci">Claim science</MenuItem>
             </TextField>
-            {cta === "claim_egg" && (
+            {cta !== "none" && (
               <TextField
                 size="small"
                 type="number"
-                label="Eggs"
+                label={cta === "claim_sci" ? "Science" : "Eggs"}
                 value={amount}
                 onChange={(e) =>
                   setAmount(Math.max(1, Number(e.target.value) || 1))
