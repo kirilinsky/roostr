@@ -757,6 +757,21 @@
       "value": 2
     },
     {
+      "id": "arena-champion",
+      "icon": "🏆",
+      "tier": "collectible",
+      "name": {
+        "en": "Arena Champion",
+        "ru": "Чемпион арены"
+      },
+      "desc": {
+        "en": "Rank #1 in the Overall Top in any category (attack, defense or utility).",
+        "ru": "Займи 1-е место в общем топе в любой категории (атака, защита или польза)."
+      },
+      "metric": "topCategory",
+      "value": 1
+    },
+    {
       "id": "wins-10",
       "icon": "🥇",
       "tier": "common",

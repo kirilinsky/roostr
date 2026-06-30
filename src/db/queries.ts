@@ -1,6 +1,6 @@
 import type { SessionUser } from "@/lib/auth";
 import { parseReferralId } from "@/lib/referrals";
-import { hydrateRoostr, type RolledRoostr, type RoostrRow } from "@/lib/roostr";
+import { hydrateRoostr, SKILLS, type RolledRoostr, type RoostrRow } from "@/lib/roostr";
 import { rollColorway } from "@/lib/avatarV2";
 import {
   STATIONS,
@@ -1216,6 +1216,34 @@ export async function getLeaderboardRoostrs(): Promise<LeaderboardEntry[]> {
     console.error("getLeaderboardRoostrs failed:", e);
     return [];
   }
+}
+
+// Roostr ids that currently rank #1 in ANY leaderboard category (offense /
+// defense / utility stat-sum). Powers the "Arena Champion" rooster achievement —
+// the detail page passes `topCategory: 1` when the bird's id is in this set.
+// Derived live from the same pool as the leaderboard (active + working).
+export async function getTopCategoryLeaders(): Promise<Set<string>> {
+  const entries = await getLeaderboardRoostrs();
+  const kinds = ["offense", "defense", "utility"] as const;
+  const best: Record<string, { id?: string; score: number }> = {
+    offense: { score: -1 },
+    defense: { score: -1 },
+    utility: { score: -1 },
+  };
+  for (const e of entries) {
+    if (!e.row.id) continue;
+    const { stats } = hydrateRoostr(e.row);
+    for (const k of kinds) {
+      const sum = SKILLS.filter((s) => s.kind === k).reduce(
+        (n, s) => n + (stats[s.id] ?? 0),
+        0,
+      );
+      if (sum > best[k].score) best[k] = { id: e.row.id, score: sum };
+    }
+  }
+  const leaders = new Set<string>();
+  for (const k of kinds) if (best[k].id) leaders.add(best[k].id);
+  return leaders;
 }
 
 // A single roostr by id (null if absent / DB unavailable).

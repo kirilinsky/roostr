@@ -14,6 +14,7 @@ import {
   recordAchievementUnlocks,
   getRoostrHistory,
   getFriends,
+  getTopCategoryLeaders,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import {
@@ -63,12 +64,15 @@ export default async function RoostrDetailPage({
   // Gift flags live on the bird's meta (set on accept / decline) → the
   // "gifted" and "rejected" rooster achievements.
   const meta = (row.meta as { gifted?: boolean; giftRejected?: boolean } | null) ?? {};
+  // #1 in any leaderboard category → "Arena Champion" (global, not bird-derivable).
+  const topLeaders = await getTopCategoryLeaders();
   const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, {
     ...roosterMetricsFrom(roostr),
     owners: ownerSet.size,
     renameCount,
     wasGifted: meta.gifted ? 1 : 0,
     wasRejected: meta.giftRejected ? 1 : 0,
+    topCategory: topLeaders.has(id) ? 1 : 0,
   });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =
