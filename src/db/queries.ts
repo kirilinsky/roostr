@@ -727,6 +727,20 @@ export async function recordAchievementUnlocks(
   }
 }
 
+// Evaluate a user's PROFILE achievements against live metrics, persist any newly
+// satisfied, and return the ids just unlocked (for toasting). Call right after an
+// earn/ownership event so an unlock lands at that moment, not only on next profile
+// open. Idempotent via recordAchievementUnlocks → repeated calls return [].
+export async function syncProfileAchievements(userId: number): Promise<string[]> {
+  const { PROFILE_ACHIEVEMENTS, evaluate } = await import("@/lib/achievements");
+  const metrics = await getProfileMetrics(userId);
+  const satisfied = evaluate(PROFILE_ACHIEVEMENTS, metrics)
+    .filter((s) => s.unlocked)
+    .map((s) => s.def.id);
+  if (!satisfied.length) return [];
+  return recordAchievementUnlocks(userId, satisfied);
+}
+
 export interface AchievementNotification {
   achievementId: string;
   scope: string; // "profile" | "rooster"
@@ -1046,7 +1060,7 @@ export async function acceptGift(
     }
     // Move ownership + unlock + flag "this bird was gifted" (rooster achievement).
     const [r] = await db
-      .select({ meta: roostrs.meta })
+      .select({ meta: roostrs.meta, breedId: roostrs.breedId })
       .from(roostrs)
       .where(eq(roostrs.id, row.roostrId))
       .limit(1);
@@ -1056,6 +1070,10 @@ export async function acceptGift(
       .set({ ownerId: userId, status: "active", meta })
       .where(eq(roostrs.id, row.roostrId));
     await recordTransfer(row.roostrId, row.fromUserId, userId, "gift");
+    // Receiving a bird COUNTS as discovering its breed — same persistent Roostrdex
+    // as hatching (no-op if already discovered). Otherwise a breed you only ever
+    // got as a gift would never enter your dex.
+    if (r?.breedId) await recordDiscovery(userId, r.breedId);
     return { ok: true };
   } catch (e) {
     console.error("acceptGift failed:", e);

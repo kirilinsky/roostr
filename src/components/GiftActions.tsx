@@ -7,6 +7,7 @@ import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { acceptGiftAction, declineGiftAction } from "@/app/gift/[id]/actions";
+import { useAchievementToasts } from "@/hooks/useAchievementToasts";
 import { useT } from "@/i18n/I18nProvider";
 
 // Accept / decline controls on the /gift/[id] page. Accept costs a flat coin tax
@@ -22,6 +23,7 @@ export default function GiftActions({
 }) {
   const t = useT();
   const router = useRouter();
+  const toastAchievements = useAchievementToasts();
   const [busy, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const canAfford = coins >= tax;
@@ -30,8 +32,10 @@ export default function GiftActions({
     startTransition(async () => {
       setError(null);
       const res = await acceptGiftAction(roostrId);
-      if (res.ok) router.push(`/collection/${roostrId}`);
-      else setError(res.reason === "coins" ? "coins" : "error");
+      if (res.ok) {
+        toastAchievements(res.unlocked ?? []);
+        router.push(`/collection/${roostrId}`);
+      } else setError(res.reason === "coins" ? "coins" : "error");
     });
 
   const decline = () =>

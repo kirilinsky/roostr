@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -43,8 +41,9 @@ const TABS = [
   { key: "roostrdex", labelKey: "nav.roostrdex" },
 ] as const;
 
-// Notifications feed. A tab strip (chip bar on mobile, scrollable Tabs on desktop)
-// over the per-category list components in notifications/*.
+// Notifications feed. A single MUI Tabs strip (scrollable → swipes on mobile,
+// scroll buttons on desktop when it overflows) over the per-category list
+// components in notifications/*.
 export default function NotificationsView({
   requests,
   newFriends = [],
@@ -97,33 +96,22 @@ export default function NotificationsView({
   return (
     // minWidth:0 lets this flex column shrink below the tab-strip content width.
     <Stack spacing={2} sx={{ minWidth: 0 }}>
-      {/* Mobile: a wrapping chip bar shows every category + its unread badge. */}
-      <Box sx={{ display: { xs: "flex", md: "none" }, flexWrap: "wrap", gap: 1, pt: 0.5 }}>
-        {TABS.map((x) => (
-          <Badge key={x.key} badgeContent={tabCounts[x.key] ?? 0} color="secondary" overlap="rectangular">
-            <Chip
-              label={t(x.labelKey)}
-              clickable
-              onClick={() => setTab(x.key)}
-              color={tab === x.key ? "primary" : "default"}
-              variant={tab === x.key ? "filled" : "outlined"}
-              size="small"
-            />
-          </Badge>
-        ))}
-      </Box>
-
       <Tabs
         value={tab}
         onChange={(_, v) => setTab(v)}
         variant="scrollable"
         scrollButtons="auto"
+        allowScrollButtonsMobile
         sx={{
-          display: { xs: "none", md: "flex" },
           minHeight: 40,
           maxWidth: "100%",
           minWidth: 0,
-          "& .MuiTab-root": { minHeight: 40, minWidth: 90, px: 2, fontSize: "0.875rem" },
+          "& .MuiTab-root": {
+            minHeight: 40,
+            minWidth: { xs: 68, md: 90 },
+            px: { xs: 1.25, md: 2 },
+            fontSize: { xs: "0.8125rem", md: "0.875rem" },
+          },
         }}
       >
         {TABS.map((x) => (
