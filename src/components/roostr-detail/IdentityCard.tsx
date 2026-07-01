@@ -30,7 +30,7 @@ export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
   return (
     <Stack spacing={1.5} sx={{ minWidth: 0 }}>
       <Box
-        sx={{ position: "relative", width: "100%", maxWidth: { xs: 340, md: "none" }, mx: "auto" }}
+        sx={{ position: "relative", width: "100%", maxWidth: { xs: 340, md: "none" }, alignSelf: "center" }}
       >
         <Box
           sx={{

@@ -9,6 +9,7 @@ import Card from "@mui/material/Card";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import type { Theme } from "@mui/material/styles";
 
 // Tween a balance from its previous value to the new one (easeOutCubic, ~520ms) and
 // pulse (scale + accent color) when it GROWS — so a claim visibly "lands" in the HUD.
@@ -168,6 +169,18 @@ export default function ResourceBar({
 }) {
   // Mobile (inline) trims everything: no rate tags, tighter pill + gaps.
   const dense = variant === "inline";
+  const bellSx = {
+    px: dense ? 1 : { xs: 0.75, md: 1 },
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 0.375,
+    textDecoration: "none",
+    color: "inherit",
+    cursor: "pointer",
+    transition: (theme: Theme) => theme.transitions.create("box-shadow"),
+    "&:hover": { boxShadow: 4 },
+  };
   const hud = (
     <Box sx={{ display: "flex", alignItems: "stretch", gap: dense ? 0.25 : 0.5, minWidth: 0 }}>
       <Card
@@ -231,34 +244,51 @@ export default function ResourceBar({
         </Stack>
       </Card>
 
-      {notificationsLabel && (
-        <Badge
-          badgeContent={notificationCount}
-          color="error"
-          overlap="circular"
-          sx={{ "& .MuiBadge-badge": { fontWeight: 800 } }}
-        >
+      {notificationsLabel &&
+        (dense ? (
+          // Mobile: count sits INLINE right of the bell — a corner Badge overflows
+          // and breaks the tight HUD row.
           <Card
             component={Link}
             href="/notifications"
             title={notificationsLabel}
             aria-label={notificationsLabel}
-            sx={{
-              px: dense ? 1.25 : { xs: 0.75, md: 1 },
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textDecoration: "none",
-              color: "inherit",
-              cursor: "pointer",
-              transition: (theme) => theme.transitions.create("box-shadow"),
-              "&:hover": { boxShadow: 4 },
-            }}
+            sx={bellSx}
           >
-            <Typography sx={{ fontSize: dense ? 17 : 18, lineHeight: 1 }}>🔔</Typography>
+            <Typography sx={{ fontSize: 17, lineHeight: 1 }}>🔔</Typography>
+            {notificationCount > 0 && (
+              <Typography
+                component="span"
+                sx={{
+                  fontWeight: 800,
+                  fontSize: "0.72rem",
+                  lineHeight: 1,
+                  color: "error.main",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {notificationCount}
+              </Typography>
+            )}
           </Card>
-        </Badge>
-      )}
+        ) : (
+          <Badge
+            badgeContent={notificationCount}
+            color="error"
+            overlap="circular"
+            sx={{ "& .MuiBadge-badge": { fontWeight: 800 } }}
+          >
+            <Card
+              component={Link}
+              href="/notifications"
+              title={notificationsLabel}
+              aria-label={notificationsLabel}
+              sx={bellSx}
+            >
+              <Typography sx={{ fontSize: 18, lineHeight: 1 }}>🔔</Typography>
+            </Card>
+          </Badge>
+        ))}
       </Box>
   );
 
