@@ -41,6 +41,7 @@ const STEPS = [
     links: [
       { href: "/pedia/mechanics/farm", labelKey: "pedia.mech.farm.title" },
       { href: "/pedia/mechanics/lab", labelKey: "pedia.mech.lab.title" },
+      { href: "/pedia/mechanics/defense", labelKey: "pedia.mech.defense.title" },
     ],
   },
   {

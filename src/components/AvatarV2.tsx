@@ -428,6 +428,9 @@ export default function AvatarV2({
       // --- idle gestures (all derived from `time`) ---
       const bob = animate ? Math.sin(time * 2.3) * 0.8 : 0;
       const tailRot = animate ? Math.sin(time * 1.6) * 0.09 : 0;
+      // Wing flutter: a subtle sway, phase-offset from the bob so it reads as a
+      // living tuck-and-settle rather than moving in lockstep with the body.
+      const wingRot = animate ? Math.sin(time * 2.0 + 0.6) * 0.05 : 0;
       const blink = animate && time % 3.4 < 0.12;
       // Head tilt: a slow curious lean every ~7s, held briefly then released.
       let headTilt = 0;
@@ -475,6 +478,12 @@ export default function AvatarV2({
           ctx.translate(24 * U, 40 * U);
           ctx.rotate(rot);
           ctx.translate(-24 * U, -40 * U);
+        }
+        // Wing sway — pivot at the shoulder so the wingtip flutters, not the whole wing.
+        if (animate && p.id === "wing" && wingRot) {
+          ctx.translate(42 * U, 34 * U);
+          ctx.rotate(wingRot);
+          ctx.translate(-42 * U, -34 * U);
         }
         if (isHead && headTilt) {
           ctx.translate(49 * U, 31 * U); // neck pivot
