@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
@@ -14,7 +15,12 @@ import Popup from "@/components/Popup";
 import { countryFlag } from "@/lib/flag";
 import { groupName } from "@/lib/breeds";
 import { MONO_FONT } from "@/lib/tokens";
-import { NICKNAME_MAX, roleLabel, type HydratedRoostr } from "@/lib/roostr";
+import {
+  NICKNAME_MAX,
+  roleLabel,
+  recommendedJob,
+  type HydratedRoostr,
+} from "@/lib/roostr";
 import {
   validateText,
   NICKNAME_RULE,
@@ -96,7 +102,23 @@ export default function RoostrHeader({
         </IconButton>
       </Stack>
       <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
-        {/* recommended archetype/role — click to learn what it means */}
+        {/* Where to send it — the bird's best activity by its current stats. Taps
+            through to that screen. This is the actionable "job" recommendation. */}
+        {(() => {
+          const job = recommendedJob(roostr.stats);
+          return (
+            <Chip
+              component={Link}
+              href={job.href}
+              clickable
+              label={`${t("detail.sendTo")}: ${job.icon} ${t(job.navKey)}`}
+              size="small"
+              color="secondary"
+              sx={{ fontWeight: 800 }}
+            />
+          );
+        })()}
+        {/* recommended archetype/role — the build lean; click to learn what it means */}
         <Chip
           label={`${roleLabel(roostr.role, locale).toUpperCase()} ⓘ`}
           size="small"

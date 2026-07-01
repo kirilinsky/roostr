@@ -408,6 +408,43 @@ export function deriveRole(genes: Gene[]): string {
   return FAMILY_ROLE[best];
 }
 
+// --- "Where to send it" recommendation ---
+// The archetype (above) is the build lean; this maps a bird to the ONE activity it's
+// best at RIGHT NOW, by its stats, so the player knows where to send it. Each job is
+// scored by the average of its driving skill(s); the top score wins.
+export type JobId = "battle" | "defense" | "raids" | "farm" | "lab";
+
+export interface JobMeta {
+  id: JobId;
+  skills: Skill[]; // stats that drive this activity
+  icon: string;
+  navKey: string; // i18n key for the destination screen
+  href: string;
+}
+
+export const JOBS: JobMeta[] = [
+  { id: "battle", skills: ["Damage", "Crit", "Accuracy", "Speed"], icon: "⚔️", navKey: "nav.arena", href: "/arena" },
+  { id: "defense", skills: ["Crow"], icon: "🛡️", navKey: "nav.defense", href: "/defense" },
+  { id: "raids", skills: ["Stealth", "Luck"], icon: "🗡️", navKey: "nav.raids", href: "/raids" },
+  { id: "farm", skills: ["Fertility"], icon: "🌾", navKey: "nav.farm", href: "/farm" },
+  { id: "lab", skills: ["Intellect"], icon: "🧪", navKey: "nav.lab", href: "/lab" },
+];
+
+// Best-fit activity for a bird, by its current stats (avg of each job's skills).
+export function recommendedJob(stats: Record<Skill, number>): JobMeta {
+  let best = JOBS[0];
+  let bestScore = -Infinity;
+  for (const j of JOBS) {
+    const score =
+      j.skills.reduce((s, k) => s + (stats[k] ?? 0), 0) / j.skills.length;
+    if (score > bestScore) {
+      bestScore = score;
+      best = j;
+    }
+  }
+  return best;
+}
+
 // --- Gene leveling & stat derivation ---
 // A roostr starts with each key gene at level 1. The player spends coins to
 // raise a gene's level; at level L a gene applies its statMods × L — so BOTH the
