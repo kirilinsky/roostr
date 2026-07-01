@@ -64,6 +64,7 @@ function Counter({
   value,
   rate,
   rateUnit,
+  hideRate = false,
 }: {
   src?: string;
   emoji?: string;
@@ -71,6 +72,7 @@ function Counter({
   value: number | string;
   rate?: number; // rounded income — shown as a small "+N{unit}" tag when ≥ 1
   rateUnit?: string;
+  hideRate?: boolean; // mobile: drop the "+N/h" tag to save bar width
 }) {
   return (
     <Box
@@ -78,7 +80,7 @@ function Counter({
       sx={{
         display: "flex",
         alignItems: "center",
-        gap: { xs: 0.25, md: 0.5 },
+        gap: 0.25,
       }}
     >
       {emoji ? (
@@ -105,7 +107,7 @@ function Counter({
       >
         {typeof value === "number" ? <AnimatedNumber value={value} /> : value}
       </Typography>
-      {typeof rate === "number" && rate >= 1 && (
+      {!hideRate && typeof rate === "number" && rate >= 1 && (
         <Typography
           component="span"
           sx={{
@@ -125,9 +127,12 @@ function Counter({
   );
 }
 
-// Fixed top-right resource HUD (corn coins / science / eggs / feathers). Moved
-// out of the sidebar so balances stay visible on every page. The balance pill
-// links to the Bank; a bell pill a couple px to its right opens Notifications.
+// Resource HUD (corn coins / science / eggs / feathers) + notifications bell.
+// Two layouts driven by `variant`:
+//   - "fixed"  (default, DESKTOP): floats top-right over content, every page.
+//   - "inline" (MOBILE): bare row meant to sit INSIDE the top AppBar next to the
+//     burger, so header + HUD are one bar (no fixed-overlap on narrow screens).
+// The balance pill links to the Bank; the bell pill opens Notifications.
 export default function ResourceBar({
   coinBalance,
   eggsBalance,
@@ -143,6 +148,7 @@ export default function ResourceBar({
   sciLabel,
   notificationsLabel,
   notificationCount = 0,
+  variant = "fixed",
 }: {
   coinBalance?: number;
   eggsBalance?: number;
@@ -158,28 +164,18 @@ export default function ResourceBar({
   sciLabel?: string;
   notificationsLabel?: string;
   notificationCount?: number;
+  variant?: "fixed" | "inline";
 }) {
-  return (
-    <Box
-      sx={{
-        position: "fixed",
-        top: { xs: 0, md: 12 },
-        right: { xs: 8, md: 16 },
-        // Mobile: a band the height of the top bar so the HUD vertical-centers with
-        // the logo (no more height mismatch). Desktop: natural height at top: 12.
-        height: { xs: 52, md: "auto" },
-        zIndex: (theme) => theme.zIndex.drawer + 2,
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "stretch", gap: 0.5 }}>
+  // Mobile (inline) trims everything: no rate tags, tighter pill + gaps.
+  const dense = variant === "inline";
+  const hud = (
+    <Box sx={{ display: "flex", alignItems: "stretch", gap: dense ? 0.25 : 0.5, minWidth: 0 }}>
       <Card
         component={Link}
         href="/bank"
         sx={{
-          px: { xs: 1, md: 1.5 },
-          py: { xs: 0.5, md: 0.75 },
+          px: dense ? 0.75 : { xs: 1, md: 1.5 },
+          py: dense ? 0.25 : { xs: 0.5, md: 0.75 },
           display: "block",
           textDecoration: "none",
           color: "inherit",
@@ -190,7 +186,7 @@ export default function ResourceBar({
       >
         <Stack
           direction="row"
-          spacing={{ xs: 0.75, md: 1.25 }}
+          spacing={dense ? 0.5 : { xs: 0.75, md: 1.25 }}
           alignItems="center"
           divider={<Divider orientation="vertical" flexItem />}
         >
@@ -204,6 +200,7 @@ export default function ResourceBar({
               value={sciBalance}
               rate={sciPerHour}
               rateUnit={perHourLabel}
+              hideRate={dense}
             />
           )}
           {typeof eggsBalance === "number" && (
@@ -213,6 +210,7 @@ export default function ResourceBar({
               value={eggsBalance}
               rate={eggsPerDay}
               rateUnit={perDayLabel}
+              hideRate={dense}
             />
           )}
           {typeof feathersBalance === "number" && (
@@ -246,9 +244,10 @@ export default function ResourceBar({
             title={notificationsLabel}
             aria-label={notificationsLabel}
             sx={{
-              px: { xs: 0.75, md: 1 },
+              px: dense ? 1.25 : { xs: 0.75, md: 1 },
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               textDecoration: "none",
               color: "inherit",
               cursor: "pointer",
@@ -256,11 +255,45 @@ export default function ResourceBar({
               "&:hover": { boxShadow: 4 },
             }}
           >
-            <Typography sx={{ fontSize: 18, lineHeight: 1 }}>🔔</Typography>
+            <Typography sx={{ fontSize: dense ? 17 : 18, lineHeight: 1 }}>🔔</Typography>
           </Card>
         </Badge>
       )}
       </Box>
+  );
+
+  // Mobile: rendered inside the AppBar Toolbar (see AppShell). Shrinkable + scrolls
+  // horizontally (hidden scrollbar) so a full HUD never overflows a narrow bar.
+  if (variant === "inline")
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          minWidth: 0,
+          overflowX: "auto",
+          scrollbarWidth: "none",
+          "&::-webkit-scrollbar": { display: "none" },
+        }}
+      >
+        {hud}
+      </Box>
+    );
+
+  // Desktop: float top-right over content (hidden on mobile, where the inline
+  // variant lives in the header instead).
+  return (
+    <Box
+      sx={{
+        position: "fixed",
+        top: 12,
+        right: 16,
+        zIndex: (theme) => theme.zIndex.drawer + 2,
+        display: { xs: "none", md: "flex" },
+        alignItems: "center",
+      }}
+    >
+      {hud}
     </Box>
   );
 }

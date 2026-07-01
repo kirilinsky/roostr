@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
+import ToggleButton from "@mui/material/ToggleButton";
 import type {
   FriendRequestSummary,
   DiscoverySummary,
@@ -41,9 +42,9 @@ const TABS = [
   { key: "roostrdex", labelKey: "nav.roostrdex" },
 ] as const;
 
-// Notifications feed. A single MUI Tabs strip (scrollable → swipes on mobile,
-// scroll buttons on desktop when it overflows) over the per-category list
-// components in notifications/*.
+// Notifications feed. Desktop: a scrollable MUI Tabs strip. Mobile: a wrapping
+// grid of compact ToggleButtons (MUI Tabs can't wrap to multiple rows) — all ten
+// categories fit with no horizontal scroll. Both drive the same `tab` state.
 export default function NotificationsView({
   requests,
   newFriends = [],
@@ -96,6 +97,37 @@ export default function NotificationsView({
   return (
     // minWidth:0 lets this flex column shrink below the tab-strip content width.
     <Stack spacing={2} sx={{ minWidth: 0 }}>
+      {/* Mobile: compact wrapping grid — every category on-screen, no scroll. */}
+      <Box
+        sx={{
+          display: { xs: "grid", md: "none" },
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 0.5,
+        }}
+      >
+        {TABS.map((x) => (
+          <ToggleButton
+            key={x.key}
+            value={x.key}
+            selected={tab === x.key}
+            onClick={() => setTab(x.key)}
+            sx={{
+              py: 0.4,
+              px: 0.5,
+              gap: 0.5,
+              minHeight: 0,
+              lineHeight: 1.1,
+              textTransform: "none",
+              fontSize: "0.6875rem",
+              fontWeight: 700,
+            }}
+          >
+            {t(x.labelKey)}
+            {countBadge(tabCounts[x.key] ?? 0)}
+          </ToggleButton>
+        ))}
+      </Box>
+
       <Tabs
         value={tab}
         onChange={(_, v) => setTab(v)}
@@ -103,14 +135,15 @@ export default function NotificationsView({
         scrollButtons="auto"
         allowScrollButtonsMobile
         sx={{
+          display: { xs: "none", md: "flex" },
           minHeight: 40,
           maxWidth: "100%",
           minWidth: 0,
           "& .MuiTab-root": {
             minHeight: 40,
-            minWidth: { xs: 68, md: 90 },
-            px: { xs: 1.25, md: 2 },
-            fontSize: { xs: "0.8125rem", md: "0.875rem" },
+            minWidth: 90,
+            px: 2,
+            fontSize: "0.875rem",
           },
         }}
       >

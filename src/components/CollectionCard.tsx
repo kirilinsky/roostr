@@ -273,8 +273,15 @@ export default function CollectionCard({
       </Box>
 
       {/* footer: stat lean (Intellect or by-category) on the left, battle record
-          on the right — one row, space-between */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+          on the right. Wraps on narrow cards so nothing collides/clips. */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+        useFlexGap
+        sx={{ rowGap: 0.5, columnGap: 1 }}
+      >
         {metric === "hp" ? (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Typography
@@ -312,10 +319,16 @@ export default function CollectionCard({
             </Typography>
           </Stack>
         ) : (
-          <Stack direction="row" spacing={1.5}>
+          <Stack
+            direction="row"
+            flexWrap="wrap"
+            useFlexGap
+            alignItems="center"
+            spacing={{ xs: 0.75, sm: 1.5 }}
+          >
             {/* HP alongside the stat lean */}
             {!compact && (
-              <Stack direction="row" alignItems="center" spacing={0.5}>
+              <Stack direction="row" alignItems="center" spacing={0.375}>
                 <Typography
                   variant="caption"
                   sx={{
@@ -333,7 +346,7 @@ export default function CollectionCard({
               </Stack>
             )}
             {STAT_KIND_ORDER.map((kind) => (
-              <Stack key={kind} direction="row" alignItems="center" spacing={0.5}>
+              <Stack key={kind} direction="row" alignItems="center" spacing={0.375}>
                 {!compact && (
                   <Box
                     sx={{
@@ -395,7 +408,7 @@ export default function CollectionCard({
   );
 
   const baseSx: SxProps<Theme> = {
-    p: compact ? 0.75 : 1.5,
+    p: compact ? 0.75 : { xs: 1, sm: 1.5 },
     display: "flex",
     flexDirection: "column",
     gap: compact ? 0.5 : 1,

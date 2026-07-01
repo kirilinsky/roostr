@@ -84,6 +84,25 @@ export default function AppShell({
   const pathname = usePathname();
   const close = () => setMobileOpen(false);
 
+  // Shared HUD props → rendered twice: fixed top-right on desktop, and inline
+  // inside the mobile top bar (merged with the burger, no fixed-overlap).
+  const hudProps = {
+    coinBalance,
+    eggsBalance,
+    sciBalance,
+    defenseBalance,
+    sciPerHour,
+    eggsPerDay,
+    perHourLabel,
+    perDayLabel,
+    feathersBalance,
+    feathersLabel,
+    eggsLabel,
+    sciLabel,
+    notificationsLabel,
+    notificationCount,
+  };
+
   if (!user) {
     return (
       <Box
@@ -115,11 +134,12 @@ export default function AppShell({
             onClick={close}
             sx={{
               borderRadius: 0,
-              py: 0.75,
+              // Mobile: bigger tap target; desktop keeps the tighter row.
+              py: { xs: 1.15, md: 0.75 },
               "& .MuiListItemText-primary": {
                 fontFamily: "var(--font-headline), system-ui, sans-serif",
                 fontWeight: 700,
-                fontSize: "0.9rem",
+                fontSize: { xs: "1rem", md: "0.9rem" },
                 letterSpacing: "0.05em",
                 textTransform: "uppercase",
               },
@@ -133,7 +153,7 @@ export default function AppShell({
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40, fontSize: 22 }}>
+            <ListItemIcon sx={{ minWidth: { xs: 44, md: 40 }, fontSize: { xs: 26, md: 22 } }}>
               {it.icon}
             </ListItemIcon>
             <ListItemText primary={it.label} />
@@ -270,25 +290,11 @@ export default function AppShell({
 
   return (
     <Box sx={{ display: "flex", minHeight: "100dvh" }}>
-      {/* Resource HUD — fixed top-right, visible on every page */}
-      <ResourceBar
-        coinBalance={coinBalance}
-        eggsBalance={eggsBalance}
-        sciBalance={sciBalance}
-        defenseBalance={defenseBalance}
-        sciPerHour={sciPerHour}
-        eggsPerDay={eggsPerDay}
-        perHourLabel={perHourLabel}
-        perDayLabel={perDayLabel}
-        feathersBalance={feathersBalance}
-        feathersLabel={feathersLabel}
-        eggsLabel={eggsLabel}
-        notificationsLabel={notificationsLabel}
-        notificationCount={notificationCount}
-        sciLabel={sciLabel}
-      />
+      {/* Resource HUD — desktop: fixed top-right (component hides itself on xs). */}
+      <ResourceBar variant="fixed" {...hudProps} />
 
-      {/* Mobile top bar */}
+      {/* Mobile top bar = header + HUD in ONE component: burger, logo, then the
+          inline HUD. No separate fixed HUD floating over it. */}
       <AppBar
         position="fixed"
         color="default"
@@ -298,18 +304,20 @@ export default function AppShell({
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar sx={{ gap: 0.5, minHeight: 52 }}>
+        <Toolbar
+          disableGutters
+          sx={{ gap: 0.5, minHeight: 56, px: 0.75, alignItems: "center" }}
+        >
           <IconButton
-            edge="start"
             onClick={() => setMobileOpen(true)}
             aria-label="open menu"
+            sx={{ flexShrink: 0, width: 44, height: 44, fontSize: 30, lineHeight: 1 }}
           >
             ☰
           </IconButton>
-          {/* Phones (xs): hidden — the fixed HUD spans the bar and would overlap
-              it. Shown from sm up where there's room left of the HUD. */}
+          {/* Logo — only where there's room (sm+); xs gives its width to the HUD. */}
           <Box
-            sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center" }}
+            sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", flexShrink: 0 }}
           >
             <Image
               src="/roostr_logo.png"
@@ -320,6 +328,8 @@ export default function AppShell({
               style={{ height: 28, width: "auto" }}
             />
           </Box>
+          <Box sx={{ flexGrow: 1, minWidth: 0 }} />
+          <ResourceBar variant="inline" {...hudProps} />
         </Toolbar>
       </AppBar>
 
