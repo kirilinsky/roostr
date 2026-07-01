@@ -57,7 +57,8 @@ export type GeneFamily =
   | "Mind"
   | "Work"
   | "Voice"
-  | "Stealth";
+  | "Stealth"
+  | "Fortune";
 
 export interface FamilyMeta {
   id: GeneFamily;

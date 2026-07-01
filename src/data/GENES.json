@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "description": {
     "en": "Key genes. family + boosts define native upgrade branches; statMods is the small starting buff/debuff.",
     "ru": "Ключевые гены. family + boosts задают родные ветки; statMods — маленький стартовый баф/дебаф."
@@ -672,6 +672,31 @@
         "ru": "Действует раньше мысли: быстрые движения есть, глубокого плана меньше."
       },
       "no": 31
+    },
+    {
+      "id": "gamblers-spur",
+      "name": {
+        "en": "Gambler's Spur",
+        "ru": "Шпора игрока"
+      },
+      "family": "Fortune",
+      "boosts": [
+        "Luck",
+        "Crit"
+      ],
+      "weakness": "Accuracy",
+      "role": "Gambler",
+      "statMods": {
+        "Luck": 2,
+        "Crit": 1,
+        "Accuracy": -1,
+        "Guard": -1
+      },
+      "passive": {
+        "en": "Rides on luck — huge swings, but aim gets sloppy.",
+        "ru": "Живёт на удаче: огромные качели, но прицел хромает."
+      },
+      "no": 32
     }
   ]
 }

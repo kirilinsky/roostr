@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "description": {
     "en": "How it all connects: gene families -> skills they boost/weaken + role; archetypes (gene combos) -> strengths/weaknesses; weight classes -> HP/stat modifiers.",
     "ru": "Как всё связано: семейства генов -> усиливаемые/слабеющие скиллы + роль; архетипы (комбо генов) -> сильные/слабые стороны; весовые классы -> модификаторы HP/статов."
@@ -158,6 +158,23 @@
         "Crow"
       ],
       "role": "Thief"
+    },
+    {
+      "id": "Fortune",
+      "name": {
+        "en": "Fortune / Chance",
+        "ru": "Фортуна / Случай"
+      },
+      "color": "#f9a825",
+      "boosts": [
+        "Luck",
+        "Crit"
+      ],
+      "weakens": [
+        "Accuracy",
+        "Guard"
+      ],
+      "role": "Gambler"
     }
   ],
   "archetypes": [
@@ -327,6 +344,24 @@
         "Guard",
         "Damage",
         "Crow"
+      ]
+    },
+    {
+      "id": "Gambler",
+      "name": {
+        "en": "Gambler",
+        "ru": "Игрок"
+      },
+      "families": [
+        "Fortune"
+      ],
+      "strengths": [
+        "Luck",
+        "Crit"
+      ],
+      "weaknesses": [
+        "Accuracy",
+        "Guard"
       ]
     },
     {
