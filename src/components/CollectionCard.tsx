@@ -22,7 +22,7 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 
 // Footer readout mode: "kinds" = stat-by-category sums (collection); "intellect"
 // = single Intellect score (lab roster / picker).
-export type CardMetric = "kinds" | "intellect" | "fertility" | "crow";
+export type CardMetric = "kinds" | "intellect" | "fertility" | "crow" | "hp";
 
 // Compact "how long on the job" badge text (m / h / d).
 function shortAgo(sinceMs: number, nowMs: number): string {
@@ -184,7 +184,9 @@ export default function CollectionCard({
                   ? "card.onLab"
                   : work?.kind === "defense"
                     ? "card.onDefense"
-                    : "card.working",
+                    : work?.kind === "hospital"
+                      ? "card.onHospital"
+                      : "card.working",
             )}
             label={
               <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.375 }}>
@@ -197,7 +199,15 @@ export default function CollectionCard({
                     style={{ height: 13, width: "auto" }}
                   />
                 ) : (
-                  <span>{work?.kind === "farm" ? "🌾" : work?.kind === "lab" ? "🧪" : "🔧"}</span>
+                  <span>
+                    {work?.kind === "farm"
+                      ? "🌾"
+                      : work?.kind === "lab"
+                        ? "🧪"
+                        : work?.kind === "hospital"
+                          ? "🏥"
+                          : "🔧"}
+                  </span>
                 )}
                 {work && nowMs ? <span>{shortAgo(work.since, nowMs)}</span> : null}
               </Box>
@@ -265,7 +275,16 @@ export default function CollectionCard({
       {/* footer: stat lean (Intellect or by-category) on the left, battle record
           on the right — one row, space-between */}
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        {metric === "intellect" ? (
+        {metric === "hp" ? (
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums", color: "error.main" }}
+            >
+              ♥ {roostr.currentHp ?? roostr.maxHealth}/{roostr.maxHealth}
+            </Typography>
+          </Stack>
+        ) : metric === "intellect" ? (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <Typography
               variant="caption"

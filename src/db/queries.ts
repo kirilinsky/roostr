@@ -366,8 +366,9 @@ export async function getProfileMetrics(
       referrals,
       gifts,
       synthGeneEvents,
+      roostrHospitalVisits,
     } = await import("@/db/schema");
-    const { and, eq, gt, inArray, or, sql } = await import("drizzle-orm");
+    const { and, eq, gt, lt, inArray, or, sql } = await import("drizzle-orm");
     const { hydrateRoostr, TIERS } = await import("@/lib/roostr");
 
     // Lifetime science earned (positive sci ledger rows — lab claims).
@@ -382,6 +383,30 @@ export async function getProfileMetrics(
         ),
       );
     metrics.sciEarned = Number(sci?.s ?? 0);
+
+    // Science spent (Σ |negative sci rows|) + eggs earned (Σ positive egg rows).
+    const [sciSp] = await db
+      .select({ s: sql<number>`coalesce(sum(-${resourceTxns.amount}), 0)` })
+      .from(resourceTxns)
+      .where(
+        and(eq(resourceTxns.userId, userId), eq(resourceTxns.resource, "sci"), lt(resourceTxns.amount, 0)),
+      );
+    metrics.sciSpent = Number(sciSp?.s ?? 0);
+
+    const [eggEarn] = await db
+      .select({ s: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)` })
+      .from(resourceTxns)
+      .where(
+        and(eq(resourceTxns.userId, userId), eq(resourceTxns.resource, "egg"), gt(resourceTxns.amount, 0)),
+      );
+    metrics.eggsEarned = Number(eggEarn?.s ?? 0);
+
+    // Health potions bought (ledger kind "potion"). 0 until the potion ships.
+    const [pot] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(resourceTxns)
+      .where(and(eq(resourceTxns.userId, userId), eq(resourceTxns.kind, "potion")));
+    metrics.potionsBought = Number(pot?.n ?? 0);
 
     // Synthetic genes: how many spliced (Biohacker), distinct kinds (Mad
     // Geneticist), and total science SUNK into synth genes + their upgrades, net
@@ -434,20 +459,25 @@ export async function getProfileMetrics(
     let highest = 0;
     let tierB = 0;
     let renamed = 0;
+    let hurt = 0;
     const tiers = new Set<number>();
     for (const row of owned) {
-      const tierId = hydrateRoostr(row).tier.id;
-      const rank = TIERS.findIndex((t) => t.id === tierId);
+      const h = hydrateRoostr(row);
+      const rank = TIERS.findIndex((t) => t.id === h.tier.id);
       if (rank > highest) highest = rank;
       if (rank >= 0) tiers.add(rank);
-      if (tierId === "B") tierB++;
+      if (h.tier.id === "B") tierB++;
       if (row.nickname && row.nickname.trim()) renamed++;
+      // Hurt = below max HP (drives the "Epidemic" achievement).
+      if (row.currentHp != null && row.currentHp < h.maxHealth) hurt++;
     }
     metrics.highestTier = highest;
     metrics.tiersOwned = tiers.size;
     metrics.tierBCount = tierB;
     // "Name Giver" — at least one owned rooster carries a custom nickname.
     metrics.renames = renamed;
+    // Owned birds currently below max HP, at once → "Epidemic".
+    metrics.hurtRoostrs = hurt;
 
     // --- Quest-supporting metrics (also usable by achievements) ---
     // Stations: workers currently assigned (sum across farm+lab) + slots owned per
@@ -519,6 +549,37 @@ export async function getProfileMetrics(
       .from(resourceTxns)
       .where(and(eq(resourceTxns.userId, userId), eq(resourceTxns.kind, "release")));
     metrics.released = Number(rel?.n ?? 0);
+
+    // Hospital: birds sent to heal (first-heal) + fully-healed discharges (Head Nurse).
+    const [hosp] = await db
+      .select({
+        admits: sql<number>`count(*)`,
+        healed: sql<number>`count(*) filter (where ${roostrHospitalVisits.healedFull})`,
+      })
+      .from(roostrHospitalVisits)
+      .where(eq(roostrHospitalVisits.userId, userId));
+    metrics.hospitalAdmits = Number(hosp?.admits ?? 0);
+    metrics.hospitalHealed = Number(hosp?.healed ?? 0);
+
+    // Raids (TBA) — count + looted coins from the ledger (kind "raid"). 0 until the
+    // raid system ships, then auto-fills. hpSpent has no source yet (combat unbuilt).
+    const [raid] = await db
+      .select({
+        n: sql<number>`count(*)`,
+        loot: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)`,
+      })
+      .from(resourceTxns)
+      .where(
+        and(
+          eq(resourceTxns.userId, userId),
+          eq(resourceTxns.resource, "coin"),
+          eq(resourceTxns.kind, "raid"),
+          gt(resourceTxns.amount, 0),
+        ),
+      );
+    metrics.raidsDone = Number(raid?.n ?? 0);
+    metrics.raidLoot = Number(raid?.loot ?? 0);
+    metrics.hpSpent = 0; // TODO: wire when combat/raids log HP loss
   } catch (e) {
     console.error("getProfileMetrics failed:", e);
   }
@@ -1487,6 +1548,332 @@ export async function getLatestRelease(
   }
 }
 
+// --- Hospital (heal hurt birds; per-bird, Recovery-paced) ---
+
+// How many birds this owner has in the hospital right now.
+export async function countHospitalPatients(ownerId: number): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq, sql } = await import("drizzle-orm");
+    const [c] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(roostrs)
+      .where(
+        and(
+          eq(roostrs.ownerId, ownerId),
+          eq(roostrs.status, "working"),
+          sql`${roostrs.meta} #>> '{work,kind}' = 'hospital'`,
+        ),
+      );
+    return Number(c?.n ?? 0);
+  } catch (e) {
+    console.error("countHospitalPatients failed:", e);
+    return 0;
+  }
+}
+
+// Admit a hurt bird to the hospital: owner-guarded, ACTIVE + hurt only, a free bed
+// required. Locks it (status working, meta.work.kind="hospital") and stamps the
+// heal anchor (hpAt=now). Returns an error code the UI can message.
+export async function admitToHospital(
+  id: string,
+  ownerId: number,
+): Promise<{ ok: boolean; error?: "owner" | "locked" | "healthy" | "full" | "db" }> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, roostrHospitalVisits } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const row = await getRoostr(id);
+    if (!row || row.ownerId !== ownerId) return { ok: false, error: "owner" };
+    if (row.status !== "active") return { ok: false, error: "locked" };
+    const { maxHealth } = hydrateRoostr(row);
+    if (row.currentHp == null || row.currentHp >= maxHealth) {
+      return { ok: false, error: "healthy" };
+    }
+    if ((await countHospitalPatients(ownerId)) >= (await getHospitalSlots(ownerId))) {
+      return { ok: false, error: "full" };
+    }
+    const meta = {
+      ...((row.meta as Record<string, unknown>) ?? {}),
+      work: { kind: "hospital", since: Date.now() },
+    };
+    const res = await db
+      .update(roostrs)
+      .set({ status: "working", meta, hpAt: new Date() })
+      .where(
+        and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId), eq(roostrs.status, "active")),
+      )
+      .returning({ id: roostrs.id });
+    if (res.length === 0) return { ok: false, error: "locked" };
+    // Log the visit (admitHp drives the "nine lives" near-death achievement).
+    await db.insert(roostrHospitalVisits).values({
+      roostrId: id,
+      userId: ownerId,
+      admitHp: row.currentHp,
+    });
+    return { ok: true };
+  } catch (e) {
+    console.error("admitToHospital failed:", e);
+    return { ok: false, error: "db" };
+  }
+}
+
+// Close the latest OPEN visit for a bird (called on discharge / auto-discharge).
+async function closeHospitalVisit(roostrId: string, healedFull: boolean): Promise<void> {
+  try {
+    const { db } = await import("@/db");
+    const { roostrHospitalVisits } = await import("@/db/schema");
+    const { and, desc, eq, isNull } = await import("drizzle-orm");
+    const [open] = await db
+      .select({ id: roostrHospitalVisits.id })
+      .from(roostrHospitalVisits)
+      .where(
+        and(eq(roostrHospitalVisits.roostrId, roostrId), isNull(roostrHospitalVisits.dischargedAt)),
+      )
+      .orderBy(desc(roostrHospitalVisits.admittedAt))
+      .limit(1);
+    if (!open) return;
+    await db
+      .update(roostrHospitalVisits)
+      .set({ dischargedAt: new Date(), healedFull })
+      .where(eq(roostrHospitalVisits.id, open.id));
+  } catch (e) {
+    console.error("closeHospitalVisit failed:", e);
+  }
+}
+
+// Discharge a bird from the hospital: settle its healed HP (write back; null if
+// full), unlock to active, clear the work stamp + anchor. Owner-guarded.
+export async function dischargeFromHospital(
+  id: string,
+  ownerId: number,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const { healedHp } = await import("@/lib/hospital");
+    const row = await getRoostr(id);
+    if (!row || row.ownerId !== ownerId) return false;
+    const work = (row.meta as { work?: { kind?: string } } | null)?.work;
+    if (row.status !== "working" || work?.kind !== "hospital") return false;
+    const { maxHealth, stats } = hydrateRoostr(row);
+    const healed = healedHp(
+      row.currentHp,
+      maxHealth,
+      stats.Recovery ?? 0,
+      row.hpAt ? new Date(row.hpAt).getTime() : null,
+      Date.now(),
+    );
+    const meta = { ...((row.meta as Record<string, unknown>) ?? {}) };
+    delete meta.work;
+    const res = await db
+      .update(roostrs)
+      .set({
+        status: "active",
+        meta,
+        hpAt: null,
+        currentHp: healed >= maxHealth ? null : healed,
+      })
+      .where(
+        and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId), eq(roostrs.status, "working")),
+      )
+      .returning({ id: roostrs.id });
+    if (res.length === 0) return false;
+    await closeHospitalVisit(id, healed >= maxHealth);
+    return true;
+  } catch (e) {
+    console.error("dischargeFromHospital failed:", e);
+    return false;
+  }
+}
+
+// Hospital screen data: current patients (fully-healed ones STAY on the bed until
+// the player collects them — no auto-discharge), the owner's admittable hurt birds,
+// and the bed count.
+export async function getHospitalView(ownerId: number): Promise<{
+  patients: Awaited<ReturnType<typeof getRoostrs>>;
+  injured: Awaited<ReturnType<typeof getRoostrs>>;
+  slots: number;
+}> {
+  if (!process.env.DATABASE_URL) return { patients: [], injured: [], slots: 2 };
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq, sql } = await import("drizzle-orm");
+
+    const patients = await db
+      .select()
+      .from(roostrs)
+      .where(
+        and(
+          eq(roostrs.ownerId, ownerId),
+          eq(roostrs.status, "working"),
+          sql`${roostrs.meta} #>> '{work,kind}' = 'hospital'`,
+        ),
+      );
+
+    const activeRows = await db
+      .select()
+      .from(roostrs)
+      .where(and(eq(roostrs.ownerId, ownerId), eq(roostrs.status, "active")));
+    const injured = activeRows.filter((r) => {
+      const { maxHealth } = hydrateRoostr(r);
+      return r.currentHp != null && r.currentHp < maxHealth;
+    });
+
+    return { patients, injured, slots: await getHospitalSlots(ownerId) };
+  } catch (e) {
+    console.error("getHospitalView failed:", e);
+    return { patients: [], injured: [], slots: 1 };
+  }
+}
+
+// How many of this owner's patients are fully healed and waiting to be collected.
+// Drives the "come collect your healed rooster" notification (bell alert).
+export async function getHospitalReadyCount(ownerId: number): Promise<number> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(ownerId)) return 0;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq, sql } = await import("drizzle-orm");
+    const { healedHp } = await import("@/lib/hospital");
+    const nowMs = Date.now();
+    const rows = await db
+      .select()
+      .from(roostrs)
+      .where(
+        and(
+          eq(roostrs.ownerId, ownerId),
+          eq(roostrs.status, "working"),
+          sql`${roostrs.meta} #>> '{work,kind}' = 'hospital'`,
+        ),
+      );
+    let ready = 0;
+    for (const row of rows) {
+      const { maxHealth, stats } = hydrateRoostr(row);
+      const healed = healedHp(
+        row.currentHp,
+        maxHealth,
+        stats.Recovery ?? 0,
+        row.hpAt ? new Date(row.hpAt).getTime() : null,
+        nowMs,
+      );
+      if (healed >= maxHealth) ready++;
+    }
+    return ready;
+  } catch (e) {
+    console.error("getHospitalReadyCount failed:", e);
+    return 0;
+  }
+}
+
+// Beds this owner has (base 1 + bought). Stored in work_stations kind="hospital"
+// (reusing only the slotsOwned column; patients are tracked via meta.work.kind).
+export async function getHospitalSlots(ownerId: number): Promise<number> {
+  if (!process.env.DATABASE_URL) return 1;
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const { HOSPITAL_BASE_SLOTS } = await import("@/lib/hospital");
+    const [r] = await db
+      .select({ slots: workStations.slotsOwned })
+      .from(workStations)
+      .where(and(eq(workStations.userId, ownerId), eq(workStations.kind, "hospital")))
+      .limit(1);
+    return r?.slots ?? HOSPITAL_BASE_SLOTS;
+  } catch (e) {
+    console.error("getHospitalSlots failed:", e);
+    return 1;
+  }
+}
+
+// Buy the next hospital bed with coins. Server-computes the price + max.
+export async function buyHospitalSlot(
+  ownerId: number,
+): Promise<{ ok: boolean; error?: "max" | "coins" | "db" }> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { sql } = await import("drizzle-orm");
+    const { HOSPITAL_BASE_SLOTS, nextHospitalSlotPrice } = await import("@/lib/hospital");
+    const current = await getHospitalSlots(ownerId);
+    const price = nextHospitalSlotPrice(current);
+    if (price == null) return { ok: false, error: "max" };
+    const coins = await spendCoins(ownerId, price, "hospital_slot");
+    if (coins === null) return { ok: false, error: "coins" };
+    // Upsert the hospital row, seeding from base then bumping to current+1.
+    await db
+      .insert(workStations)
+      .values({ userId: ownerId, kind: "hospital", slotsOwned: HOSPITAL_BASE_SLOTS + 1 })
+      .onConflictDoUpdate({
+        target: [workStations.userId, workStations.kind],
+        set: { slotsOwned: sql`${workStations.slotsOwned} + 1` },
+      });
+    return { ok: true };
+  } catch (e) {
+    console.error("buyHospitalSlot failed:", e);
+    return { ok: false, error: "db" };
+  }
+}
+
+// DEV ONLY: knock `damage` HP off a bird (to test the hospital before combat
+// exists). Owner + active guarded; result floored at 1; a full result → null.
+export async function damageRoostr(
+  id: string,
+  ownerId: number,
+  damage: number,
+): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const row = await getRoostr(id);
+    if (!row || row.ownerId !== ownerId || row.status !== "active") return false;
+    const { maxHealth } = hydrateRoostr(row);
+    const target = Math.max(1, maxHealth - Math.floor(damage));
+    await db
+      .update(roostrs)
+      .set({ currentHp: target >= maxHealth ? null : target })
+      .where(and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId)));
+    return true;
+  } catch (e) {
+    console.error("damageRoostr failed:", e);
+    return false;
+  }
+}
+
+// Per-bird hospital stats for rooster achievements: total visits ("frequent
+// patient") + whether it ever came in at rock-bottom HP and fully healed ("nine lives").
+export async function getRoostrHospitalStats(
+  roostrId: string,
+): Promise<{ visits: number; nineLives: boolean }> {
+  if (!process.env.DATABASE_URL) return { visits: 0, nineLives: false };
+  try {
+    const { db } = await import("@/db");
+    const { roostrHospitalVisits } = await import("@/db/schema");
+    const { eq, sql } = await import("drizzle-orm");
+    const [c] = await db
+      .select({
+        visits: sql<number>`count(*)`,
+        nine: sql<number>`count(*) filter (where ${roostrHospitalVisits.admitHp} <= 1 and ${roostrHospitalVisits.healedFull})`,
+      })
+      .from(roostrHospitalVisits)
+      .where(eq(roostrHospitalVisits.roostrId, roostrId));
+    return { visits: Number(c?.visits ?? 0), nineLives: Number(c?.nine ?? 0) > 0 };
+  } catch (e) {
+    console.error("getRoostrHospitalStats failed:", e);
+    return { visits: 0, nineLives: false };
+  }
+}
+
 // Set (or clear) a roostr's custom nickname (owner-guarded). Pass null to clear
 // back to the breed-name default. Returns true on success.
 export async function setNickname(
@@ -1931,7 +2318,7 @@ export async function markNotificationRead(
 export async function countUnreadNotifications(userId: number): Promise<number> {
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
-    const [news, ach, dex, friends, requests, gifts, giftUpdates, synth, readyQ, stations] =
+    const [news, ach, dex, friends, requests, gifts, giftUpdates, synth, readyQ, stations, hospitalReady] =
       await Promise.all([
         getNews(userId),
         getNewAchievements(userId),
@@ -1943,6 +2330,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
         getSynthGeneNotifications(userId),
         countReadyQuests(userId),
         getStationAlerts(userId),
+        getHospitalReadyCount(userId),
       ]);
     const unread =
       news.filter((n) => n.unread).length +
@@ -1952,7 +2340,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       gifts.filter((g) => g.unread).length +
       giftUpdates.filter((g) => g.unread).length +
       synth.filter((s) => s.unread).length;
-    return unread + requests.length + readyQ + stations.length;
+    return unread + requests.length + readyQ + stations.length + hospitalReady;
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);
     return 0;

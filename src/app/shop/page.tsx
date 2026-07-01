@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
@@ -10,8 +11,18 @@ import { getTranslations } from "@/i18n/server";
 
 // Shop hub — category blocks. Buy from the system (vs the player-to-player Market).
 // Only the synthetic-gene catalog is live; the rest are placeholders for future
-// stock. Add a category = one entry here + its page.
-const CATEGORIES = [
+// stock. Add a category = one entry here + its page. `img` uses a PNG icon instead
+// of the emoji when present.
+type ShopCat = {
+  href: string;
+  icon: string;
+  img?: string;
+  titleKey: string;
+  descKey: string;
+  live: boolean;
+};
+
+const CATEGORIES: ShopCat[] = [
   {
     href: "/shop/synth-genes",
     icon: "🧬",
@@ -27,13 +38,30 @@ const CATEGORIES = [
     live: true,
   },
   {
+    // Player-to-player market (moved out of the sidebar into the shop hub).
+    href: "/market",
+    icon: "🛒",
+    titleKey: "nav.market",
+    descKey: "shop.marketDesc",
+    live: true,
+  },
+  {
+    // Full-heal potion (instant hospital cure) — bought with coins. Not built yet.
+    href: "/shop",
+    icon: "🧪",
+    img: "/potion.png",
+    titleKey: "shop.potionTitle",
+    descKey: "shop.potionDesc",
+    live: false,
+  },
+  {
     href: "/shop",
     icon: "🎨",
     titleKey: "shop.cosmeticsTitle",
     descKey: "shop.cosmeticsDesc",
     live: false,
   },
-] as const;
+];
 
 export default async function ShopPage() {
   const { t } = await getTranslations();
@@ -66,9 +94,19 @@ export default async function ShopPage() {
                   alignItems="center"
                   justifyContent="space-between"
                 >
-                  <Typography variant="h5" component="span">
-                    {c.icon}
-                  </Typography>
+                  {c.img ? (
+                    <Image
+                      src={c.img}
+                      alt=""
+                      width={32}
+                      height={32}
+                      style={{ height: 28, width: "auto" }}
+                    />
+                  ) : (
+                    <Typography variant="h5" component="span">
+                      {c.icon}
+                    </Typography>
+                  )}
                   {!c.live && (
                     <Chip
                       label={t("pedia.soon")}

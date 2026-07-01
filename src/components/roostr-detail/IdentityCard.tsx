@@ -21,7 +21,7 @@ export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
   const tier = roostr.tier;
   const kgUnit = locale === "ru" ? "кг" : "kg";
   const weightIdx = WEIGHT_CLASSES.findIndex((w) => w.id === roostr.weightClass.id);
-  const curHp = roostr.maxHealth; // current HP not tracked yet → full
+  const curHp = roostr.currentHp ?? roostr.maxHealth; // stored HP (null = full)
   const nextTier = TIERS.find((tr) => tr.min > roostr.rating);
   const bandPct = nextTier
     ? Math.min(100, ((roostr.rating - tier.min) / (nextTier.min - tier.min)) * 100)

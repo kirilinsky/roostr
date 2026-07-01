@@ -26,13 +26,20 @@ export default function StatusNotices({
 
   if (roostr.status === "working") {
     const kind = roostr.work?.kind;
+    const isHospital = kind === "hospital";
     const stationLabel = t(
-      kind === "farm" ? "nav.farm" : kind === "defense" ? "nav.defense" : "nav.lab",
+      kind === "farm"
+        ? "nav.farm"
+        : kind === "defense"
+          ? "nav.defense"
+          : isHospital
+            ? "nav.hospital"
+            : "nav.lab",
     );
     return (
       <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
         <Typography variant="body2" sx={{ fontWeight: 700 }}>
-          🔧 {t("detail.atWork", { station: stationLabel })}
+          {isHospital ? "🏥" : "🔧"} {t("detail.atWork", { station: stationLabel })}
         </Typography>
       </Card>
     );

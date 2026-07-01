@@ -485,6 +485,51 @@
       "value": 1
     }, 
     {
+      "id": "first-heal",
+      "icon": "🏥",
+      "tier": "common",
+      "name": {
+        "en": "Get Well Soon",
+        "ru": "Поправляйся"
+      },
+      "desc": {
+        "en": "Send your first rooster to the hospital.",
+        "ru": "Отправь первого петуха лечиться."
+      },
+      "metric": "hospitalAdmits",
+      "value": 1
+    },
+    {
+      "id": "head-nurse",
+      "icon": "💉",
+      "tier": "rare",
+      "name": {
+        "en": "Head Nurse",
+        "ru": "Старшая медсестра"
+      },
+      "desc": {
+        "en": "Fully heal 10 roosters.",
+        "ru": "Вылечи 10 петухов полностью."
+      },
+      "metric": "hospitalHealed",
+      "value": 10
+    },
+    {
+      "id": "epidemic",
+      "icon": "🤒",
+      "tier": "rare",
+      "name": {
+        "en": "Epidemic",
+        "ru": "Эпидемия"
+      },
+      "desc": {
+        "en": "Have 10 roosters below max HP at once.",
+        "ru": "Имей 10 петухов с HP ниже максимума разом."
+      },
+      "metric": "hurtRoostrs",
+      "value": 10
+    },
+    {
       "id": "release-13",
       "icon": "🕊️",
       "tier": "medium",
@@ -673,11 +718,11 @@
         "ru": "Крепость"
       },
       "desc": {
-        "en": "Raise your base defense to 25.",
-        "ru": "Подними защиту базы до 25."
+        "en": "Raise your base defense to 30.",
+        "ru": "Подними защиту базы до 30."
       },
       "metric": "defenseValue",
-      "value": 25
+      "value": 30
     },
     {
       "id": "hateful-eight",
@@ -785,6 +830,51 @@
       },
       "metric": "wasFreed",
       "value": 1
+    },
+    {
+      "id": "frequent-patient",
+      "icon": "🩹",
+      "tier": "medium",
+      "name": {
+        "en": "Frequent Patient",
+        "ru": "Завсегдатай палаты"
+      },
+      "desc": {
+        "en": "Visit the hospital 15 times.",
+        "ru": "Побывай в больнице 15 раз."
+      },
+      "metric": "hospitalVisits",
+      "value": 15
+    },
+    {
+      "id": "nine-lives",
+      "icon": "🐈",
+      "tier": "rare",
+      "name": {
+        "en": "Nine Lives",
+        "ru": "Девять жизней"
+      },
+      "desc": {
+        "en": "Get admitted at 1 HP and fully heal.",
+        "ru": "Попади в больницу на последнем издыхании и вылечись."
+      },
+      "metric": "nineLives",
+      "value": 1
+    },
+    {
+      "id": "tough",
+      "icon": "🧱",
+      "tier": "collectible",
+      "name": {
+        "en": "Tough as Nails",
+        "ru": "Живучий"
+      },
+      "desc": {
+        "en": "Reach 90 max HP.",
+        "ru": "Достигни 90 макс HP."
+      },
+      "metric": "maxHp",
+      "value": 90
     },
     {
       "id": "wins-10",
@@ -915,11 +1005,11 @@
         "ru": "Вечный страж"
       },
       "desc": {
-        "en": "Keep a rooster on the Defense watch for 35 days straight.",
-        "ru": "Продержи петуха в Дозоре 35 дней без перерыва."
+        "en": "Keep a rooster on the Defense watch for 40 days straight.",
+        "ru": "Продержи петуха в Дозоре 40 дней без перерыва."
       },
       "metric": "guardDays",
-      "value": 35
+      "value": 40
     },
     {
       "id": "hot-potato",

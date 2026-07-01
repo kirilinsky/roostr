@@ -15,6 +15,7 @@ import {
   getIncomingGifts,
   getSenderGiftUpdates,
   getSynthGeneNotifications,
+  getHospitalReadyCount,
   expireStaleGifts,
 } from "@/db/queries";
 import { readyQuests } from "@/lib/quests";
@@ -39,6 +40,7 @@ export default async function NotificationsPage() {
   const incomingGifts = session ? await getIncomingGifts(session.id) : [];
   const giftUpdates = session ? await getSenderGiftUpdates(session.id) : [];
   const synthGenes = session ? await getSynthGeneNotifications(session.id) : [];
+  const hospitalReady = session ? await getHospitalReadyCount(session.id) : 0;
 
   return (
     <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
@@ -57,6 +59,7 @@ export default async function NotificationsPage() {
           incomingGifts={incomingGifts}
           giftUpdates={giftUpdates}
           synthGenes={synthGenes}
+          hospitalReady={hospitalReady}
           selfId={session?.id ?? null}
         />
       </Stack>

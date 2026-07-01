@@ -7,6 +7,7 @@ import RoostrDetail from "@/components/RoostrDetail";
 import AchievementBadge from "@/components/AchievementBadge";
 import AchievementToaster from "@/components/AchievementToaster";
 import { getSession } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import {
   getRoostr,
   getUserById,
@@ -16,6 +17,7 @@ import {
   getFriends,
   getTopCategoryLeaders,
   getLatestRelease,
+  getRoostrHospitalStats,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import {
@@ -71,6 +73,8 @@ export default async function RoostrDetailPage({
   const meta = (row.meta as { gifted?: boolean; giftRejected?: boolean; freed?: boolean } | null) ?? {};
   // #1 in any leaderboard category → "Arena Champion" (global, not bird-derivable).
   const topLeaders = await getTopCategoryLeaders();
+  // Hospital history (visits / nine-lives) — per-bird, not derivable from the bird.
+  const hosp = await getRoostrHospitalStats(id);
   const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, {
     ...roosterMetricsFrom(roostr),
     owners: ownerSet.size,
@@ -79,6 +83,8 @@ export default async function RoostrDetailPage({
     wasRejected: meta.giftRejected ? 1 : 0,
     wasFreed: meta.freed ? 1 : 0,
     topCategory: topLeaders.has(id) ? 1 : 0,
+    hospitalVisits: hosp.visits,
+    nineLives: hosp.nineLives ? 1 : 0,
   });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =
@@ -108,6 +114,7 @@ export default async function RoostrDetailPage({
         locked={row.status !== "active"}
         friends={friends}
         freedAt={freedAt}
+        isAdmin={isAdmin(session?.id)}
       />
 
       {earned.length > 0 && (

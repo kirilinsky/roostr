@@ -70,6 +70,13 @@ const ARTICLES = [
     live: true,
   },
   {
+    href: "/pedia/mechanics/hospital",
+    icon: "🏥",
+    titleKey: "pedia.mech.hospital.title",
+    descKey: "pedia.mech.hospital.desc",
+    live: true,
+  },
+  {
     href: "/pedia/mechanics/defense",
     icon: "🛡️",
     titleKey: "pedia.mech.defense.title",

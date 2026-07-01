@@ -265,6 +265,34 @@ export default async function OwnProfile({
               label={t("profile.battles")}
               value={(metrics.battles ?? 0).toLocaleString()}
             />
+            <StatLine
+              label={t("profile.released")}
+              value={(metrics.released ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.raids")}
+              value={(metrics.raidsDone ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.raidLoot")}
+              value={(metrics.raidLoot ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.hpSpent")}
+              value={(metrics.hpSpent ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.sciSpent")}
+              value={(metrics.sciSpent ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.eggsEarned")}
+              value={(metrics.eggsEarned ?? 0).toLocaleString()}
+            />
+            <StatLine
+              label={t("profile.potionsBought")}
+              value={(metrics.potionsBought ?? 0).toLocaleString()}
+            />
           </Stack>
         </PanelCard>
 

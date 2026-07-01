@@ -26,6 +26,7 @@ import DexList from "@/components/notifications/DexList";
 import AchievementsList from "@/components/notifications/AchievementsList";
 import SynthGeneList from "@/components/notifications/SynthGeneList";
 import StationNotice from "@/components/notifications/StationNotice";
+import HospitalNotice from "@/components/notifications/HospitalNotice";
 
 // Filter categories. Only "friends" carries data today (incoming requests);
 // the rest are placeholders for future notification types.
@@ -38,6 +39,7 @@ const TABS = [
   { key: "achievements", labelKey: "profile.achievements" },
   { key: "farm", labelKey: "nav.farm" },
   { key: "lab", labelKey: "nav.lab" },
+  { key: "hospital", labelKey: "nav.hospital" },
   { key: "roostrdex", labelKey: "nav.roostrdex" },
 ] as const;
 
@@ -54,6 +56,7 @@ export default function NotificationsView({
   incomingGifts = [],
   giftUpdates = [],
   synthGenes = [],
+  hospitalReady = 0,
   selfId = null,
 }: {
   requests: FriendRequestSummary[];
@@ -66,6 +69,7 @@ export default function NotificationsView({
   incomingGifts?: IncomingGift[];
   giftUpdates?: GiftUpdate[];
   synthGenes?: SynthGeneNotification[];
+  hospitalReady?: number;
   selfId?: number | null;
 }) {
   const t = useT();
@@ -83,6 +87,7 @@ export default function NotificationsView({
     achievements: unread(achievements),
     farm: fullStations.includes("farm") ? 1 : 0,
     lab: (fullStations.includes("lab") ? 1 : 0) + unread(synthGenes),
+    hospital: hospitalReady,
     roostrdex: unread(discoveries),
   };
 
@@ -159,6 +164,8 @@ export default function NotificationsView({
         ) : (
           <EmptyNotice />
         )
+      ) : tab === "hospital" ? (
+        hospitalReady > 0 ? <HospitalNotice ready={hospitalReady} /> : <EmptyNotice />
       ) : stationFull ? (
         <StationNotice kind={tab as "farm" | "lab"} />
       ) : (

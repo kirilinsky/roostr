@@ -215,6 +215,13 @@ export const roostrs = pgTable("roostrs", {
     .$type<Record<string, number>>()
     .notNull()
     .default({}),
+  // Health tracking. `currentHp` null = full/undamaged (the common case) — combat
+  // (raids/battles) sets it below the computed maxHealth. While a bird is in the
+  // hospital (meta.work.kind="hospital"), HP regenerates from `hpAt` at a rate set
+  // by its Recovery skill; on discharge the healed value is written back.
+  currentHp: integer("current_hp"),
+  hpAt: timestamp("hp_at", { withTimezone: true }), // heal anchor while healing; null otherwise
+
   // LEGACY cosmetic columns (pre-V2 per-part colors). No longer written or read —
   // the look now lives in `meta.cosmetic` (V2). Kept nullable so old rows survive;
   // safe to drop later.
@@ -365,6 +372,24 @@ export const roostrReleases = pgTable("roostr_releases", {
     .references(() => users.id, { onDelete: "cascade" }),
   releasedAt: timestamp("released_at", { withTimezone: true }).notNull().defaultNow(),
   adoptedAt: timestamp("adopted_at", { withTimezone: true }),
+});
+
+// Hospital visit log — append-only, one row per admission. Powers hospital
+// achievements: profile "admitted a bird" / "fully healed N", rooster "visited N
+// times" / "nine lives" (admitted at rock-bottom HP and fully healed). Closed on
+// discharge (dischargedAt + healedFull set); open while the bird is still healing.
+export const roostrHospitalVisits = pgTable("roostr_hospital_visits", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  roostrId: uuid("roostr_id")
+    .notNull()
+    .references(() => roostrs.id, { onDelete: "cascade" }),
+  userId: bigint("user_id", { mode: "number" })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  admitHp: integer("admit_hp").notNull(), // HP at admission (1 = near-death)
+  admittedAt: timestamp("admitted_at", { withTimezone: true }).notNull().defaultNow(),
+  dischargedAt: timestamp("discharged_at", { withTimezone: true }), // null = still healing
+  healedFull: boolean("healed_full").notNull().default(false), // reached max HP on discharge
 });
 
 export const battles = pgTable("battles", {

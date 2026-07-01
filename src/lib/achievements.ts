@@ -75,6 +75,7 @@ export function roosterMetricsFrom(r: {
   genes: { id: string }[];
   geneLevels: Record<string, number>;
   synthGeneIds?: string[];
+  maxHealth?: number;
   tier: { id: string };
   wins: number;
   losses: number;
@@ -98,6 +99,7 @@ export function roosterMetricsFrom(r: {
     minStat: statVals.length ? Math.min(...statVals) : 0,
     guardDays,
     synthSlotsFilled: r.synthGeneIds?.length ?? 0,
+    maxHp: r.maxHealth ?? 0,
   };
 }
 

@@ -10,6 +10,7 @@ import CombatCard from "@/components/roostr-detail/CombatCard";
 import StatusNotices from "@/components/roostr-detail/StatusNotices";
 import OwnerActions from "@/components/roostr-detail/OwnerActions";
 import ReturnFromWorkButton from "@/components/roostr-detail/ReturnFromWorkButton";
+import DevHurtButton from "@/components/roostr-detail/DevHurtButton";
 import GeneUpgradeGrid from "@/components/roostr-detail/GeneUpgradeGrid";
 import SynthGeneStrip from "@/components/roostr-detail/SynthGeneStrip";
 import type { GiftFriend } from "@/components/GiftRoostrButton";
@@ -28,6 +29,7 @@ export default function RoostrDetail({
   locked = false,
   friends = [],
   freedAt,
+  isAdmin = false,
 }: {
   roostr: HydratedRoostr;
   roostrId: string;
@@ -37,6 +39,7 @@ export default function RoostrDetail({
   locked?: boolean;
   friends?: GiftFriend[];
   freedAt?: number;
+  isAdmin?: boolean;
 }) {
   const t = useT();
   // Sell / gift only an ACTIVE bird (market actions). Upgrading genes is allowed
@@ -76,6 +79,10 @@ export default function RoostrDetail({
 
       {canManage && (
         <OwnerActions roostr={roostr} roostrId={roostrId} friends={friends} />
+      )}
+
+      {isAdmin && isOwner && roostr.status === "active" && (
+        <DevHurtButton roostrId={roostrId} />
       )}
 
       <GeneUpgradeGrid
