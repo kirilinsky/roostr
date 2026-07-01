@@ -1585,7 +1585,7 @@ export async function admitToHospital(
   try {
     const { db } = await import("@/db");
     const { roostrs, roostrHospitalVisits } = await import("@/db/schema");
-    const { and, eq } = await import("drizzle-orm");
+    const { and, eq, sql } = await import("drizzle-orm");
     const row = await getRoostr(id);
     if (!row || row.ownerId !== ownerId) return { ok: false, error: "owner" };
     if (row.status !== "active") return { ok: false, error: "locked" };
@@ -1593,21 +1593,30 @@ export async function admitToHospital(
     if (row.currentHp == null || row.currentHp >= maxHealth) {
       return { ok: false, error: "healthy" };
     }
-    if ((await countHospitalPatients(ownerId)) >= (await getHospitalSlots(ownerId))) {
+    const slots = await getHospitalSlots(ownerId);
+    if ((await countHospitalPatients(ownerId)) >= slots) {
       return { ok: false, error: "full" };
     }
     const meta = {
       ...((row.meta as Record<string, unknown>) ?? {}),
       work: { kind: "hospital", since: Date.now() },
     };
+    // The bed-count subquery in the WHERE makes the cap atomic: a concurrent admit
+    // of another bird can't slip past `slots` — the count is re-checked inside the
+    // same UPDATE, not read-then-write. 0 rows now means the cap filled in a race.
     const res = await db
       .update(roostrs)
       .set({ status: "working", meta, hpAt: new Date() })
       .where(
-        and(eq(roostrs.id, id), eq(roostrs.ownerId, ownerId), eq(roostrs.status, "active")),
+        and(
+          eq(roostrs.id, id),
+          eq(roostrs.ownerId, ownerId),
+          eq(roostrs.status, "active"),
+          sql`(select count(*) from roostrs r2 where r2.owner_id = ${ownerId} and r2.status = 'working' and r2.meta #>> '{work,kind}' = 'hospital') < ${slots}`,
+        ),
       )
       .returning({ id: roostrs.id });
-    if (res.length === 0) return { ok: false, error: "locked" };
+    if (res.length === 0) return { ok: false, error: "full" };
     // Log the visit (admitHp drives the "nine lives" near-death achievement).
     await db.insert(roostrHospitalVisits).values({
       roostrId: id,
@@ -1802,20 +1811,30 @@ export async function buyHospitalSlot(
     const { db } = await import("@/db");
     const { workStations } = await import("@/db/schema");
     const { sql } = await import("drizzle-orm");
-    const { HOSPITAL_BASE_SLOTS, nextHospitalSlotPrice } = await import("@/lib/hospital");
+    const { HOSPITAL_BASE_SLOTS, nextHospitalSlotPrice, maxHospitalSlots } =
+      await import("@/lib/hospital");
     const current = await getHospitalSlots(ownerId);
     const price = nextHospitalSlotPrice(current);
     if (price == null) return { ok: false, error: "max" };
     const coins = await spendCoins(ownerId, price, "hospital_slot");
     if (coins === null) return { ok: false, error: "coins" };
-    // Upsert the hospital row, seeding from base then bumping to current+1.
-    await db
+    // Atomic bump, capped at max. `setWhere` blocks a concurrent double-buy from
+    // pushing beds past the cap (a lost race applies nothing → we refund).
+    const max = maxHospitalSlots();
+    const res = await db
       .insert(workStations)
       .values({ userId: ownerId, kind: "hospital", slotsOwned: HOSPITAL_BASE_SLOTS + 1 })
       .onConflictDoUpdate({
         target: [workStations.userId, workStations.kind],
         set: { slotsOwned: sql`${workStations.slotsOwned} + 1` },
-      });
+        setWhere: sql`${workStations.slotsOwned} < ${max}`,
+      })
+      .returning({ slots: workStations.slotsOwned });
+    if (res.length === 0) {
+      // Cap already hit (race) — refund the spend, no bed granted.
+      await grantCoins(ownerId, price, "refund", "hospital_slot");
+      return { ok: false, error: "max" };
+    }
     return { ok: true };
   } catch (e) {
     console.error("buyHospitalSlot failed:", e);
