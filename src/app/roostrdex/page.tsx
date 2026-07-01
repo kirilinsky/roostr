@@ -13,7 +13,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import { alpha, type SxProps, type Theme } from "@mui/material/styles";
 import BreedDexCard from "@/components/BreedDexCard";
 import { useIsAdmin } from "@/components/AdminProvider";
 import { useToast } from "@/components/ToastProvider";
@@ -111,6 +111,35 @@ export default function RoostrdexPage() {
     (e) => reveal || discovered.has(e.breed.id),
   ).length;
   const pct = total > 0 ? (found / total) * 100 : 0;
+
+  // Filter rows: big, finger-friendly tap targets on mobile; compact on desktop.
+  const filterItemSx: SxProps<Theme> = {
+    gap: 1,
+    borderRadius: 0.75,
+    minWidth: 0, // let the row shrink inside a grid cell instead of forcing width
+    minHeight: { xs: 48, md: 36 },
+    py: { xs: 1, md: 0.5 },
+    px: { xs: 1.5, md: 1 },
+    "& .MuiListItemText-root": { minWidth: 0 },
+    "& .MuiListItemText-primary": {
+      fontSize: { xs: "1rem", md: "0.875rem" },
+      // Long breed-group names wrap on mobile (2-col) instead of blowing out width;
+      // desktop sidebar keeps the single-line ellipsis.
+      whiteSpace: { xs: "normal", md: "nowrap" },
+      overflow: { md: "hidden" },
+      textOverflow: { md: "ellipsis" },
+      overflowWrap: "anywhere",
+    },
+    "&.Mui-selected": { fontWeight: 800 },
+  };
+  // Mobile: lay the filter out as a 2-column grid (shorter than one tall column,
+  // buttons still big). Desktop: the usual single-column sidebar list.
+  const filterListSx: SxProps<Theme> = {
+    display: { xs: "grid", md: "block" },
+    gridTemplateColumns: { xs: "1fr 1fr" },
+    gap: { xs: 0.5, md: 0 },
+    "& .MuiListItem-root": { minWidth: 0 },
+  };
 
   return (
     <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
@@ -236,9 +265,14 @@ export default function RoostrdexPage() {
               width: { md: 220 },
               flexShrink: 0,
               alignSelf: "flex-start",
+              // Mobile: break out of the Container gutters → full-bleed edge-to-edge;
+              // drop the side borders + radius so it sits flush to the screen edges.
+              mx: { xs: -2, sm: -3, md: 0 },
               border: 1,
               borderColor: "divider",
-              borderRadius: 1,
+              borderLeftWidth: { xs: 0, md: 1 },
+              borderRightWidth: { xs: 0, md: 1 },
+              borderRadius: { xs: 0, md: 1 },
               p: 1,
               bgcolor: alpha(theme.palette.background.paper, 0.88),
             })}
@@ -250,21 +284,14 @@ export default function RoostrdexPage() {
             >
               {t("roostrdex.filter")}
             </Typography>
-            <List dense disablePadding>
+            <List dense disablePadding sx={filterListSx}>
               <ListItem disablePadding>
                 <ListItemButton
                   selected={filter === ALL}
                   onClick={() => setFilter(ALL)}
-                  sx={{
-                    gap: 1,
-                    borderRadius: 0.75,
-                    "&.Mui-selected": { fontWeight: 800 },
-                  }}
+                  sx={filterItemSx}
                 >
-                  <ListItemText
-                    primary={t("roostrdex.all")}
-                    primaryTypographyProps={{ noWrap: true }}
-                  />
+                  <ListItemText primary={t("roostrdex.all")} />
                   <GroupCount found={found} total={total} />
                 </ListItemButton>
               </ListItem>
@@ -275,16 +302,9 @@ export default function RoostrdexPage() {
                     <ListItemButton
                       selected={filter === g}
                       onClick={() => setFilter(g)}
-                      sx={{
-                        gap: 1,
-                        borderRadius: 0.75,
-                        "&.Mui-selected": { fontWeight: 800 },
-                      }}
+                      sx={filterItemSx}
                     >
-                      <ListItemText
-                        primary={groupName(g, locale)}
-                        primaryTypographyProps={{ noWrap: true }}
-                      />
+                      <ListItemText primary={groupName(g, locale)} />
                       <GroupCount found={s.found} total={s.total} />
                     </ListItemButton>
                   </ListItem>
@@ -363,16 +383,28 @@ function RewardPill({
 function GroupCount({ found, total }: { found: number; total: number }) {
   const done = total > 0 && found >= total;
   return (
-    <Typography
-      variant="caption"
-      sx={{
+    <Box
+      component="span"
+      sx={(theme) => ({
         flexShrink: 0,
-        fontWeight: 700,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 36,
+        height: 22,
+        px: 0.5,
+        border: 1,
+        borderRadius: 0, // square chip — Neo-Arcade
+        borderColor: done ? "success.main" : "divider",
+        bgcolor: done ? "success.main" : "action.hover",
+        color: done ? theme.palette.success.contrastText : "text.secondary",
+        fontWeight: 800,
+        fontSize: "0.72rem",
+        lineHeight: 1,
         fontVariantNumeric: "tabular-nums",
-        color: done ? "success.main" : "text.secondary",
-      }}
+      })}
     >
       {done ? "✓" : `${found}/${total}`}
-    </Typography>
+    </Box>
   );
 }
