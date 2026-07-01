@@ -1,11 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Collapse from "@mui/material/Collapse";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -41,15 +42,19 @@ function RewardChip({ resource, amount }: { resource: QuestResource; amount: num
 
 // Onboarding quest chain for the profile. Linear: claimed → ready → active → locked.
 // Claim is server-validated; on success the HUD animates the reward (V20 refresh).
+// Completed (claimed) quests collapse under a toggle so the pending ones lead.
 export default function QuestBoard({ states }: { states: QuestState[] }) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
   const toast = useToast();
   const [busy, start] = useTransition();
+  const [showDone, setShowDone] = useState(false);
 
   const done = states.filter((s) => s.status === "claimed").length;
   const allDone = done === states.length;
+  const claimedStates = states.filter((s) => s.status === "claimed");
+  const pendingStates = states.filter((s) => s.status !== "claimed");
 
   function claim(id: string) {
     start(async () => {
@@ -63,6 +68,89 @@ export default function QuestBoard({ states }: { states: QuestState[] }) {
     });
   }
 
+  const renderQuest = (s: QuestState) => {
+    const { def, status, current, target, progress } = s;
+    const claimed = status === "claimed";
+    const locked = status === "locked";
+    const ready = status === "ready";
+    return (
+      <Box
+        key={def.id}
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          p: 1,
+          borderRadius: 0,
+          border: 1,
+          borderColor: ready ? "secondary.main" : "divider",
+          opacity: claimed || locked ? 0.55 : 1,
+        }}
+      >
+        <Typography sx={{ fontSize: 22, lineHeight: 1 }}>
+          {claimed ? "✅" : locked ? "🔒" : def.icon}
+        </Typography>
+
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography
+            variant="body2"
+            sx={{ fontWeight: 700, textDecoration: claimed ? "line-through" : "none" }}
+            noWrap
+          >
+            {def.name[locale]}
+          </Typography>
+          {ready || status === "active" ? (
+            <>
+              <Typography variant="caption" color="text.secondary" component="div">
+                {def.desc[locale]}
+              </Typography>
+              {status === "active" && (
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={progress * 100}
+                    sx={{ flex: 1, height: 6, borderRadius: 0 }}
+                  />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ fontVariantNumeric: "tabular-nums" }}
+                  >
+                    {current}/{target}
+                  </Typography>
+                </Stack>
+              )}
+            </>
+          ) : null}
+        </Box>
+
+        {/* Action / reward */}
+        <Box sx={{ flexShrink: 0 }}>
+          {claimed ? (
+            <RewardChip resource={def.reward.resource} amount={def.reward.amount} />
+          ) : ready ? (
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              disabled={busy}
+              onClick={() => claim(def.id)}
+            >
+              {t("quests.claim")}&nbsp;
+              <RewardChip resource={def.reward.resource} amount={def.reward.amount} />
+            </Button>
+          ) : status === "active" && def.href ? (
+            <Button component={Link} href={def.href} size="small" variant="outlined">
+              {t("quests.go")}
+            </Button>
+          ) : (
+            <RewardChip resource={def.reward.resource} amount={def.reward.amount} />
+          )}
+        </Box>
+      </Box>
+    );
+  };
+
   return (
     <Stack spacing={1.25}>
       <Typography variant="caption" color="text.secondary">
@@ -75,93 +163,26 @@ export default function QuestBoard({ states }: { states: QuestState[] }) {
         </Typography>
       )}
 
-      {states.map((s) => {
-        const { def, status, current, target, progress } = s;
-        const claimed = status === "claimed";
-        const locked = status === "locked";
-        const ready = status === "ready";
-        return (
-          <Box
-            key={def.id}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.25,
-              p: 1,
-              borderRadius: 0,
-              border: 1,
-              borderColor: ready ? "secondary.main" : "divider",
-              opacity: claimed || locked ? 0.55 : 1,
-            }}
+      {/* Pending quests (ready / active / locked) lead. */}
+      {pendingStates.map(renderQuest)}
+
+      {/* Completed quests collapse under a toggle. */}
+      {claimedStates.length > 0 && (
+        <>
+          <Button
+            variant="text"
+            color="neutral"
+            size="small"
+            onClick={() => setShowDone((v) => !v)}
+            sx={{ alignSelf: "flex-start", fontWeight: 700 }}
           >
-            <Typography sx={{ fontSize: 22, lineHeight: 1 }}>
-              {claimed ? "✅" : locked ? "🔒" : def.icon}
-            </Typography>
-
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography
-                variant="body2"
-                sx={{ fontWeight: 700, textDecoration: claimed ? "line-through" : "none" }}
-                noWrap
-              >
-                {def.name[locale]}
-              </Typography>
-              {ready || status === "active" ? (
-                <>
-                  <Typography variant="caption" color="text.secondary" component="div">
-                    {def.desc[locale]}
-                  </Typography>
-                  {status === "active" && (
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                      <LinearProgress
-                        variant="determinate"
-                        value={progress * 100}
-                        sx={{ flex: 1, height: 6, borderRadius: 0 }}
-                      />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ fontVariantNumeric: "tabular-nums" }}
-                      >
-                        {current}/{target}
-                      </Typography>
-                    </Stack>
-                  )}
-                </>
-              ) : null}
-            </Box>
-
-            {/* Action / reward */}
-            <Box sx={{ flexShrink: 0 }}>
-              {claimed ? (
-                <RewardChip resource={def.reward.resource} amount={def.reward.amount} />
-              ) : ready ? (
-                <Button
-                  size="small"
-                  variant="contained"
-                  color="secondary"
-                  disabled={busy}
-                  onClick={() => claim(def.id)}
-                >
-                  {t("quests.claim")}&nbsp;
-                  <RewardChip resource={def.reward.resource} amount={def.reward.amount} />
-                </Button>
-              ) : status === "active" && def.href ? (
-                <Button
-                  component={Link}
-                  href={def.href}
-                  size="small"
-                  variant="outlined"
-                >
-                  {t("quests.go")}
-                </Button>
-              ) : (
-                <RewardChip resource={def.reward.resource} amount={def.reward.amount} />
-              )}
-            </Box>
-          </Box>
-        );
-      })}
+            {showDone ? "▾" : "▸"}&nbsp;{t("quests.completed", { n: String(done) })}
+          </Button>
+          <Collapse in={showDone} unmountOnExit>
+            <Stack spacing={1.25}>{claimedStates.map(renderQuest)}</Stack>
+          </Collapse>
+        </>
+      )}
     </Stack>
   );
 }

@@ -80,6 +80,13 @@ export default async function RootLayout({
 
   const loggedIn = !!session;
   const admin = isAdmin(session?.id);
+  // Local dev server only (NODE_ENV !== "production" → localhost `npm run dev`,
+  // never Vercel). You can't do the real Telegram login from localhost, so show a
+  // stub-user shell to guests: the full sidebar renders (incl. the dev-login
+  // buttons) so you can sign in as admin/user and click through every page.
+  const devLocal = process.env.NODE_ENV !== "production";
+  const shellUser: ShellUser | null =
+    user ?? (devLocal ? { id: 0, name: "dev (guest)" } : null);
   // Live Corn Coin balance from the DB (was hardcoded 0).
   const dbUser = session ? await getUserById(session.id) : null;
   // Unread notifications → HUD bell badge.
@@ -103,8 +110,8 @@ export default async function RootLayout({
       )
     : 0;
 
-  // Game nav is for logged-in players only; guests do not get the app sidebar.
-  const mainNav: NavItem[] = loggedIn
+  // Game nav is for logged-in players; also for guests on the local dev server.
+  const mainNav: NavItem[] = loggedIn || devLocal
     ? [
         { href: "/incubator", label: t("nav.incubator"), icon: "🥚" },
         { href: "/collection", label: t("nav.collection"), icon: "🐔" },
@@ -144,7 +151,7 @@ export default async function RootLayout({
               <AdminProvider isAdmin={admin}>
                 <ToastProvider>
                   <AppShell
-                    user={user}
+                    user={shellUser}
                     coinBalance={user ? (dbUser?.coins ?? 0) : undefined}
                     eggsBalance={user ? (dbUser?.eggs ?? 0) : undefined}
                     sciBalance={user ? (dbUser?.sci ?? 0) : undefined}

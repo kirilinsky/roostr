@@ -511,6 +511,14 @@ export async function getProfileMetrics(
       .from(gifts)
       .where(and(eq(gifts.toUserId, userId), eq(gifts.status, "accepted")));
     metrics.giftsReceived = Number(gIn?.n ?? 0);
+
+    // Roosters released to the wild — one "release" ledger row (the free feather)
+    // per release. Drives the "Free Bird / Letting Go / Liberator" achievements.
+    const [rel] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(resourceTxns)
+      .where(and(eq(resourceTxns.userId, userId), eq(resourceTxns.kind, "release")));
+    metrics.released = Number(rel?.n ?? 0);
   } catch (e) {
     console.error("getProfileMetrics failed:", e);
   }
@@ -1411,6 +1419,71 @@ export async function bumpSynthGeneLevel(
   } catch (e) {
     console.error("bumpSynthGeneLevel failed:", e);
     return false;
+  }
+}
+
+// Release a bird to the wild — owner-guarded, ACTIVE-only, atomic. Moves it to the
+// "released" limbo status (excluded from every listing — collection, leaderboard,
+// PvE, market) and stamps `meta.freed` (drives the "Set Free" rooster achievement).
+// ownerId is kept for provenance — the row is NOT deleted. CAS on status="active"
+// so it can't race a sell/gift/station-assign. Returns true if it was released.
+export async function releaseRoostr(id: string, ownerId: number): Promise<boolean> {
+  if (!process.env.DATABASE_URL) return false;
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, roostrReleases } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const cur = await getRoostr(id);
+    const meta: Record<string, unknown> = {
+      ...((cur?.meta as Record<string, unknown>) ?? {}),
+      freed: true,
+    };
+    const res = await db
+      .update(roostrs)
+      .set({ status: "released", meta })
+      .where(
+        and(
+          eq(roostrs.id, id),
+          eq(roostrs.ownerId, ownerId),
+          eq(roostrs.status, "active"),
+        ),
+      )
+      .returning({ id: roostrs.id });
+    if (res.length === 0) return false;
+    // Append the release-log row (who + when) only after the CAS actually flipped
+    // the bird — so a lost race never logs a phantom release.
+    await db.insert(roostrReleases).values({ roostrId: id, userId: ownerId });
+    return true;
+  } catch (e) {
+    console.error("releaseRoostr failed:", e);
+    return false;
+  }
+}
+
+// Most recent release of a bird (when it was last set free + when it was adopted
+// back, if ever). Powers the "freed on X · N on the loose" readout. Null if the
+// bird was never released.
+export async function getLatestRelease(
+  roostrId: string,
+): Promise<{ releasedAt: Date; adoptedAt: Date | null } | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { roostrReleases } = await import("@/db/schema");
+    const { desc, eq } = await import("drizzle-orm");
+    const [r] = await db
+      .select({
+        releasedAt: roostrReleases.releasedAt,
+        adoptedAt: roostrReleases.adoptedAt,
+      })
+      .from(roostrReleases)
+      .where(eq(roostrReleases.roostrId, roostrId))
+      .orderBy(desc(roostrReleases.releasedAt))
+      .limit(1);
+    return r ?? null;
+  } catch (e) {
+    console.error("getLatestRelease failed:", e);
+    return null;
   }
 }
 

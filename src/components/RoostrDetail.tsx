@@ -27,6 +27,7 @@ export default function RoostrDetail({
   isOwner,
   locked = false,
   friends = [],
+  freedAt,
 }: {
   roostr: HydratedRoostr;
   roostrId: string;
@@ -35,6 +36,7 @@ export default function RoostrDetail({
   isOwner: boolean;
   locked?: boolean;
   friends?: GiftFriend[];
+  freedAt?: number;
 }) {
   const t = useT();
   // Sell / gift only an ACTIVE bird (market actions). Upgrading genes is allowed
@@ -66,7 +68,7 @@ export default function RoostrDetail({
         <CombatCard roostr={roostr} />
       </Box>
 
-      <StatusNotices roostr={roostr} isOwner={isOwner} locked={locked} />
+      <StatusNotices roostr={roostr} isOwner={isOwner} locked={locked} freedAt={freedAt} />
 
       {isOwner && roostr.status === "working" && (
         <ReturnFromWorkButton roostrId={roostrId} kind={roostr.work?.kind} />

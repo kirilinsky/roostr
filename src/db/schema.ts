@@ -233,7 +233,7 @@ export const roostrs = pgTable("roostrs", {
   // Lifecycle state. Recycling/selling sets a non-active status instead of
   // hard-deleting the row, so the rooster's history (and provenance below)
   // survives. breed_discoveries already assumes the dex unlock outlives the bird.
-  status: text("status").notNull().default("active"), // active | recycled | listed | sold
+  status: text("status").notNull().default("active"), // active | working | gifting | listed | sold | recycled | released (freed to the wild — ownerless limbo, excluded from all listings)
   // Forward catch-all for small, evolving per-rooster fields (achievements,
   // flags, aura cache, …). Add keys here WITHOUT a migration; promote to a typed
   // column once a field's shape is stable. Keep big/queried data in real columns.
@@ -347,6 +347,24 @@ export const synthGeneEvents = pgTable("synth_gene_events", {
     .references(() => roostrs.id, { onDelete: "cascade" }),
   geneId: text("gene_id").notNull(),
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Release log — append-only, one row per time a bird is set free (a bird can be
+// released more than once over its life, and by different owners after future
+// re-adoption, so this is a history, not a column on roostrs). `userId` = who
+// released it THAT time (roostrs.ownerId only keeps the latest owner). Time on the
+// loose = (adoptedAt ?? now) − releasedAt; `adoptedAt` stays null while still free
+// (set when the bird is re-owned — adoption is a future feature).
+export const roostrReleases = pgTable("roostr_releases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  roostrId: uuid("roostr_id")
+    .notNull()
+    .references(() => roostrs.id, { onDelete: "cascade" }),
+  userId: bigint("user_id", { mode: "number" })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  releasedAt: timestamp("released_at", { withTimezone: true }).notNull().defaultNow(),
+  adoptedAt: timestamp("adopted_at", { withTimezone: true }),
 });
 
 export const battles = pgTable("battles", {

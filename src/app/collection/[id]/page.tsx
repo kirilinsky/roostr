@@ -15,6 +15,7 @@ import {
   getRoostrHistory,
   getFriends,
   getTopCategoryLeaders,
+  getLatestRelease,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import {
@@ -46,6 +47,10 @@ export default async function RoostrDetailPage({
   const friends = isOwner && session ? await getFriends(session.id) : [];
   const roostr = hydrateRoostr(row);
 
+  // If the bird is freed, when it was last released → the "on the loose" readout.
+  const release = row.status === "released" ? await getLatestRelease(id) : null;
+  const freedAt = release ? new Date(release.releasedAt).getTime() : undefined;
+
   // Distinct owners ever (genesis + every transfer side) → "Hot Potato".
   const history = await getRoostrHistory(id);
   const ownerSet = new Set<number>();
@@ -63,7 +68,7 @@ export default async function RoostrDetailPage({
   );
   // Gift flags live on the bird's meta (set on accept / decline) → the
   // "gifted" and "rejected" rooster achievements.
-  const meta = (row.meta as { gifted?: boolean; giftRejected?: boolean } | null) ?? {};
+  const meta = (row.meta as { gifted?: boolean; giftRejected?: boolean; freed?: boolean } | null) ?? {};
   // #1 in any leaderboard category → "Arena Champion" (global, not bird-derivable).
   const topLeaders = await getTopCategoryLeaders();
   const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, {
@@ -72,6 +77,7 @@ export default async function RoostrDetailPage({
     renameCount,
     wasGifted: meta.gifted ? 1 : 0,
     wasRejected: meta.giftRejected ? 1 : 0,
+    wasFreed: meta.freed ? 1 : 0,
     topCategory: topLeaders.has(id) ? 1 : 0,
   });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
@@ -101,6 +107,7 @@ export default async function RoostrDetailPage({
         isOwner={isOwner}
         locked={row.status !== "active"}
         friends={friends}
+        freedAt={freedAt}
       />
 
       {earned.length > 0 && (

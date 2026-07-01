@@ -483,7 +483,7 @@
       },
       "metric": "released",
       "value": 1
-    },
+    }, 
     {
       "id": "release-13",
       "icon": "🕊️",
@@ -769,6 +769,21 @@
         "ru": "Займи 1-е место в общем топе в любой категории (атака, защита или польза)."
       },
       "metric": "topCategory",
+      "value": 1
+    },
+    {
+      "id": "freed",
+      "icon": "🕊️",
+      "tier": "common",
+      "name": {
+        "en": "Set Free",
+        "ru": "На воле"
+      },
+      "desc": {
+        "en": "This rooster was released to the wild.",
+        "ru": "Этого петуха отпустили на волю."
+      },
+      "metric": "wasFreed",
       "value": 1
     },
     {

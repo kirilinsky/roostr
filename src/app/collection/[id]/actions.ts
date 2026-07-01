@@ -21,6 +21,7 @@ import {
   spendResource,
   grantResource,
   createGift,
+  releaseRoostr,
 } from "@/db/queries";
 
 export type UpgradeResult =
@@ -191,4 +192,36 @@ export async function giftRoostrAction(
   revalidatePath("/collection");
   revalidatePath("/notifications");
   return { ok: true };
+}
+
+export type ReleaseResult =
+  | { ok: true; feathers: number }
+  | { ok: false; error: "auth" | "notfound" | "owner" | "locked" | "save" };
+
+// Release a bird to the wild — irreversible. Owner-guarded, ACTIVE-only (can't
+// release a working/gifting/listed bird). Moves it to the "released" limbo status
+// (gone from every listing, not deleted) + stamps meta.freed, then rewards the
+// player with one feather. The freed rooster achievement records on the page
+// refresh (owner still owns by id); profile "released" achievements sync client-side.
+export async function releaseRoostrAction(
+  roostrId: string,
+): Promise<ReleaseResult> {
+  const session = await getSession();
+  if (!session) return { ok: false, error: "auth" };
+
+  const row = await getRoostr(roostrId);
+  if (!row) return { ok: false, error: "notfound" };
+  if (row.ownerId !== session.id) return { ok: false, error: "owner" };
+  if (row.status !== "active") return { ok: false, error: "locked" };
+
+  const released = await releaseRoostr(roostrId, session.id);
+  if (!released) return { ok: false, error: "save" };
+
+  // One feather for setting a bird free (also the ledger source for the "released"
+  // metric — kind "release").
+  const feathers = await grantResource(session.id, "feather", 1, "release", roostrId);
+
+  revalidatePath(`/collection/${roostrId}`);
+  revalidatePath("/collection");
+  return { ok: true, feathers: feathers ?? 0 };
 }
