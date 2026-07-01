@@ -3,6 +3,7 @@ import {
   getTelegramRedirectUri,
   telegramClaimsToSessionUser,
   TELEGRAM_STATE_COOKIE,
+  TELEGRAM_STATE_REF_SEP,
   TELEGRAM_TOKEN_URL,
   TELEGRAM_VERIFIER_COOKIE,
   timingSafeEqualString,
@@ -10,7 +11,7 @@ import {
 } from "@/lib/telegram";
 import { signSession, SESSION_COOKIE } from "@/lib/auth";
 import { upsertUser } from "@/db/queries";
-import { getReferralIdForUser, REFERRER_COOKIE } from "@/lib/referrals";
+import { getReferralIdForUser, parseReferralId, REFERRER_COOKIE } from "@/lib/referrals";
 import { LOCALE_COOKIE, localeFromTag } from "@/i18n/config";
 
 export const runtime = "nodejs";
@@ -89,10 +90,11 @@ export async function GET(req: NextRequest) {
       throw new TelegramAuthFlowError("user_claims_invalid", e);
     }
 
-    const referrerId = getReferralIdForUser(
-      req.cookies.get(REFERRER_COOKIE)?.value,
-      user.id,
-    );
+    // Referrer rides in `state` (survives the round-trip regardless of cookies);
+    // fall back to the legacy client ref cookie if an older link had no state ref.
+    const referrerId =
+      parseReferralId(state.split(TELEGRAM_STATE_REF_SEP)[1], user.id) ??
+      getReferralIdForUser(req.cookies.get(REFERRER_COOKIE)?.value, user.id);
 
     let token: string;
     try {

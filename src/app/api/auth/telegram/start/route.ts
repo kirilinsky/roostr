@@ -4,8 +4,10 @@ import {
   createTelegramPkceChallenge,
   getTelegramRedirectUri,
   TELEGRAM_STATE_COOKIE,
+  TELEGRAM_STATE_REF_SEP,
   TELEGRAM_VERIFIER_COOKIE,
 } from "@/lib/telegram";
+import { parseReferralId, REFERRER_COOKIE } from "@/lib/referrals";
 
 export const runtime = "nodejs";
 
@@ -19,7 +21,18 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL("/?auth_error=config", req.url));
   }
 
-  const { state, verifier, challenge } = createTelegramPkceChallenge();
+  const { state: rawState, verifier, challenge } = createTelegramPkceChallenge();
+  // Referrer: prefer the ?ref appended by the login button (sourced from
+  // localStorage → survives in-app webviews); fall back to the client ref cookie.
+  // Baked into `state` so it rides the OAuth round-trip in the URL, not a cookie.
+  const cookieHeader = req.headers.get("cookie") ?? "";
+  const cookieRef = new RegExp(`${REFERRER_COOKIE}=(\\d+)`).exec(cookieHeader)?.[1];
+  const referrerId =
+    parseReferralId(new URL(req.url).searchParams.get("ref")) ??
+    parseReferralId(cookieRef);
+  const state = referrerId
+    ? `${rawState}${TELEGRAM_STATE_REF_SEP}${referrerId}`
+    : rawState;
   const redirectUri = getTelegramRedirectUri(req);
   const authUrl = buildTelegramAuthorizationUrl({
     clientId,

@@ -7,6 +7,12 @@ const TELEGRAM_AUTH_URL = "https://oauth.telegram.org/auth";
 export const TELEGRAM_TOKEN_URL = "https://oauth.telegram.org/token";
 export const TELEGRAM_STATE_COOKIE = "telegram_oauth_state";
 export const TELEGRAM_VERIFIER_COOKIE = "telegram_oauth_verifier";
+// The referrer id is carried INSIDE the OAuth `state` (echoed in the URL round-trip),
+// so referral attribution survives even if the client-set ref cookie is dropped
+// (in-app webviews) or the visitor never re-renders. `~` is not in the base64url
+// alphabet, so it can't collide with the random state. State stays CSRF-safe: the
+// full "<random>~<refId>" string is what's stored in the cookie AND compared back.
+export const TELEGRAM_STATE_REF_SEP = "~";
 
 const telegramJwks = createRemoteJWKSet(
   new URL("https://oauth.telegram.org/.well-known/jwks.json"),
