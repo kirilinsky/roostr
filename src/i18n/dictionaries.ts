@@ -288,7 +288,8 @@ export const dictionaries: Record<Locale, Dict> = {
       "On the market — actions are locked until it sells or returns.",
     "detail.giftPending":
       "In limbo — gifted and awaiting the recipient. You can't act on it or take it back; it only returns if they decline.",
-    "detail.atWork": "At work ({station}) — take it off work to sell.",
+    "detail.atWork": "At work ({station}).",
+    "detail.returnFromWork": "Return from work",
     "detail.sellBlocked": "Take it off work first.",
     "detail.addNickname": "Add nickname",
     "detail.editNickname": "Edit nickname",
@@ -887,7 +888,8 @@ export const dictionaries: Record<Locale, Dict> = {
       "На рынке — действия заблокированы, пока не продастся или вернётся.",
     "detail.giftPending":
       "В лимбе — подарен и ждёт получателя. Ты не можешь ничего с ним сделать и не можешь забрать назад; вернётся только если откажутся.",
-    "detail.atWork": "На работе ({station}) — сними с работы, чтобы продать.",
+    "detail.atWork": "На работе ({station}).",
+    "detail.returnFromWork": "Вернуть с работы",
     "detail.sellBlocked": "Сначала убери с работы.",
     "sell.price": "Цена (коины)",
     "sell.bounds": "Допустимо: {min} – {max}",

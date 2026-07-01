@@ -9,6 +9,7 @@ import IdentityCard from "@/components/roostr-detail/IdentityCard";
 import CombatCard from "@/components/roostr-detail/CombatCard";
 import StatusNotices from "@/components/roostr-detail/StatusNotices";
 import OwnerActions from "@/components/roostr-detail/OwnerActions";
+import ReturnFromWorkButton from "@/components/roostr-detail/ReturnFromWorkButton";
 import GeneUpgradeGrid from "@/components/roostr-detail/GeneUpgradeGrid";
 import SynthGeneStrip from "@/components/roostr-detail/SynthGeneStrip";
 import type { GiftFriend } from "@/components/GiftRoostrButton";
@@ -66,6 +67,10 @@ export default function RoostrDetail({
       </Box>
 
       <StatusNotices roostr={roostr} isOwner={isOwner} locked={locked} />
+
+      {isOwner && roostr.status === "working" && (
+        <ReturnFromWorkButton roostrId={roostrId} kind={roostr.work?.kind} />
+      )}
 
       {canManage && (
         <OwnerActions roostr={roostr} roostrId={roostrId} friends={friends} />
