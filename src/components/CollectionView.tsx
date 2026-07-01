@@ -33,6 +33,7 @@ export default function CollectionView({
   const t = useT();
   const locale = useLocale();
   const [filters, setFilters] = useState<Record<string, string>>({
+    health: "",
     level: "",
     archetype: "",
     breed: "",
@@ -92,6 +93,14 @@ export default function CollectionView({
   }, [roostrs, locale]);
 
   const groups: FilterGroup[] = [
+    {
+      key: "health",
+      label: t("filter.health"),
+      options: [
+        { value: "healthy", label: t("filter.healthy") },
+        { value: "hurt", label: t("filter.hurt") },
+      ],
+    },
     { key: "level", label: t("collection.level"), options: levelOptions },
     { key: "archetype", label: t("filter.archetype"), options: archetypeOptions },
     { key: "breed", label: t("filter.breed"), options: breedOptions },
@@ -99,8 +108,13 @@ export default function CollectionView({
     { key: "country", label: t("filter.country"), options: countryOptions },
   ];
 
+  const isHurt = (r: HydratedRoostr) =>
+    r.currentHp != null && r.currentHp < r.maxHealth;
+
   const filtered = roostrs.filter(
     (r) =>
+      (!filters.health ||
+        (filters.health === "hurt" ? isHurt(r) : !isHurt(r))) &&
       (!filters.level || r.tier.id === filters.level) &&
       (!filters.archetype || r.role === filters.archetype) &&
       (!filters.breed || r.breed.id === filters.breed) &&
@@ -121,29 +135,30 @@ export default function CollectionView({
 
   return (
     <Stack spacing={2}>
+      {/* Filters + sort in one compact responsive bar (sort is the trailing cell). */}
       <Filters
         groups={groups}
         value={filters}
         onChange={(key, value) => setFilters((s) => ({ ...s, [key]: value }))}
         allLabel={t("filter.all")}
+        trailing={
+          <TextField
+            select
+            size="small"
+            label={t("sort.title")}
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            data-testid="collection-sort"
+            sx={{ width: "100%", minWidth: 0 }}
+          >
+            <MenuItem value="">{t("sort.default")}</MenuItem>
+            <MenuItem value="hp">{t("sort.hp")}</MenuItem>
+            <MenuItem value="stats">{t("sort.stats")}</MenuItem>
+            <MenuItem value="level">{t("sort.level")}</MenuItem>
+            <MenuItem value="class">{t("sort.class")}</MenuItem>
+          </TextField>
+        }
       />
-
-      {/* Sort control — HP / stats / level / class (default = newest first). */}
-      <TextField
-        select
-        size="small"
-        label={t("sort.title")}
-        value={sort}
-        onChange={(e) => setSort(e.target.value)}
-        data-testid="collection-sort"
-        sx={{ minWidth: 180, alignSelf: { xs: "stretch", sm: "flex-start" } }}
-      >
-        <MenuItem value="">{t("sort.default")}</MenuItem>
-        <MenuItem value="hp">{t("sort.hp")}</MenuItem>
-        <MenuItem value="stats">{t("sort.stats")}</MenuItem>
-        <MenuItem value="level">{t("sort.level")}</MenuItem>
-        <MenuItem value="class">{t("sort.class")}</MenuItem>
-      </TextField>
 
       {view.length === 0 ? (
         <Typography

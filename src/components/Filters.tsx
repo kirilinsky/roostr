@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Collapse from "@mui/material/Collapse";
@@ -27,11 +27,13 @@ export default function Filters({
   value,
   onChange,
   allLabel,
+  trailing,
 }: {
   groups: FilterGroup[];
   value: Record<string, string>; // group key -> selected value ("" = all)
   onChange: (key: string, value: string) => void;
   allLabel: string;
+  trailing?: ReactNode; // extra control (e.g. sort) laid out in the same grid
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -41,11 +43,11 @@ export default function Filters({
     <Box
       sx={{
         display: "grid",
-        gap: { xs: 1, sm: 1.5 },
-        // Mobile: 2 compact columns. Desktop: natural-width pills in a row.
+        gap: 1,
+        // Mobile: 2 compact columns. Desktop: tighter natural-width pills in a row.
         gridTemplateColumns: {
           xs: "repeat(2, minmax(0, 1fr))",
-          sm: "repeat(auto-fit, minmax(150px, max-content))",
+          sm: "repeat(auto-fit, minmax(128px, max-content))",
         },
       }}
     >
@@ -68,6 +70,7 @@ export default function Filters({
           ))}
         </TextField>
       ))}
+      {trailing}
     </Box>
   );
 

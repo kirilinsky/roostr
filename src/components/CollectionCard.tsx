@@ -324,7 +324,11 @@ export default function CollectionCard({
                     color: "error.main",
                   }}
                 >
-                  ♥ {roostr.maxHealth}
+                  {/* Hurt bird → show current/max; healthy → just max. */}
+                  ♥{" "}
+                  {roostr.currentHp != null && roostr.currentHp < roostr.maxHealth
+                    ? `${roostr.currentHp}/${roostr.maxHealth}`
+                    : roostr.maxHealth}
                 </Typography>
               </Stack>
             )}
