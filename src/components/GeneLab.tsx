@@ -5,26 +5,25 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
-import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import StatModBadges from "@/components/StatModBadges";
+import StatRow from "@/components/stats/StatRow";
 import { contrastText } from "@/lib/contrast";
-import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
+import { type StatKind } from "@/lib/statKinds";
 import { MONO_FONT } from "@/lib/tokens";
 import {
   GENE_MAX_LEVEL,
   SKILLS,
   SKILL_IDS,
-  STAT_BAR_MAX,
   canUpgradeGene,
   computeMaxHealth,
   computeRating,
   computeStats,
   geneLevelOf,
   geneUpgradeCost,
-  skillLabel,
+  statContributions,
   upgradeGeneLevel,
   tierFor,
   type GeneLevels,
@@ -50,6 +49,11 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
   const [coins, setCoins] = useState(START_COINS);
 
   const stats = computeStats(roostr.genes, levels, roostr.weightClass);
+  const contrib = statContributions({
+    genes: roostr.genes,
+    geneLevels: levels,
+    weightClass: roostr.weightClass,
+  });
   const hp = computeMaxHealth(roostr.breed, roostr.weightClass, roostr.genes, levels);
   const rating = computeRating(stats, hp);
   const tier = tierFor(rating);
@@ -120,25 +124,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
           </Stack>
         </Box>
         {SKILL_IDS.map((id) => (
-          <Box key={id}>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" color="text.secondary">
-                {skillLabel(id, locale)}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
-              >
-                {stats[id]}
-              </Typography>
-            </Stack>
-            <LinearProgress
-              variant="determinate"
-              value={Math.min(100, (stats[id] / STAT_BAR_MAX) * 100)}
-              color={STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
-              sx={{ height: 6, borderRadius: 0 }}
-            />
-          </Box>
+          <StatRow key={id} id={id} kind={SKILL_KIND[id]} c={contrib[id]} />
         ))}
       </Box>
 

@@ -3,28 +3,27 @@
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
-import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import GeneIcon from "@/components/GeneIcon";
 import StatModBadges from "@/components/StatModBadges";
-import { STAT_KIND_COLOR, type StatKind } from "@/lib/statKinds";
+import StatRow from "@/components/stats/StatRow";
+import { type StatKind } from "@/lib/statKinds";
 import { MONO_FONT } from "@/lib/tokens";
 import {
   SKILLS,
   SKILL_IDS,
-  STAT_BAR_MAX,
   formatTraitEffects,
   roleLabel,
-  skillLabel,
+  statContributions,
   type Breed,
   type Gene,
-  type Skill,
   type WeightClass,
 } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
-// Stat bar color by skill kind — shared map (red attack / blue defense / green).
+// Stat kind by skill id — feeds the per-row label tint (red attack / blue defense
+// / green utility). Points themselves are colored by SOURCE via StatRow's pips.
 const SKILL_KIND = Object.fromEntries(
   SKILLS.map((s) => [s.id, s.kind]),
 ) as Record<string, StatKind>;
@@ -36,7 +35,6 @@ export default function InfoPanel({
   role,
   weightClass,
   maxHealth,
-  stats,
   genes,
   rating,
 }: {
@@ -44,13 +42,15 @@ export default function InfoPanel({
   role: string;
   weightClass: WeightClass;
   maxHealth: number;
-  stats: Record<Skill, number>;
   genes: Gene[];
   rating: number;
 }) {
   const t = useT();
   const locale = useLocale();
   const weightLabel = `${weightClass.kg} ${locale === "ru" ? "кг" : "kg"}`;
+  // Passport = a fresh roll (level 1, no synth) → this breakdown's totals equal
+  // `stats`. Points render as source pips (base / gene) instead of a capped bar.
+  const contrib = statContributions({ genes, weightClass });
 
   return (
     <Box sx={{ flexGrow: 1, p: { xs: 2, md: 2.75 }, minWidth: 0 }}>
@@ -142,23 +142,7 @@ export default function InfoPanel({
               bgcolor: "background.default",
             }}
           >
-            <Stack direction="row" justifyContent="space-between">
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {skillLabel(id, locale)}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}
-              >
-                {stats[id]}
-              </Typography>
-            </Stack>
-            <LinearProgress
-              variant="determinate"
-              value={Math.min(100, (stats[id] / STAT_BAR_MAX) * 100)}
-              color={STAT_KIND_COLOR[SKILL_KIND[id]] ?? "primary"}
-              sx={{ mt: 0.5, height: 6, borderRadius: 0.5 }}
-            />
+            <StatRow id={id} kind={SKILL_KIND[id]} c={contrib[id]} />
           </Box>
         ))}
       </Box>

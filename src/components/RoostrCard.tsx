@@ -46,7 +46,6 @@ export default function RoostrCard({ roostr }: { roostr: RolledRoostr }) {
         role={role}
         weightClass={weightClass}
         maxHealth={maxHealth}
-        stats={stats}
         genes={genes}
         rating={rating}
       />

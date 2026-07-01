@@ -306,7 +306,6 @@ export interface RolledRoostr {
 }
 
 export const SKILL_IDS = SKILLS.map((s) => s.id) as Skill[];
-export const STAT_BAR_MAX = 8; // visual cap for stat bars (most start near base)
 export const NICKNAME_MAX = 24; // max chars for a roostr's custom display name
 
 // RNG is injected (default Math.random) so the roll is deterministic in tests:
@@ -569,6 +568,41 @@ export function computeStats(
   // battle sim: handle 0 gracefully — no divide-by-stat, define 0-Speed/0-Accuracy.
   for (const s of SKILL_IDS) stats[s] = Math.max(0, stats[s]);
   return stats;
+}
+
+// Per-skill breakdown of where a stat's points COME FROM, for the detail-page
+// display. Mirrors `computeStats` exactly (same order + same 0-floor) so `total`
+// equals the hydrated `stats[skill]`. `gene` is SIGNED (a debuff is negative);
+// `synth` is the lab-splice contribution (always ≥0). `base` = BASE_STAT + weight.
+export interface StatContribution {
+  base: number; // innate: BASE_STAT + weight-class body shaping
+  gene: number; // signed sum of key-gene statMods × level (buff or debuff)
+  synth: number; // sum of synth-gene statMods × level (≥0)
+  total: number; // final floored value (= computeStats result)
+}
+
+export function statContributions(r: {
+  genes: Gene[];
+  geneLevels?: GeneLevels;
+  synthGenes?: SynthGene[];
+  synthGeneLevels?: GeneLevels;
+  weightClass?: WeightClass;
+}): Record<Skill, StatContribution> {
+  const levels = r.geneLevels ?? {};
+  const synthLevels = r.synthGeneLevels ?? {};
+  const out = {} as Record<Skill, StatContribution>;
+  for (const s of SKILL_IDS) {
+    let base = BASE_STAT;
+    base += (r.weightClass?.statMods as Record<string, number> | undefined)?.[s] ?? 0;
+    let gene = 0;
+    for (const g of r.genes) gene += (g.statMods?.[s] ?? 0) * (levels[g.id] ?? 1);
+    let synth = 0;
+    for (const sg of r.synthGenes ?? []) {
+      synth += (sg.statMods?.[s] ?? 0) * (synthLevels[sg.id] ?? 1);
+    }
+    out[s] = { base, gene, synth, total: Math.max(0, base + gene + synth) };
+  }
+  return out;
 }
 
 export function computeMaxHealth(

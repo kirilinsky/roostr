@@ -23,8 +23,10 @@ import {
   pickWeighted,
   rollRoostr,
   sellPriceBounds,
+  statContributions,
   tierFor,
   type Gene,
+  type SynthGene,
 } from "@/lib/roostr";
 
 const BASE_STAT = 4;
@@ -205,6 +207,55 @@ describe("computeStats", () => {
     const gene = { id: "x", statMods: { Damage: -2 } } as unknown as Gene;
     const s = computeStats([gene], { x: 5 }); // 4 - 10 = -6 → 0
     expect(s.Damage).toBe(0);
+  });
+});
+
+describe("statContributions", () => {
+  const light = WEIGHT_CLASSES.find((w) => w.id === "light")!;
+  const synth = [{ id: "sp", statMods: { Speed: 2 } } as unknown as SynthGene];
+
+  it("total matches computeStats exactly (same order + 0-floor)", () => {
+    const gene = GENES.find((g) => g.id === "old-blood")!; // Recovery+1, Damage-1
+    const levels = { [gene.id]: 3 };
+    const synthLevels = { sp: 2 };
+    const c = statContributions({
+      genes: [gene],
+      geneLevels: levels,
+      synthGenes: synth,
+      synthGeneLevels: synthLevels,
+      weightClass: light,
+    });
+    const expected = computeStats([gene], levels, light, synth, synthLevels);
+    for (const id of SKILL_IDS) expect(c[id].total).toBe(expected[id]);
+  });
+
+  it("splits base (BASE_STAT + weight), signed gene, and synth", () => {
+    const gene = GENES.find((g) => g.id === "old-blood")!; // Recovery+1, Damage-1
+    const c = statContributions({
+      genes: [gene],
+      geneLevels: { [gene.id]: 3 },
+      synthGenes: synth,
+      synthGeneLevels: { sp: 2 },
+      weightClass: light,
+    });
+    // base = BASE_STAT + weight body mod
+    expect(c.Speed.base).toBe(BASE_STAT + 1); // light: Speed+1
+    expect(c.Guard.base).toBe(BASE_STAT - 1); // light: Guard-1
+    // gene is signed: +3 Recovery, -3 Damage at level 3
+    expect(c.Recovery.gene).toBe(3);
+    expect(c.Damage.gene).toBe(-3);
+    // synth only adds (Speed +2 × level 2 = +4), never debuffs
+    expect(c.Speed.synth).toBe(4);
+    expect(c.Recovery.synth).toBe(0);
+  });
+
+  it("keeps the gene debuff sign even when the total floors at 0", () => {
+    const gene = { id: "x", statMods: { Damage: -2 } } as unknown as Gene;
+    const c = statContributions({ genes: [gene], geneLevels: { x: 5 } });
+    // 4 + (-10) = -6 → total floors to 0, but the raw debuff is still reported
+    expect(c.Damage.total).toBe(0);
+    expect(c.Damage.gene).toBe(-10);
+    expect(c.Damage.base).toBe(BASE_STAT);
   });
 });
 
