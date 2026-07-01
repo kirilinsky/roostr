@@ -294,6 +294,7 @@ export default function DefenseView({
         onClose={closePicker}
         title={t("defense.pickTitle")}
         maxWidth="lg"
+        fullScreenOnMobile
       >
         <Stack spacing={2}>
           {sortedAvailable.length === 0 ? (
@@ -306,8 +307,9 @@ export default function DefenseView({
                 display: "grid",
                 gap: 1,
                 gridTemplateColumns: {
-                  xs: "repeat(4, minmax(0, 1fr))",
-                  sm: "repeat(6, minmax(0, 1fr))",
+                  xs: "repeat(2, minmax(0, 1fr))",
+                  sm: "repeat(4, minmax(0, 1fr))",
+                  md: "repeat(6, minmax(0, 1fr))",
                 },
               }}
             >
