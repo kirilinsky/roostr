@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -98,7 +97,8 @@ export default async function PublicProfilePage({
       {isOwnProfile ? (
         <OwnProfile user={user} />
       ) : (
-        // Other player's profile: centered identity + coins + friend control.
+        // Other player's profile: centered identity + friend control. Balances
+        // (coins etc.) are PRIVATE — never shown on someone else's profile.
         <Stack spacing={3} alignItems="center" textAlign="center">
           <Avatar
             src={user.photoUrl ?? undefined}
@@ -116,24 +116,6 @@ export default async function PublicProfilePage({
               <Typography color="text.secondary">@{user.username}</Typography>
             )}
           </Stack>
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.75,
-              color: "text.secondary",
-            }}
-          >
-            <Image
-              src="/corn-coin.png"
-              alt={t("currency.coin")}
-              width={20}
-              height={19}
-              style={{ height: 18, width: "auto" }}
-            />
-            <Typography>{user.coins.toLocaleString()}</Typography>
-          </Box>
 
           {viewerId && (
             <Stack spacing={0.75} alignItems="center">
