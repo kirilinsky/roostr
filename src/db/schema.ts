@@ -37,6 +37,10 @@ export const users = pgTable(
       .notNull()
       .defaultNow(),
     eggs: integer("eggs").notNull().default(0),
+    // Lifetime egg-shop purchases → drives the escalating price. Authoritative
+    // serialization point for the buy: incremented atomically inside buyShopEgg so
+    // concurrent buys claim distinct price tiers (can't all pay the base price).
+    eggsBought: integer("eggs_bought").notNull().default(0),
     sci: integer("sci").notNull().default(0), // science points (lab research)
     // Denormalized lifetime battle record (source of truth = the `battles` log).
     // Bumped on each resolve so profiles read W/L without a COUNT over battles.

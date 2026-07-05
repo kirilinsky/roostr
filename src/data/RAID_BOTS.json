@@ -1,0 +1,62 @@
+{
+  "description": {
+    "en": "Synthetic raid targets mixed into matchmaking while the player base is tiny. Never written to the users table — a data-only bot layer (see .notes/RAIDS.md).",
+    "ru": "Синтетические цели рейдов, подмешиваемые в матчмейкинг пока игроков мало. Не пишутся в таблицу users — чисто датовый слой ботов (см. .notes/RAIDS.md)."
+  },
+  "bots": [
+    {
+      "id": "bot-scarecrow",
+      "name": {
+        "en": "Scarecrow Coop",
+        "ru": "Двор с пугалом"
+      },
+      "watch": 5,
+      "coinPool": 60
+    },
+    {
+      "id": "bot-henhouse",
+      "name": {
+        "en": "Henhouse Row",
+        "ru": "Курятник в ряд"
+      },
+      "watch": 12,
+      "coinPool": 120
+    },
+    {
+      "id": "bot-fatfarm",
+      "name": {
+        "en": "Fat Farm",
+        "ru": "Жирная ферма"
+      },
+      "watch": 22,
+      "coinPool": 350
+    },
+    {
+      "id": "bot-dustyshed",
+      "name": {
+        "en": "Dusty Shed",
+        "ru": "Пыльный сарай"
+      },
+      "watch": 3,
+      "coinPool": 30
+    },
+    {
+      "id": "bot-cluckmanor",
+      "name": {
+        "en": "Cluck Manor",
+        "ru": "Усадьба Кудах"
+      },
+      "watch": 16,
+      "coinPool": 200
+    },
+    {
+      "id": "bot-goldenranch",
+      "name": {
+        "en": "Golden Ranch",
+        "ru": "Золотое ранчо"
+      },
+      "watch": 30,
+      "coinPool": 600
+    }
+  ]
+}

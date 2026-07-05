@@ -124,15 +124,25 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   on a timestamp (e.g. V13 station settle on `lastSettleAt`) compare at MS precision
   (`sql\`date_trunc('milliseconds', col) = ${jsDate}\``) or use a monotonic version column. Test
   `V15_*` greps the settle CAS. Root cause of B1.
-- V16 — RAID PvP = CONTESTED + LOSS-CAPPED (theoretical next step; numbers TBD). A raid targets a REAL
-  player chosen BLIND from N random candidates (no stats shown pre-raid, T29). DEFENSE WATCH = roosters
-  a player puts on guard duty (2 slots, +1 paid — same slot model as V13/V14 raids, T30); more/stronger
-  defenders lower robbery odds. RESOLUTION (T31) = ONE server-resolved contested roll: ATTACK =
-  Σ(raiders' Stealth + Luck) vs DEFENSE = Σ(victim watch's combat skills + Intellect) + bounded RNG.
-  Win attack ⇒ steal a SMALL CAPPED slice of the victim's COIN balance — NEVER a full drain, a floor
-  shields low balances ("lose some money, not much"). Win defense ⇒ attacker leaves ~empty, victim
-  coins safe. ALL server-resolved on server state (no client trust, like V13/V14); coin transfer via
-  the ledger. UI lives in the `/raids` area (attack + manage watch). Exact formulas/caps TBD.
+- V16 — RAID PvP = DELIBERATE TARGET + ATTRIBUTED + ANTI-GRIEF (numbers TBD). REVERSES the old
+  "blind" model: the attacker PICKS a target from a matchmade LIST of eligible candidates (real players
+  + bots, indistinguishable), NOT a blind random (T29). MATCHMAKING = candidates in the attacker's
+  BRACKET (rating/tier ±band — no whale-stomps-newbie), excluding: self, new-player shield (<3d),
+  post-raid shield (24h), an active incoming raid (busy), and any target under this attacker's per-pair
+  cooldown. Bots fill the list when too few real candidates AND are the permanent fallback (everyone
+  busy/shielded) — a raid always has someone. Pre-raid the card shows the coop + WATCH (band or value)
+  so risk is judgeable, but NOT the real player's identity; identity is REVEALED to the victim on
+  resolve. DEFENSE WATCH = roosters on guard duty (2 slots, +1 paid — same slot model as V13/V14, T30);
+  more/stronger defenders lower robbery odds. RESOLUTION (T31) = ONE server-resolved contested roll:
+  ATTACK = Σ(raiders' Stealth + Luck) vs DEFENSE = Σ(victim watch's combat skills + Intellect) + bounded
+  RNG. Win attack ⇒ steal a SMALL CAPPED slice of the victim's COIN balance — NEVER a full drain, a
+  floor shields low balances. Win defense ⇒ attacker leaves ~empty, victim coins safe. ANTI-GRIEF =
+  bracket + loot cap/floor + 24h post-raid shield + PER-PAIR cooldown (can't re-hit the SAME victim for
+  ~24h, separate from their global shield) + feather cost + party occupied for hours. ATTRIBUTION =
+  victim is notified WHO raided them + a REVENGE action (raid back within a window, same rules) — turns
+  griefing into rivalry. Bot target ⇒ faucet loot, no victim side, no notification. ALL server-resolved
+  on server state (no client trust, like V13/V14); coin transfer via the ledger; raid record stores
+  `botId` XOR `defenderUserId`. UI in `/raids` (pick target + manage watch). Exact formulas/caps/band TBD.
 - V17 — REFERRALS. ATTRIBUTION: a share link carries `?ref=<inviterId>` (`addReferralParam`,
   `ShareProfileButton`); `ReferralCapture` (in layout) stores it (cookie + localStorage, 30d) and strips
   the param; on Telegram SIGNUP the callback reads the cookie → `upsertUser({referredById})`. A referee

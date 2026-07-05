@@ -143,6 +143,11 @@ export async function spendResource(
   ref?: string,
 ): Promise<number | null> {
   if (!process.env.DATABASE_URL) return null;
+  // Economy primitive: only ever move a positive whole amount. A negative/NaN
+  // amount would otherwise INVERT the spend (`balance - (-n)` = a grant) and slip
+  // past the `balance >= amount` guard. Callers pass server constants today; this
+  // is the backstop if one ever forwards a client number.
+  if (!Number.isInteger(amount) || amount <= 0) return null;
   try {
     const { db } = await import("@/db");
     const { users, resourceTxns } = await import("@/db/schema");
@@ -181,6 +186,8 @@ export async function grantResource(
   ref?: string,
 ): Promise<number | null> {
   if (!process.env.DATABASE_URL) return null;
+  // Symmetric guard to spendResource: a negative amount here would silently DEBIT.
+  if (!Number.isInteger(amount) || amount <= 0) return null;
   try {
     const { db } = await import("@/db");
     const { users, resourceTxns } = await import("@/db/schema");
@@ -219,26 +226,21 @@ export function grantCoins(userId: number, amount: number, kind: string, ref?: s
 
 // --- Egg shop (coin → egg, escalating price) ---
 
-// Eggs this user has ever bought from the shop → drives the price ramp. Derived
-// from the ledger (positive egg rows tagged "egg_shop"); no extra column.
+// Eggs this user has ever bought from the shop → drives the price ramp. Read from
+// the authoritative `users.eggs_bought` counter (the same value buyShopEgg bumps
+// atomically), so the price shown here always matches what the next buy charges.
 export async function countEggsBought(userId: number): Promise<number> {
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
     const { db } = await import("@/db");
-    const { resourceTxns } = await import("@/db/schema");
-    const { and, eq, gt, sql } = await import("drizzle-orm");
+    const { users } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
     const [r] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(resourceTxns)
-      .where(
-        and(
-          eq(resourceTxns.userId, userId),
-          eq(resourceTxns.resource, "egg"),
-          eq(resourceTxns.kind, "egg_shop"),
-          gt(resourceTxns.amount, 0),
-        ),
-      );
-    return Number(r?.n ?? 0);
+      .select({ n: users.eggsBought })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return r?.n ?? 0;
   } catch (e) {
     console.error("countEggsBought failed:", e);
     return 0;
@@ -254,19 +256,55 @@ export async function buyShopEgg(
   if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
   try {
     const { eggShopPrice } = await import("@/lib/shop");
-    const bought = await countEggsBought(userId);
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { eq, sql } = await import("drizzle-orm");
+    // Claim the next purchase index atomically. A single conditional UPDATE
+    // serializes concurrent buys: each caller gets a DISTINCT post-increment
+    // value, so each prices off a distinct tier — a burst of parallel buys can no
+    // longer all read `bought=0` and pay the base price (price-ramp race fix).
+    const [seq] = await db
+      .update(users)
+      .set({ eggsBought: sql`${users.eggsBought} + 1`, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning({ n: users.eggsBought });
+    if (!seq) return { ok: false, reason: "error" };
+    const bought = seq.n - 1; // pre-increment index this purchase is priced at
     const price = eggShopPrice(bought);
+
     const coins = await spendCoins(userId, price, "egg_shop");
-    if (coins === null) return { ok: false, reason: "coins", price };
+    if (coins === null) {
+      // Can't pay → release the claimed index so the ramp doesn't advance.
+      await releaseEggIndex(userId);
+      return { ok: false, reason: "coins", price };
+    }
     const eggs = await grantResource(userId, "egg", 1, "egg_shop");
     if (eggs === null) {
       await grantCoins(userId, price, "refund", "egg_shop");
+      await releaseEggIndex(userId);
       return { ok: false, reason: "error", price };
     }
     return { ok: true, price, coins };
   } catch (e) {
     console.error("buyShopEgg failed:", e);
     return { ok: false, reason: "error" };
+  }
+}
+
+// Roll back a claimed egg-shop index when the purchase can't complete. Kept as an
+// atomic `- 1` so it composes correctly with concurrent buys (net count always
+// equals the number of eggs actually granted).
+async function releaseEggIndex(userId: number): Promise<void> {
+  try {
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { eq, sql } = await import("drizzle-orm");
+    await db
+      .update(users)
+      .set({ eggsBought: sql`${users.eggsBought} - 1` })
+      .where(eq(users.id, userId));
+  } catch (e) {
+    console.error("releaseEggIndex failed:", e);
   }
 }
 
@@ -1828,28 +1866,45 @@ export async function buyHospitalSlot(
   try {
     const { db } = await import("@/db");
     const { workStations } = await import("@/db/schema");
-    const { sql } = await import("drizzle-orm");
+    const { and, eq } = await import("drizzle-orm");
     const { HOSPITAL_BASE_SLOTS, nextHospitalSlotPrice, maxHospitalSlots } =
       await import("@/lib/hospital");
-    const current = await getHospitalSlots(ownerId);
+    const [row] = await db
+      .select()
+      .from(workStations)
+      .where(
+        and(eq(workStations.userId, ownerId), eq(workStations.kind, "hospital")),
+      )
+      .limit(1);
+    const current = row?.slotsOwned ?? HOSPITAL_BASE_SLOTS;
     const price = nextHospitalSlotPrice(current);
-    if (price == null) return { ok: false, error: "max" };
+    if (price == null || current >= maxHospitalSlots())
+      return { ok: false, error: "max" };
     const coins = await spendCoins(ownerId, price, "hospital_slot");
     if (coins === null) return { ok: false, error: "coins" };
-    // Atomic bump, capped at max. `setWhere` blocks a concurrent double-buy from
-    // pushing beds past the cap (a lost race applies nothing → we refund).
-    const max = maxHospitalSlots();
-    const res = await db
-      .insert(workStations)
-      .values({ userId: ownerId, kind: "hospital", slotsOwned: HOSPITAL_BASE_SLOTS + 1 })
-      .onConflictDoUpdate({
-        target: [workStations.userId, workStations.kind],
-        set: { slotsOwned: sql`${workStations.slotsOwned} + 1` },
-        setWhere: sql`${workStations.slotsOwned} < ${max}`,
-      })
-      .returning({ slots: workStations.slotsOwned });
-    if (res.length === 0) {
-      // Cap already hit (race) — refund the spend, no bed granted.
+    // Apply +1 pinned to the OBSERVED count (CAS on `slotsOwned = current`), so a
+    // concurrent buy that already advanced the count loses the race and refunds —
+    // this is what forces each buy onto its own (escalating) price tier, not just
+    // a `< max` cap guard (which two racers can both satisfy at the cheap price).
+    const applied = row
+      ? await db
+          .update(workStations)
+          .set({ slotsOwned: current + 1 })
+          .where(
+            and(
+              eq(workStations.userId, ownerId),
+              eq(workStations.kind, "hospital"),
+              eq(workStations.slotsOwned, current),
+            ),
+          )
+          .returning({ s: workStations.slotsOwned })
+      : await db
+          .insert(workStations)
+          .values({ userId: ownerId, kind: "hospital", slotsOwned: current + 1 })
+          .onConflictDoNothing()
+          .returning({ s: workStations.slotsOwned });
+    if (applied.length === 0) {
+      // Lost the race (count changed / row appeared) — refund, no bed granted.
       await grantCoins(ownerId, price, "refund", "hospital_slot");
       return { ok: false, error: "max" };
     }
@@ -1857,6 +1912,132 @@ export async function buyHospitalSlot(
   } catch (e) {
     console.error("buyHospitalSlot failed:", e);
     return { ok: false, error: "db" };
+  }
+}
+
+// --- Raid party slots (Coop & Dagger, phase 1) — same slot-count reuse of
+// work_stations as the hospital: only `slotsOwned`, no accrual. See lib/raids.ts.
+export async function getRaidSlots(ownerId: number): Promise<number> {
+  const { RAID_BASE_SLOTS } = await import("@/lib/raids");
+  if (!process.env.DATABASE_URL) return RAID_BASE_SLOTS;
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [r] = await db
+      .select({ slots: workStations.slotsOwned })
+      .from(workStations)
+      .where(and(eq(workStations.userId, ownerId), eq(workStations.kind, "raid")))
+      .limit(1);
+    return r?.slots ?? RAID_BASE_SLOTS;
+  } catch (e) {
+    console.error("getRaidSlots failed:", e);
+    return RAID_BASE_SLOTS;
+  }
+}
+
+// Buy the next raider slot with coins. Server-priced + capped (same atomic bump +
+// refund-on-lost-race as buyHospitalSlot).
+export async function buyRaidSlot(
+  ownerId: number,
+): Promise<{ ok: boolean; error?: "max" | "coins" | "db" }> {
+  if (!process.env.DATABASE_URL) return { ok: false, error: "db" };
+  try {
+    const { db } = await import("@/db");
+    const { workStations } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const { RAID_BASE_SLOTS, nextRaidSlotPrice, maxRaidSlots } = await import(
+      "@/lib/raids"
+    );
+    const [row] = await db
+      .select()
+      .from(workStations)
+      .where(and(eq(workStations.userId, ownerId), eq(workStations.kind, "raid")))
+      .limit(1);
+    const current = row?.slotsOwned ?? RAID_BASE_SLOTS;
+    const price = nextRaidSlotPrice(current);
+    if (price == null || current >= maxRaidSlots())
+      return { ok: false, error: "max" };
+    const coins = await spendCoins(ownerId, price, "raid_slot");
+    if (coins === null) return { ok: false, error: "coins" };
+    // CAS pinned to the observed count (see buyHospitalSlot) — a concurrent buy
+    // that already advanced `slotsOwned` loses and refunds, so each slot is bought
+    // at its own escalating price rather than two racers sharing the cheap tier.
+    const applied = row
+      ? await db
+          .update(workStations)
+          .set({ slotsOwned: current + 1 })
+          .where(
+            and(
+              eq(workStations.userId, ownerId),
+              eq(workStations.kind, "raid"),
+              eq(workStations.slotsOwned, current),
+            ),
+          )
+          .returning({ s: workStations.slotsOwned })
+      : await db
+          .insert(workStations)
+          .values({ userId: ownerId, kind: "raid", slotsOwned: current + 1 })
+          .onConflictDoNothing()
+          .returning({ s: workStations.slotsOwned });
+    if (applied.length === 0) {
+      // Lost the race (count changed / row appeared) — refund, no slot granted.
+      await grantCoins(ownerId, price, "refund", "raid_slot");
+      return { ok: false, error: "max" };
+    }
+    return { ok: true };
+  } catch (e) {
+    console.error("buyRaidSlot failed:", e);
+    return { ok: false, error: "db" };
+  }
+}
+
+export interface RaidCandidate {
+  userId: number;
+  name: string;
+  watch: number; // Σ Crow of their defense guards (live)
+  pool: number; // their coin balance — the loot ceiling (can't grab more than they hold)
+}
+
+// A few RANDOM real players eligible to be raided (mixed into the target list with
+// bots). Eligible = WITHOUT immunity: not self, past the 3-day new-player shield.
+// (Post-raid `raidShieldUntil` + per-pair cooldown are phase-3 columns; not filtered
+// yet.) Each carries its live Watch so the picker can show risk.
+export async function getRaidCandidates(
+  selfId: number,
+  limit = 4,
+): Promise<RaidCandidate[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(selfId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { users } = await import("@/db/schema");
+    const { and, ne, lt, sql } = await import("drizzle-orm");
+    const cutoff = new Date(Date.now() - 3 * 86_400_000);
+    const rows = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        username: users.username,
+        coins: users.coins,
+      })
+      .from(users)
+      .where(and(ne(users.id, selfId), lt(users.createdAt, cutoff)))
+      .orderBy(sql`random()`)
+      .limit(limit);
+    const out: RaidCandidate[] = [];
+    for (const u of rows) {
+      out.push({
+        userId: u.id,
+        name: displayName(u),
+        watch: await getDefenseValue(u.id),
+        pool: u.coins,
+      });
+    }
+    return out;
+  } catch (e) {
+    console.error("getRaidCandidates failed:", e);
+    return [];
   }
 }
 

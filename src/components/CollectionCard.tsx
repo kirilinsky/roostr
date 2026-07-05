@@ -22,7 +22,7 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 
 // Footer readout mode: "kinds" = stat-by-category sums (collection); "intellect"
 // = single Intellect score (lab roster / picker).
-export type CardMetric = "kinds" | "intellect" | "fertility" | "crow" | "hp";
+export type CardMetric = "kinds" | "intellect" | "fertility" | "crow" | "hp" | "stealth";
 
 // Compact "how long on the job" badge text (m / h / d).
 function shortAgo(sinceMs: number, nowMs: number): string {
@@ -62,6 +62,7 @@ export default function CollectionCard({
   const intellect = roostr.stats.Intellect ?? 0;
   const fertility = roostr.stats.Fertility ?? 0;
   const crow = roostr.stats.Crow ?? 0;
+  const stealth = roostr.stats.Stealth ?? 0;
   // Total bought rolled-gene upgrades → a single gold "level" badge (number, not
   // chevrons). Synth genes show their own marks (icon + level) alongside it.
   const upgrades = geneUpgradeCount(roostr.geneLevels);
@@ -316,6 +317,15 @@ export default function CollectionCard({
               sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
             >
               📣 {crow}
+            </Typography>
+          </Stack>
+        ) : metric === "stealth" ? (
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}
+            >
+              🥷 {stealth}
             </Typography>
           </Stack>
         ) : (

@@ -6,11 +6,12 @@ import { settleAllStations } from "@/db/queries";
 // time-in-service, so this only credits real served time — no flat daily payout.
 // Protected by CRON_SECRET (Vercel Cron sends it as a Bearer header).
 export async function GET(req: Request) {
+  // Fail closed: require CRON_SECRET to be set AND matched. Without this, an
+  // unset secret left the endpoint publicly triggerable (settleAllStations = load
+  // amplification). Vercel Cron sends the secret as a Bearer header.
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    if (req.headers.get("authorization") !== `Bearer ${secret}`) {
-      return NextResponse.json({ ok: false }, { status: 401 });
-    }
+  if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) {
+    return NextResponse.json({ ok: false }, { status: 401 });
   }
   const res = await settleAllStations();
   return NextResponse.json({ ok: true, ...res });
