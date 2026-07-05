@@ -10,6 +10,7 @@ import { useT } from "@/i18n/I18nProvider";
 const ITEMS: { key: string; color: string }[] = [
   { key: "stats.src.base", color: "text.secondary" },
   { key: "stats.src.gene", color: "secondary.main" },
+  { key: "stats.src.trait", color: "primary.main" },
   { key: "stats.src.synth", color: "tertiary.main" },
 ];
 

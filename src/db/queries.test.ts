@@ -40,10 +40,11 @@ describe("hospital — bed-cap races (source guard)", () => {
     expect(src).toMatch(/<\s*\$\{slots\}/);
   });
 
-  it("buy caps beds with a setWhere and refunds the lost race", () => {
-    // Atomic bump guarded by setWhere `< max`; a lost race applies nothing
-    // (0 rows) and must refund the already-spent coins.
-    expect(src).toMatch(/setWhere:\s*sql`\$\{workStations\.slotsOwned\}\s*<\s*\$\{max\}`/);
+  it("buy pins the +1 to the OBSERVED slot count (CAS) and refunds the lost race", () => {
+    // Price-ramp integrity: the bump must CAS on `slotsOwned = current` — not just
+    // a `< max` cap — so two concurrent buys can't both pay the cheap tier (one
+    // loses the CAS, applies nothing, and refunds). See the buyStationSlot pattern.
+    expect(src).toMatch(/eq\(workStations\.slotsOwned,\s*current\)/);
     expect(src).toMatch(/grantCoins\(ownerId,\s*price,\s*"refund",\s*"hospital_slot"\)/);
   });
 });

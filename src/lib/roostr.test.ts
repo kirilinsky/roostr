@@ -208,6 +208,39 @@ describe("computeStats", () => {
     const s = computeStats([gene], { x: 5 }); // 4 - 10 = -6 → 0
     expect(s.Damage).toBe(0);
   });
+
+  it("applies the breed trait as a rounded percent on the built stat", () => {
+    // Damage gene → base 4 + gene 6×L1... use a level to reach a value the % bites.
+    const gene = GENES.find((g) => g.id === "war-talons")!; // Damage+2, Crit+1, Endurance-1
+    const levels = { [gene.id]: 3 }; // Damage = 4 + 2×3 = 10
+    const noTrait = computeStats([gene], levels);
+    const trait = {
+      id: "t",
+      name: { en: "", ru: "" },
+      description: { en: "", ru: "" },
+      effects: [{ stat: "Damage", mod: 0.1 }], // +10% of 10 = +1
+    };
+    const withTrait = computeStats([gene], levels, undefined, [], {}, trait);
+    expect(noTrait.Damage).toBe(10);
+    expect(withTrait.Damage).toBe(11); // 10 + round(10×0.1)
+    // untouched stats are identical
+    expect(withTrait.Speed).toBe(noTrait.Speed);
+  });
+
+  it("trait delta is reflected in statContributions.total (mirrors computeStats)", () => {
+    const gene = GENES.find((g) => g.id === "war-talons")!;
+    const levels = { [gene.id]: 3 };
+    const trait = {
+      id: "t",
+      name: { en: "", ru: "" },
+      description: { en: "", ru: "" },
+      effects: [{ stat: "Damage", mod: 0.1 }],
+    };
+    const c = statContributions({ genes: [gene], geneLevels: levels, trait });
+    const expected = computeStats([gene], levels, undefined, [], {}, trait);
+    for (const id of SKILL_IDS) expect(c[id].total).toBe(expected[id]);
+    expect(c.Damage.trait).toBe(1);
+  });
 });
 
 describe("statContributions", () => {

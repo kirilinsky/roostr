@@ -48,11 +48,19 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
   );
   const [coins, setCoins] = useState(START_COINS);
 
-  const stats = computeStats(roostr.genes, levels, roostr.weightClass);
+  const stats = computeStats(
+    roostr.genes,
+    levels,
+    roostr.weightClass,
+    [],
+    {},
+    roostr.breed.trait,
+  );
   const contrib = statContributions({
     genes: roostr.genes,
     geneLevels: levels,
     weightClass: roostr.weightClass,
+    trait: roostr.breed.trait,
   });
   const hp = computeMaxHealth(roostr.breed, roostr.weightClass, roostr.genes, levels);
   const rating = computeRating(stats, hp);

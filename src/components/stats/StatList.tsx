@@ -22,8 +22,16 @@ export default function StatList({ roostr }: { roostr: HydratedRoostr }) {
         synthGenes: roostr.synthGenes,
         synthGeneLevels: roostr.synthGeneLevels,
         weightClass: roostr.weightClass,
+        trait: roostr.breed.trait,
       }),
-    [roostr.genes, roostr.geneLevels, roostr.synthGenes, roostr.synthGeneLevels, roostr.weightClass],
+    [
+      roostr.genes,
+      roostr.geneLevels,
+      roostr.synthGenes,
+      roostr.synthGeneLevels,
+      roostr.weightClass,
+      roostr.breed.trait,
+    ],
   );
 
   return (

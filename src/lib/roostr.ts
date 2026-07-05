@@ -529,15 +529,38 @@ export function sellPriceBounds(
   return { min, max };
 }
 
+// --- Breed trait (identity modifier) ---
+// A trait is a set of PERCENT multipliers on stats (`mod` is a signed fraction,
+// e.g. +0.10 = +10%). Unlike genes (flat, leveled) it's a fixed lean baked at
+// hatch. Applied on TOP of the flat base+weight+gene+synth sum as a rounded
+// additive delta (raw × mod) so the stat stays an integer and the detail
+// breakdown can show `trait` as its own signed contribution that sums to total.
+function traitModsBySkill(
+  trait?: BreedTrait,
+): Partial<Record<StatModKey, number>> {
+  const out: Partial<Record<StatModKey, number>> = {};
+  for (const e of trait?.effects ?? []) {
+    const k = e.stat as StatModKey;
+    out[k] = (out[k] ?? 0) + e.mod;
+  }
+  return out;
+}
+
+// Rounded multiplicative delta a trait adds to one raw stat value (0 if no mod).
+function traitDelta(raw: number, mod: number | undefined): number {
+  return mod ? Math.round(raw * mod) : 0;
+}
+
 // Skill block = base + weight body-mods + Σ over genes of (level × statMods) +
-// Σ over synth genes of (synth level × statMods). Health is tracked separately
-// (computeMaxHealth), not one of the skills.
+// Σ over synth genes of (synth level × statMods), then the breed trait's percent
+// multipliers. Health is tracked separately (computeMaxHealth), not a skill.
 export function computeStats(
   genes: Gene[],
   levels: GeneLevels = {},
   weightClass?: WeightClass,
   synthGenes: SynthGene[] = [],
   synthLevels: Record<string, number> = {},
+  trait?: BreedTrait,
 ): Record<Skill, number> {
   const stats = Object.fromEntries(
     SKILL_IDS.map((s) => [s, BASE_STAT]),
@@ -562,6 +585,9 @@ export function computeStats(
       if (stat !== "Health" && stat in stats) stats[stat as Skill] += value * lvl;
     }
   }
+  // Breed trait: percent multipliers on the built stat (rounded additive delta).
+  const tmods = traitModsBySkill(trait);
+  for (const s of SKILL_IDS) stats[s] += traitDelta(stats[s], tmods[s]);
   // Skills floor at 0: a fully debuffed combat skill CAN hit zero — the rooster
   // just loses fast at it (accepted design). HP is the one thing kept ≥1
   // (computeMaxHealth), so a bird is never dead on arrival. NOTE for the future
@@ -578,6 +604,7 @@ export interface StatContribution {
   base: number; // innate: BASE_STAT + weight-class body shaping
   gene: number; // signed sum of key-gene statMods × level (buff or debuff)
   synth: number; // sum of synth-gene statMods × level (≥0)
+  trait: number; // signed breed-trait percent applied to base+gene+synth
   total: number; // final floored value (= computeStats result)
 }
 
@@ -587,9 +614,11 @@ export function statContributions(r: {
   synthGenes?: SynthGene[];
   synthGeneLevels?: GeneLevels;
   weightClass?: WeightClass;
+  trait?: BreedTrait;
 }): Record<Skill, StatContribution> {
   const levels = r.geneLevels ?? {};
   const synthLevels = r.synthGeneLevels ?? {};
+  const tmods = traitModsBySkill(r.trait);
   const out = {} as Record<Skill, StatContribution>;
   for (const s of SKILL_IDS) {
     let base = BASE_STAT;
@@ -600,7 +629,8 @@ export function statContributions(r: {
     for (const sg of r.synthGenes ?? []) {
       synth += (sg.statMods?.[s] ?? 0) * (synthLevels[sg.id] ?? 1);
     }
-    out[s] = { base, gene, synth, total: Math.max(0, base + gene + synth) };
+    const trait = traitDelta(base + gene + synth, tmods[s]);
+    out[s] = { base, gene, synth, trait, total: Math.max(0, base + gene + synth + trait) };
   }
   return out;
 }
@@ -615,7 +645,11 @@ export function computeMaxHealth(
     (sum, gene) => sum + (gene.statMods?.Health ?? 0) * (levels[gene.id] ?? 1),
     0,
   );
-  return Math.max(1, breed.baseHealth + weightClass.healthMod + geneHealth);
+  const raw = breed.baseHealth + weightClass.healthMod + geneHealth;
+  // Breed trait can also lean HP (percent, e.g. jersey-giant +12% Endurance-type
+  // frames often carry a Health mod). Same rounded multiplicative delta as skills.
+  const healthMod = traitModsBySkill(breed.trait).Health;
+  return Math.max(1, raw + traitDelta(raw, healthMod));
 }
 
 // HP counts at HALF weight in the rating so tiers track the BUILD (skills), not
@@ -645,7 +679,7 @@ export function rollRoostr(rng: Rng = Math.random): RolledRoostr {
     weightClass,
     genes,
     maxHealth: computeMaxHealth(breed, weightClass, genes),
-    stats: computeStats(genes, {}, weightClass),
+    stats: computeStats(genes, {}, weightClass, [], {}, breed.trait),
     role: deriveRole(genes),
     seed: Math.floor(rng() * 0xffffff),
   };
@@ -753,6 +787,7 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     weightClass,
     synthGenes,
     synthGeneLevels,
+    breed.trait,
   );
   const maxHealth = computeMaxHealth(breed, weightClass, genes, geneLevels);
   const rating = computeRating(stats, maxHealth);

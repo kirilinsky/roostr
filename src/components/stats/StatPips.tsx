@@ -15,30 +15,34 @@ const PIP = 7; // px, square (theme borderRadius is 0 → sharp arcade pip)
 const GROUP = 5; // pips per tally cluster
 const MAX_PIPS = 45; // hard cap; overflow shown as "+N" so nothing runs away
 
-type Src = "base" | "gene" | "synth";
+type Src = "base" | "gene" | "trait" | "synth";
 
 const SRC_COLOR: Record<Src, string> = {
   base: "text.secondary", // muted grey — innate
   gene: "secondary.main", // magenta — key-gene upgrade
+  trait: "primary.main", // breed identity — trait percent lean
   synth: "tertiary.main", // gold — lab splice
 };
 
 // Split a contribution into an ordered pip list that sums to `total`. A debuff
-// (gene < 0) eats into the base pips instead of adding red ones.
-function pipCounts({ base, gene, total }: StatContribution): {
+// (gene/trait < 0) eats into the pool instead of adding pips; synth absorbs the
+// remainder so the pip count always lands on `total`.
+function pipCounts({ base, gene, trait, total }: StatContribution): {
   base: number;
   gene: number;
+  trait: number;
   synth: number;
 } {
   const baseN = gene >= 0 ? base : Math.max(0, base + gene);
   const geneN = Math.max(0, gene);
-  const synthN = Math.max(0, total - baseN - geneN);
-  return { base: baseN, gene: geneN, synth: synthN };
+  const traitN = Math.max(0, trait);
+  const synthN = Math.max(0, total - baseN - geneN - traitN);
+  return { base: baseN, gene: geneN, trait: traitN, synth: synthN };
 }
 
 export default function StatPips({ c }: { c: StatContribution }) {
   const counts = pipCounts(c);
-  const order: Src[] = ["base", "gene", "synth"];
+  const order: Src[] = ["base", "gene", "trait", "synth"];
   const pips: Src[] = [];
   for (const src of order) for (let i = 0; i < counts[src]; i++) pips.push(src);
 

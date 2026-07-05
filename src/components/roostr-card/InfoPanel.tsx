@@ -50,7 +50,7 @@ export default function InfoPanel({
   const weightLabel = `${weightClass.kg} ${locale === "ru" ? "кг" : "kg"}`;
   // Passport = a fresh roll (level 1, no synth) → this breakdown's totals equal
   // `stats`. Points render as source pips (base / gene) instead of a capped bar.
-  const contrib = statContributions({ genes, weightClass });
+  const contrib = statContributions({ genes, weightClass, trait: breed.trait });
 
   return (
     <Box sx={{ flexGrow: 1, p: { xs: 2, md: 2.75 }, minWidth: 0 }}>
