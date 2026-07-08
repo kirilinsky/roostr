@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { keyframes } from "@emotion/react";
+import Link from "next/link";
 import Image from "next/image";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -36,13 +37,11 @@ export default function SynthGeneStrip({
   roostr,
   roostrId,
   sci,
-  isOwner,
   canUpgrade,
 }: {
   roostr: HydratedRoostr;
   roostrId: string;
   sci: number;
-  isOwner: boolean;
   canUpgrade: boolean;
 }) {
   const t = useT();
@@ -70,30 +69,38 @@ export default function SynthGeneStrip({
         <Typography variant="h5" sx={{ fontWeight: 800, textTransform: "uppercase" }}>
           {t("detail.synthGenes")}
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
-          {isOwner && (
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                {sci.toLocaleString()}
-              </Typography>
-              <Image src="/sci.png" alt="" width={18} height={18} style={{ height: 16, width: "auto" }} />
-            </Stack>
-          )}
-          <Chip
-            label={`${genes.length} / ${SYNTH_GENE_MAX_SLOTS}`}
-            size="small"
-            color="secondary"
-            variant="outlined"
-            sx={{ fontWeight: 800 }}
-          />
-        </Stack>
+        <Chip
+          label={`${genes.length} / ${SYNTH_GENE_MAX_SLOTS}`}
+          size="small"
+          color="secondary"
+          variant="outlined"
+          sx={{ fontWeight: 800 }}
+        />
       </Stack>
 
       {genes.length === 0 ? (
         <Card sx={{ p: { xs: 1.5, md: 2 }, borderStyle: "dashed" }}>
-          <Typography variant="body2" color="text.secondary">
-            🧬 {t("detail.synthEmpty")}
-          </Typography>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            alignItems="center"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            useFlexGap
+          >
+            <Typography variant="body2" color="text.secondary">
+              🧬 {t("detail.synthEmpty")}
+            </Typography>
+            <Button
+              component={Link}
+              href="/shop/synth-genes"
+              variant="outlined"
+              color="secondary"
+              size="small"
+            >
+              {t("pedia.synthGenes.cta")} →
+            </Button>
+          </Stack>
         </Card>
       ) : (
         <Box

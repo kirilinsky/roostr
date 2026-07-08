@@ -103,7 +103,6 @@ export default function RoostrDetail({
         roostr={roostr}
         roostrId={roostrId}
         sci={sci}
-        isOwner={isOwner}
         canUpgrade={canUpgrade}
       />
     </Stack>

@@ -58,23 +58,9 @@ export default function GeneUpgradeGrid({
 
   return (
     <Stack spacing={1.5}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="h5" sx={{ fontWeight: 800, textTransform: "uppercase" }}>
-          {t("detail.geneticUpgrades")}
-        </Typography>
-        <Stack direction="row" spacing={0.5} alignItems="center">
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {coins.toLocaleString()}
-          </Typography>
-          <Image
-            src="/corn-coin.png"
-            alt="Corn Coin"
-            width={18}
-            height={17}
-            style={{ height: 16, width: "auto" }}
-          />
-        </Stack>
-      </Stack>
+      <Typography variant="h5" sx={{ fontWeight: 800, textTransform: "uppercase" }}>
+        {t("detail.geneticUpgrades")}
+      </Typography>
 
       <Box
         sx={{
