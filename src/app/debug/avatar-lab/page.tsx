@@ -37,7 +37,7 @@ import { rollRoostr } from "@/lib/roostr";
 // without touching prod. Drop AI/artist parts into /public/avatar-parts/<silhouette>/
 // <part>.png (grayscale for tintable parts) and they replace the placeholders here.
 
-const COLOR_FIELDS: { key: keyof AvatarTraits; label: string }[] = [
+const COLOR_FIELDS: { key: "base" | "accent1" | "accent2" | "skin" | "patternColor"; label: string }[] = [
   { key: "base", label: "Base (body/wing)" },
   { key: "accent1", label: "Accent 1 (tail/saddle)" },
   { key: "accent2", label: "Accent 2 (comb/wattle)" },

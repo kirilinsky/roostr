@@ -821,7 +821,7 @@ export function hydrateRoostr(row: RoostrRow): HydratedRoostr {
     cosmetic: (() => {
       const cw = (row.meta as { cosmetic?: Colorway } | null)?.cosmetic;
       const c = cw
-        ? cosmeticFrom(row.breedId, cw)
+        ? cosmeticFrom(row.breedId, cw, row.seed)
         : cosmeticForRoostr(row.breedId, row.seed);
       return { ...c, weight: weightClass.id }; // belly scales with weight class
     })(),

@@ -62,6 +62,10 @@ export interface AvatarTraits {
   weight?: string;
   // Super-rare premium colorway id (gold/silver/…) when the bird rolled one.
   premium?: string;
+  // Per-bird detail seed — drives micro-variation in the renderer (iris color,
+  // blush, brow tilt, speckle placement) so two birds with the same colorway
+  // still read as individuals. Falls back to a color hash when absent.
+  seed?: number;
 }
 
 // Belly (body) size multiplier per weight class.
@@ -266,9 +270,11 @@ export function rollColorway(breedId: string, seed: number): Colorway {
 }
 
 // Full look = breed features (fresh) + a colorway (stored, else rolled from seed).
-export function cosmeticFrom(breedId: string, colorway: Colorway): AvatarTraits {
-  return { ...breedFeatures(breedId), ...colorway };
+// `seed` (optional) is the bird's identity seed — threaded into the traits so the
+// renderer can add per-bird micro-variation on top of the shared colorway.
+export function cosmeticFrom(breedId: string, colorway: Colorway, seed?: number): AvatarTraits {
+  return { ...breedFeatures(breedId), ...colorway, seed };
 }
 export function cosmeticForRoostr(breedId: string, seed: number): AvatarTraits {
-  return cosmeticFrom(breedId, rollColorway(breedId, seed));
+  return cosmeticFrom(breedId, rollColorway(breedId, seed), seed);
 }
