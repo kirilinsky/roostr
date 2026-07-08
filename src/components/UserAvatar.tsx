@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, type ElementType } from "react";
+import { useEffect, useState, type ElementType } from "react";
 import Avatar, { type AvatarProps } from "@mui/material/Avatar";
 import { userPhoto, ANON_AVATAR } from "@/lib/tokens";
 
 // Every user avatar goes through here. Telegram userpic URLs we store
 // (t.me/i/userpic/320/<hash>.jpg) go STALE — when a user changes or hides their
 // photo the old hash returns a 42-byte 1×1 blank GIF (HTTP 404 body). The browser
-// DECODES that as a valid 1×1 image, so `onError` never fires — a raw <img> just
-// shows a blank dot. So we fall back on TWO signals: the `error` event AND an
-// `onLoad` where the decoded image is ≤1px (the blank-gif tell). Either swaps to
-// the house anon.png. Null photo urls already resolve to anon.png via userPhoto().
-// Keep the initial as the last-resort child (shown only if anon.png itself fails).
+// DECODES that as a valid 1×1 image, so neither MUI's load check nor an <img>
+// onError fires — the avatar just shows a blank dot. So we probe the url ourselves
+// with a throwaway Image(): if it errors OR decodes to ≤1px, we fall back to the
+// house anon.png. Null photo urls already resolve to anon.png via userPhoto().
 export default function UserAvatar({
   photoUrl,
   name,
@@ -24,26 +23,33 @@ export default function UserAvatar({
   component?: ElementType;
   href?: string;
 } & Omit<AvatarProps, "src">) {
-  const [broken, setBroken] = useState(false);
-  const src = broken ? ANON_AVATAR : userPhoto(photoUrl);
+  const resolved = userPhoto(photoUrl);
+  const [src, setSrc] = useState(resolved);
+
+  useEffect(() => {
+    // Nothing to probe for the house image itself.
+    if (resolved === ANON_AVATAR) {
+      setSrc(ANON_AVATAR);
+      return;
+    }
+    let alive = true;
+    setSrc(resolved); // optimistic: show the real photo while we verify it
+    const probe = new Image();
+    probe.onload = () => {
+      if (!alive) return;
+      // ≤1px decode = Telegram's stale-userpic blank gif → use the fallback.
+      setSrc(probe.naturalWidth <= 1 || probe.naturalHeight <= 1 ? ANON_AVATAR : resolved);
+    };
+    probe.onerror = () => alive && setSrc(ANON_AVATAR);
+    probe.referrerPolicy = "no-referrer";
+    probe.src = resolved;
+    return () => {
+      alive = false;
+    };
+  }, [resolved]);
+
   return (
-    <Avatar
-      src={src}
-      alt={name}
-      slotProps={{
-        img: {
-          referrerPolicy: "no-referrer",
-          onError: () => setBroken(true),
-          // Telegram's stale-userpic response is a 1×1 blank gif that loads
-          // "successfully" — treat a ≤1px decode as broken too.
-          onLoad: (e: React.SyntheticEvent<HTMLImageElement>) => {
-            const img = e.currentTarget;
-            if (img.naturalWidth <= 1 || img.naturalHeight <= 1) setBroken(true);
-          },
-        },
-      }}
-      {...props}
-    >
+    <Avatar src={src} alt={name} slotProps={{ img: { referrerPolicy: "no-referrer" } }} {...props}>
       {name?.charAt(0) || "?"}
     </Avatar>
   );
