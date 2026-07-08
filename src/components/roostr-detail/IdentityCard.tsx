@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
@@ -8,6 +9,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import RoostrAvatar from "@/components/RoostrAvatar";
 import BattleRecord from "@/components/BattleRecord";
+import TierLadderModal from "@/components/roostr-detail/TierLadderModal";
 import { contrastText } from "@/lib/contrast";
 import { tierBackground } from "@/lib/tierBg";
 import { TIERS, WEIGHT_CLASSES, type HydratedRoostr } from "@/lib/roostr";
@@ -18,6 +20,7 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
   const t = useT();
   const locale = useLocale();
+  const [ladderOpen, setLadderOpen] = useState(false);
   const tier = roostr.tier;
   const kgUnit = locale === "ru" ? "кг" : "kg";
   const weightIdx = WEIGHT_CLASSES.findIndex((w) => w.id === roostr.weightClass.id);
@@ -46,6 +49,8 @@ export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
         </Box>
         <Chip
           label={`★ ${tier.id}`}
+          clickable
+          onClick={() => setLadderOpen(true)}
           sx={{
             position: "absolute",
             top: 12,
@@ -53,26 +58,49 @@ export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
             fontWeight: 800,
             bgcolor: tier.color,
             color: contrastText(tier.color),
+            "&:hover": { bgcolor: tier.color },
           }}
         />
       </Box>
 
-      {/* level / rating progress */}
+      {/* level / rating progress — click opens the tier ladder */}
       <Card sx={{ p: 1.5 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-          <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-            {t("collection.level")} {tier.id}
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontVariantNumeric: "tabular-nums", flexShrink: 0 }}
-          >
-            {roostr.rating}
-            {nextTier ? ` / ${nextTier.min}` : ""}
-          </Typography>
-        </Stack>
-        <LinearProgress variant="determinate" value={bandPct} sx={{ height: 8, borderRadius: 0 }} />
+        <Box
+          role="button"
+          tabIndex={0}
+          aria-label={t("detail.tierLadderTitle")}
+          onClick={() => setLadderOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") setLadderOpen(true);
+          }}
+          sx={{
+            cursor: "pointer",
+            mx: -0.75,
+            mt: -0.5,
+            px: 0.75,
+            pt: 0.5,
+            pb: 0.75,
+            "&:hover": { bgcolor: "action.hover" },
+          }}
+        >
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
+              {t("collection.level")} {tier.id}{" "}
+              <Box component="span" sx={{ color: "primary.main", fontWeight: 800 }}>
+                ⓘ
+              </Box>
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontVariantNumeric: "tabular-nums", flexShrink: 0 }}
+            >
+              {roostr.rating}
+              {nextTier ? ` / ${nextTier.min}` : ""}
+            </Typography>
+          </Stack>
+          <LinearProgress variant="determinate" value={bandPct} sx={{ height: 8, borderRadius: 0 }} />
+        </Box>
 
         {/* battle record — wins/losses (green/red), labelled on hover */}
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
@@ -139,6 +167,12 @@ export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
           </Stack>
         )}
       </Card>
+
+      <TierLadderModal
+        open={ladderOpen}
+        onClose={() => setLadderOpen(false)}
+        rating={roostr.rating}
+      />
     </Stack>
   );
 }

@@ -10,12 +10,13 @@ import {
   type PartDef,
 } from "@/lib/avatarV2";
 
-// Layered avatar composer, "expensive 2D game" pass: smooth vector rendering,
-// one clean sticker outline around the whole bird, gradient/cel shading, feather
-// texture on body/wing/tail, detailed eye/beak/legs, and per-bird micro-variation
-// derived from the identity seed (iris color, blush, brow tilt, speckle layout).
-// Loads one PNG per part when present; otherwise draws the procedural part.
-// Tintable PNGs are grayscale → multiply-tinted.
+// Layered avatar composer, "Telegram gift sticker" style: FLAT cel shading only
+// (base fill + one flat shadow tone + one flat highlight per part — no gradients
+// on the bird), one clean dark sticker outline around the whole silhouette, flat
+// feather texturing, and per-bird micro-variation derived from the identity seed
+// (iris color, blush, brow tilt, speckle layout). Loads one PNG per part when
+// present; otherwise draws the procedural part. Tintable PNGs are grayscale →
+// multiply-tinted.
 
 const R = 512; // internal canvas px
 const U = R / 64; // design-unit → px
@@ -54,7 +55,7 @@ function channelColor(ch: ColorChannel, t: AvatarTraits): string {
 }
 
 // Parse "#rrggbb" or "rgb(r,g,b)" → [r,g,b]. shade() output feeds back into
-// shade()/gradients, so both forms must round-trip.
+// shade(), so both forms must round-trip.
 function rgbOf(color: string): [number, number, number] {
   if (color.startsWith("#")) {
     const h = color.slice(1);
@@ -112,7 +113,7 @@ function detailOf(t: AvatarTraits): Detail {
   const f = (salt: number) => (h32(s, salt) % 1000) / 1000;
   return {
     iris: IRIS_COLORS[h32(s, 21) % IRIS_COLORS.length],
-    blush: 0.16 + f(22) * 0.18,
+    blush: 0.18 + f(22) * 0.18,
     blushSize: 2.1 + f(23) * 1.1,
     browTilt: (f(24) - 0.5) * 0.5,
     rowPhase: f(25) * 3,
@@ -123,78 +124,38 @@ function detailOf(t: AvatarTraits): Detail {
   };
 }
 
-// --- gradient helpers (design-unit coords) ---
-function radialG(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  r0: number,
-  r1: number,
-  stops: [number, string][],
-): CanvasGradient {
-  const g = ctx.createRadialGradient(cx * U, cy * U, r0 * U, cx * U, cy * U, r1 * U);
-  for (const [o, c] of stops) g.addColorStop(o, c);
-  return g;
-}
-function linearG(
-  ctx: CanvasRenderingContext2D,
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-  stops: [number, string][],
-): CanvasGradient {
-  const g = ctx.createLinearGradient(x0 * U, y0 * U, x1 * U, y1 * U);
-  for (const [o, c] of stops) g.addColorStop(o, c);
-  return g;
-}
-
 // Soft "sphere" backdrop behind the bird — gives depth + keeps legs/feet from
-// blending into the card's tier background. Drawn UN-squashed (not silhouette-scaled).
+// blending into the card's tier background. The ONLY gradient in the render (it
+// is the backdrop, not the bird). Drawn UN-squashed (not silhouette-scaled).
 function drawSphere(ctx: CanvasRenderingContext2D) {
-  const cx = 32,
-    cy = 33,
-    r = 31;
-  ctx.fillStyle = radialG(ctx, cx - r * 0.34, cy - r * 0.4, r * 0.1, r * 1.5, [
-    [0, "#fdfaf3"],
-    [0.5, "#ede7d8"],
-    [1, "#c8bfa9"],
-  ]);
+  const cx = 32 * U,
+    cy = 33 * U,
+    r = 31 * U;
+  const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.2, cx, cy, r * 1.15);
+  g.addColorStop(0, "#faf6ec");
+  g.addColorStop(1, "#d8cfba");
+  ctx.fillStyle = g;
   ctx.beginPath();
-  ctx.arc(cx * U, cy * U, r * U, 0, Math.PI * 2);
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fill();
-  // bottom bounce light — reads as ambient floor light, cheap depth
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx * U, cy * U, r * U, 0, Math.PI * 2);
-  ctx.clip();
-  ctx.fillStyle = radialG(ctx, cx, cy + r * 1.15, r * 0.2, r * 0.9, [
-    [0, "rgba(255,252,240,0.5)"],
-    [1, "rgba(255,252,240,0)"],
-  ]);
-  ctx.fillRect(0, 0, R, R);
-  ctx.restore();
   ctx.lineWidth = 1 * U;
-  ctx.strokeStyle = "rgba(43,32,22,0.12)";
+  ctx.strokeStyle = "rgba(43,32,22,0.10)";
   ctx.beginPath();
-  ctx.arc(cx * U, cy * U, r * U - 0.5 * U, 0, Math.PI * 2);
+  ctx.arc(cx, cy, r - 0.5 * U, 0, Math.PI * 2);
   ctx.stroke();
 }
 
-// Soft contact shadow under the feet (grounds the bird on the sphere).
+// Soft contact shadow under the feet (grounds the bird on the sphere). Two flat
+// stacked ellipses — reads soft without a gradient.
 function groundShadow(ctx: CanvasRenderingContext2D) {
-  const cx = 36 + BIRD_DX,
-    cy = 57;
   ctx.save();
-  ctx.translate(cx * U, cy * U);
-  ctx.scale(1, 3.4 / 14);
-  ctx.fillStyle = radialG(ctx, 0, 0, 0, 14, [
-    [0, "rgba(43,32,22,0.28)"],
-    [0.7, "rgba(43,32,22,0.14)"],
-    [1, "rgba(43,32,22,0)"],
-  ]);
+  ctx.fillStyle = "rgba(43,32,22,0.10)";
   ctx.beginPath();
-  ctx.arc(0, 0, 14 * U, 0, Math.PI * 2);
+  ctx.ellipse((36 + BIRD_DX) * U, 57 * U, 14 * U, 3.4 * U, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(43,32,22,0.12)";
+  ctx.beginPath();
+  ctx.ellipse((36 + BIRD_DX) * U, 57 * U, 9.5 * U, 2.3 * U, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -211,8 +172,8 @@ function clipEll(ctx: CanvasRenderingContext2D, cx: number, cy: number, rx: numb
   ctx.clip();
 }
 
-// A tapered feather blade from a base point: widest ~60% along, rounded tip,
-// central shaft, tip catching light. Reads as a real feather, not a lozenge.
+// A tapered feather blade from a base point: widest ~60% along, rounded tip, flat
+// fill + a darker central shaft. Reads as a feather while staying flat/cel.
 function frond(
   ctx: CanvasRenderingContext2D,
   bx: number,
@@ -228,11 +189,7 @@ function frond(
   const L = len * U;
   const w0 = wid * 0.4 * U;
   const w = wid * 1.05 * U;
-  ctx.fillStyle = linearG(ctx, 0, 0, len, 0, [
-    [0, shade(color, -14)],
-    [0.7, color],
-    [1, shade(color, 22)],
-  ]);
+  ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(0, -w0);
   ctx.quadraticCurveTo(L * 0.55, -w, L, 0);
@@ -240,23 +197,17 @@ function frond(
   ctx.closePath();
   ctx.fill();
   // shaft
-  ctx.strokeStyle = shade(color, -32);
+  ctx.strokeStyle = shade(color, -30);
   ctx.lineWidth = 0.35 * U;
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.lineTo(L * 0.88, 0);
-  ctx.stroke();
-  // soft edge to separate overlapping blades
-  ctx.strokeStyle = "rgba(43,32,22,0.18)";
-  ctx.lineWidth = 0.3 * U;
-  ctx.beginPath();
-  ctx.moveTo(0, -w0);
-  ctx.quadraticCurveTo(L * 0.55, -w, L, 0);
+  ctx.lineTo(L * 0.85, 0);
   ctx.stroke();
   ctx.restore();
 }
 
-// A row of scalloped feather tips (arcs), used to texture the belly.
+// A row of scalloped feather tips (arcs), used to texture the belly — thin, low
+// alpha, so it reads as flat linework, not shading.
 function featherRow(
   ctx: CanvasRenderingContext2D,
   y: number,
@@ -267,15 +218,15 @@ function featherRow(
   color: string,
 ) {
   ctx.strokeStyle = color;
-  ctx.lineWidth = 0.45 * U;
-  for (let x = x0 + phase; x < x1; x += r * 1.7) {
+  ctx.lineWidth = 0.4 * U;
+  for (let x = x0 + phase; x < x1; x += r * 1.8) {
     ctx.beginPath();
     ctx.arc(x * U, y * U, r * U, Math.PI * 0.12, Math.PI * 0.88);
     ctx.stroke();
   }
 }
 
-// --- detailed per-part draws (design units) ---
+// --- detailed per-part draws (design units), flat cel style ---
 function drawPart(
   ctx: CanvasRenderingContext2D,
   p: PartDef,
@@ -288,7 +239,7 @@ function drawPart(
   switch (p.id) {
     case "tail": {
       // Fan from the BACK-LEFT, pointing up-left (bird faces right). Angles ~π
-      // aim the blades left; >π lifts them up. Layered light→dark.
+      // aim the blades left; >π lifts them up. Alternating flat tones.
       const bx = 24,
         by = 37;
       const fan = (specs: [number, number][], w = 3) =>
@@ -309,10 +260,10 @@ function drawPart(
           fan([[3.25, 15], [3.5, 17]]);
           // two long sickle blades arcing up + a curled tip
           fan([[3.85, 24], [4.05, 26]], 3.6);
-          ctx.fillStyle = shade(col, 24);
+          ctx.fillStyle = shade(col, 18);
           ell(ctx, 13, 16, 2.4, 1.6);
-          ctx.fillStyle = "rgba(255,255,255,0.25)";
-          ell(ctx, 12.5, 15.5, 1, 0.8);
+          ctx.fillStyle = "rgba(255,255,255,0.3)";
+          ell(ctx, 12.5, 15.5, 0.9, 0.7);
           break;
         default:
           fan([[3.05, 14], [3.3, 15], [3.55, 16], [3.8, 17]]);
@@ -324,88 +275,63 @@ function drawPart(
       const wf = WEIGHT_BELLY[t.weight ?? "middle"] ?? 1;
       const brx = 17 * wf;
       const bry = 15 * (1 + (wf - 1) * 0.65);
-      // volume: lit top-back → shaded belly
-      ctx.fillStyle = radialG(ctx, 31, 31, 2, 26, [
-        [0, shade(col, 26)],
-        [0.45, col],
-        [1, shade(col, -26)],
-      ]);
+      ctx.fillStyle = col;
       ell(ctx, 36, 38, brx, bry);
       ctx.save();
       clipEll(ctx, 36, 38, brx, bry);
-      // ambient occlusion at the very bottom
-      ctx.fillStyle = radialG(ctx, 36, 38 + bry * 1.1, bry * 0.3, bry * 1.1, [
-        [0, "rgba(43,32,22,0.30)"],
-        [1, "rgba(43,32,22,0)"],
-      ]);
-      ctx.fillRect(0, 0, R, R);
-      // feather scallop rows over the lower belly — the "texture" read
-      const rowCol = shade(col, -34);
+      // flat belly shadow (bottom crescent) + flat back highlight (top-left)
+      ctx.fillStyle = shade(col, -26);
+      ell(ctx, 36, 38 + bry * 0.62, brx, bry * 0.72);
+      ctx.fillStyle = shade(col, 22);
+      ell(ctx, 30, 29.5, 9.5, 5);
+      // flat feather scallops over the lower belly — texture as linework
       ctx.save();
-      ctx.globalAlpha = 0.5;
-      featherRow(ctx, 44, 22, 52, 1.7, d.rowPhase, rowCol);
-      featherRow(ctx, 47, 22, 52, 1.7, d.rowPhase + 1.4, rowCol);
-      featherRow(ctx, 50, 22, 52, 1.7, d.rowPhase + 0.6, rowCol);
       ctx.globalAlpha = 0.3;
-      featherRow(ctx, 41, 24, 52, 1.7, d.rowPhase + 0.9, rowCol);
+      const rowCol = shade(col, -40);
+      featherRow(ctx, 44.5, 22, 52, 2, d.rowPhase, rowCol);
+      featherRow(ctx, 48, 22, 52, 2, d.rowPhase + 1.8, rowCol);
+      featherRow(ctx, 51.2, 24, 50, 2, d.rowPhase + 0.8, rowCol);
       ctx.restore();
-      // rim light along the back (top-left) — the premium-game touch
-      ctx.strokeStyle = "rgba(255,252,240,0.45)";
-      ctx.lineWidth = 1.1 * U;
-      ctx.beginPath();
-      ctx.ellipse(36 * U, 38.6 * U, (brx - 1) * U, (bry - 1) * U, 0, Math.PI * 1.05, Math.PI * 1.55);
-      ctx.stroke();
       ctx.restore();
       break;
     }
     case "wing": {
-      // folded wing: darker base + rows of covert feathers + long primaries
-      ctx.fillStyle = radialG(ctx, 35, 37, 2, 14, [
-        [0, shade(col, -2)],
-        [1, shade(col, -30)],
-      ]);
-      ell(ctx, 38, 41, 11, 9);
+      // folded wing: flat teardrop + big rounded feather tips at the back edge
+      const wcol = shade(col, -12);
+      ctx.fillStyle = wcol;
+      ell(ctx, 38, 41, 10.5, 8.5);
       ctx.save();
-      clipEll(ctx, 38, 41, 11, 9);
-      // covert rows — overlapping rounded feathers, each with a darker rim
-      for (let row = 0; row < 3; row++) {
-        const y = 38.5 + row * 3.1;
-        const c = shade(col, -10 - row * 9);
-        for (let i = 0; i < 6; i++) {
-          const x = 30 + i * 3.3 + (row % 2) * 1.65;
-          ctx.fillStyle = c;
-          ctx.beginPath();
-          ctx.ellipse(x * U, y * U, 1.9 * U, 2.4 * U, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.strokeStyle = "rgba(43,32,22,0.22)";
-          ctx.lineWidth = 0.35 * U;
-          ctx.beginPath();
-          ctx.arc(x * U, y * U, 1.85 * U, Math.PI * 0.15, Math.PI * 0.85);
-          ctx.stroke();
-        }
-      }
-      // primaries — long blades tucked toward the tail
-      frond(ctx, 41, 44, Math.PI * 0.92, 9, 1.6, shade(col, -36));
-      frond(ctx, 41.5, 45.5, Math.PI * 0.96, 8, 1.5, shade(col, -44));
-      // top sheen
-      ctx.fillStyle = "rgba(255,252,240,0.28)";
-      ell(ctx, 36, 36.5, 6, 2.6);
+      clipEll(ctx, 38, 41, 10.5, 8.5);
+      // two overlapping rows of big flat feather tips
+      ctx.fillStyle = shade(col, -28);
+      ell(ctx, 31, 44.5, 4.6, 3.4);
+      ell(ctx, 35.5, 46, 4.6, 3.4);
+      ell(ctx, 40, 47, 4.6, 3.4);
+      ctx.fillStyle = shade(col, -42);
+      ell(ctx, 30, 47, 4, 2.8);
+      ell(ctx, 34.5, 48.5, 4, 2.8);
+      ell(ctx, 39.5, 49.4, 4, 2.8);
+      // one scallop row mid-wing
+      ctx.save();
+      ctx.globalAlpha = 0.3;
+      featherRow(ctx, 41.5, 30, 46, 1.9, d.rowPhase, shade(col, -46));
       ctx.restore();
-      // wing rim — separates wing from same-colored body
-      ctx.strokeStyle = "rgba(43,32,22,0.30)";
+      // flat top highlight
+      ctx.fillStyle = shade(col, 12);
+      ell(ctx, 37, 35.6, 6.5, 2.4);
+      ctx.restore();
+      // thin rim — separates wing from the same-colored body
+      ctx.strokeStyle = "rgba(43,32,22,0.25)";
       ctx.lineWidth = 0.5 * U;
       ctx.beginPath();
-      ctx.ellipse(38 * U, 41 * U, 11 * U, 9 * U, 0, 0, Math.PI * 2);
+      ctx.ellipse(38 * U, 41 * U, 10.5 * U, 8.5 * U, 0, 0, Math.PI * 2);
       ctx.stroke();
       break;
     }
     case "saddle": {
       if (t.neckType === "naked") {
         // bare-neck breed: skin throat, no hackle feathers
-        ctx.fillStyle = radialG(ctx, 45, 29, 1, 7, [
-          [0, shade(t.skin, 12)],
-          [1, shade(t.skin, -18)],
-        ]);
+        ctx.fillStyle = t.skin;
         ell(ctx, 45, 30, 4, 6);
         ctx.fillStyle = shade(t.skin, -22);
         ell(ctx, 46, 33, 3, 3);
@@ -419,16 +345,17 @@ function drawPart(
           ctx.stroke();
         });
       } else {
-        // hackle cape — layered tapered feathers spilling from neck onto the back
-        [0, 1, 2, 3, 4].forEach((i) =>
+        // hackle cape — flat feathers draping from the neck down onto the
+        // shoulder (down-left, tucked under the head so no blade crosses the chest)
+        [0, 1, 2, 3].forEach((i) =>
           frond(
             ctx,
-            44.5 - i * 1.1,
-            29 + i * 1.7,
-            -0.55 + i * 0.08,
-            6.5 - i * 0.4,
+            46 - i * 0.9,
+            26.5 + i * 1.5,
+            2.35 + i * 0.09,
+            6 - i * 0.5,
             1.5,
-            i % 2 ? shade(col, 18) : col,
+            i % 2 ? shade(col, 16) : col,
           ),
         );
       }
@@ -476,7 +403,7 @@ function drawPart(
       };
       legs(outline, 2.6, false); // contrast outline
       legs(col, 1.6, true); // skin on top
-      // scale texture — short ticks across each shank
+      // scale texture — short flat ticks across each shank
       ctx.strokeStyle = shade(col, -34);
       ctx.lineWidth = 0.35 * U;
       [33, 40].forEach((lx) => {
@@ -491,16 +418,13 @@ function drawPart(
         // foot feathering (Brahma/Cochin) — base-color puffs over the shanks
         const fc = channelColor("base", t);
         [33, 40].forEach((lx) => {
-          ctx.fillStyle = radialG(ctx, lx - 1, 52, 0.5, 4.5, [
-            [0, shade(fc, 16)],
-            [1, shade(fc, -14)],
-          ]);
+          ctx.fillStyle = fc;
           ell(ctx, lx, 52, 3.4, 3);
           ell(ctx, lx, 55, 3, 2.4);
-          ctx.fillStyle = shade(fc, -26);
+          ctx.fillStyle = shade(fc, -22);
           ell(ctx, lx + 0.6, 56, 2, 1.2);
           ctx.save();
-          ctx.globalAlpha = 0.45;
+          ctx.globalAlpha = 0.4;
           featherRow(ctx, 53.4, lx - 2.6, lx + 2.6, 1.1, 0, shade(fc, -36));
           ctx.restore();
         });
@@ -508,21 +432,15 @@ function drawPart(
       break;
     }
     case "head": {
-      ctx.fillStyle = radialG(ctx, 46.5, 19.5, 1, 13, [
-        [0, shade(col, 28)],
-        [0.55, col],
-        [1, shade(col, -22)],
-      ]);
+      ctx.fillStyle = col;
       ell(ctx, 49, 23, 9, 9);
       ctx.save();
       clipEll(ctx, 49, 23, 9, 9);
-      ctx.fillStyle = shade(col, -24); // jaw shade
-      ell(ctx, 50, 29, 7, 3.6);
-      // ear patch — small recognizable oval behind the cheek
-      ctx.fillStyle = shade(col, -14);
-      ell(ctx, 47.2, 26.2, 1.5, 1.9);
-      ctx.fillStyle = shade(col, 10);
-      ell(ctx, 47.1, 25.9, 0.9, 1.2);
+      // flat forehead highlight + flat jaw shade
+      ctx.fillStyle = shade(col, 22);
+      ell(ctx, 46.5, 18.5, 4.5, 3);
+      ctx.fillStyle = shade(col, -22);
+      ell(ctx, 50, 29.5, 7, 3.6);
       // cheek blush — the mimimi anchor, intensity per bird
       ctx.save();
       ctx.globalAlpha = d.blush;
@@ -535,12 +453,6 @@ function drawPart(
         ell(ctx, 52.6 + (d.seed % 3) * 0.4, 24.6, 0.28, 0.28);
         if (d.freckles > 1) ell(ctx, 54, 25.4 + (d.seed % 2) * 0.5, 0.24, 0.24);
       }
-      // rim light on the crown
-      ctx.strokeStyle = "rgba(255,252,240,0.4)";
-      ctx.lineWidth = 0.9 * U;
-      ctx.beginPath();
-      ctx.ellipse(49 * U, 23.5 * U, 8 * U, 8 * U, 0, Math.PI * 1.1, Math.PI * 1.6);
-      ctx.stroke();
       ctx.restore();
       if (t.neckType === "crested") {
         // Polish-style head tuft — base-color fronds pointing up.
@@ -551,65 +463,52 @@ function drawPart(
       break;
     }
     case "comb": {
-      const glossy = (cx: number, cy: number, rx: number, ry: number) => {
-        ctx.fillStyle = radialG(ctx, cx - rx * 0.3, cy - ry * 0.45, rx * 0.1, rx * 1.6, [
-          [0, shade(col, 34)],
-          [0.55, col],
-          [1, shade(col, -20)],
-        ]);
+      const lobe = (cx: number, cy: number, rx: number, ry: number) => {
+        ctx.fillStyle = col;
         ell(ctx, cx, cy, rx, ry);
-        ctx.fillStyle = "rgba(255,255,255,0.35)";
-        ell(ctx, cx - rx * 0.3, cy - ry * 0.4, rx * 0.32, ry * 0.24);
       };
       if (t.combType === "rose") {
         ([[46, 15, 3], [49, 14, 3.4], [52, 15, 3], [48, 16.5, 2.6], [50.5, 16.5, 2.4]] as [number, number, number][]).forEach(
-          ([cx, cy, r]) => glossy(cx, cy, r, r * 0.8),
+          ([cx, cy, r]) => lobe(cx, cy, r, r * 0.8),
         );
-        ctx.fillStyle = shade(col, -24);
+        ctx.fillStyle = shade(col, -22);
         ell(ctx, 49, 17, 4, 1.4);
       } else if (t.combType === "pea") {
-        [46, 49, 52].forEach((cx) => glossy(cx, 16, 1.6, 2.2));
+        [46, 49, 52].forEach((cx) => lobe(cx, 16, 1.6, 2.2));
         ctx.fillStyle = shade(col, -20);
         [46, 49, 52].forEach((cx) => ell(ctx, cx, 17.4, 1.1, 0.9));
       } else {
         // single — three rounded points, middle one taller
-        [44, 48, 52].forEach((cx, i) => glossy(cx, 15 - (i === 1 ? 1.2 : 0), 3, 3.5));
-        ctx.fillStyle = shade(col, -24);
+        [44, 48, 52].forEach((cx, i) => lobe(cx, 15 - (i === 1 ? 1.2 : 0), 3, 3.5));
+        ctx.fillStyle = shade(col, -22);
         [44, 48, 52].forEach((cx) => ell(ctx, cx + 0.6, 16.6, 2, 1.3));
       }
+      // one flat shine dot on the front lobe
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ell(ctx, 47.2, 13.6, 1, 0.7);
       break;
     }
     case "wattle": {
-      const lobe = (cx: number, cy: number, rx: number, ry: number) => {
-        ctx.fillStyle = radialG(ctx, cx - rx * 0.3, cy - ry * 0.4, rx * 0.1, ry * 1.5, [
-          [0, shade(col, 26)],
-          [0.6, col],
-          [1, shade(col, -24)],
-        ]);
-        ell(ctx, cx, cy, rx, ry);
-      };
-      lobe(53, 31, 2.4, 3.4);
-      lobe(50, 32, 2, 3);
-      ctx.fillStyle = "rgba(255,255,255,0.28)";
-      ell(ctx, 52.4, 29.8, 0.8, 1);
+      ctx.fillStyle = col;
+      ell(ctx, 53, 31, 2.4, 3.4);
+      ell(ctx, 50, 32, 2, 3);
+      ctx.fillStyle = shade(col, -20);
+      ell(ctx, 53.6, 33, 1.4, 1.6);
+      ctx.fillStyle = "rgba(255,255,255,0.3)";
+      ell(ctx, 52.4, 29.8, 0.7, 0.9);
       break;
     }
     case "beak": {
-      // curved two-mandible beak with gradient + parted smile line
-      ctx.fillStyle = linearG(ctx, 56, 21, 56, 27.5, [
-        [0, shade(col, 30)],
-        [0.5, col],
-        [1, shade(col, -28)],
-      ]);
-      // top mandible
+      // curved two-mandible beak, flat tones + mouth line
+      ctx.fillStyle = col;
       ctx.beginPath();
       ctx.moveTo(55.6 * U, 21.6 * U);
       ctx.quadraticCurveTo(61.5 * U, 21.2 * U, 63.2 * U, 24.3 * U);
       ctx.quadraticCurveTo(59.5 * U, 25.1 * U, 55.8 * U, 25 * U);
       ctx.closePath();
       ctx.fill();
-      // bottom mandible (slightly darker, tucked)
-      ctx.fillStyle = shade(col, -22);
+      // bottom mandible (darker, tucked)
+      ctx.fillStyle = shade(col, -26);
       ctx.beginPath();
       ctx.moveTo(56 * U, 25.1 * U);
       ctx.quadraticCurveTo(59.8 * U, 25.6 * U, 62 * U, 24.9 * U);
@@ -623,24 +522,19 @@ function drawPart(
       ctx.moveTo(56 * U, 24.9 * U);
       ctx.quadraticCurveTo(59.5 * U, 25.5 * U, 62.6 * U, 24.6 * U);
       ctx.stroke();
-      // nostril + top gloss
+      // nostril + one flat shine
       ctx.fillStyle = shade(col, -52);
       ell(ctx, 57.6, 22.9, 0.5, 0.4);
-      ctx.strokeStyle = "rgba(255,255,255,0.4)";
-      ctx.lineWidth = 0.5 * U;
-      ctx.beginPath();
-      ctx.moveTo(57 * U, 22 * U);
-      ctx.quadraticCurveTo(60 * U, 21.8 * U, 61.8 * U, 23.2 * U);
-      ctx.stroke();
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ell(ctx, 59.3, 22.5, 1.1, 0.45);
       break;
     }
     case "eye": {
       // brow — tiny tilted stroke above the eye; per-bird expression
-      const browY = 18.6;
       ctx.save();
       ctx.strokeStyle = "rgba(43,32,22,0.45)";
       ctx.lineWidth = 0.55 * U;
-      ctx.translate(51.5 * U, browY * U);
+      ctx.translate(51.5 * U, 18.6 * U);
       ctx.rotate(d.browTilt);
       ctx.beginPath();
       ctx.moveTo(-1.6 * U, 0);
@@ -648,7 +542,7 @@ function drawPart(
       ctx.stroke();
       ctx.restore();
       if (!open) {
-        // closed lid — a happy downward arc + tiny lashes
+        // closed lid — a happy downward arc + a tiny lash
         ctx.strokeStyle = "#20222e";
         ctx.lineWidth = 0.9 * U;
         ctx.lineCap = "round";
@@ -664,28 +558,21 @@ function drawPart(
         ctx.lineCap = "butt";
         return;
       }
-      // sclera with a soft top shadow
+      // sclera → flat iris ring → pupil → catchlights
       ctx.fillStyle = "#fdfaf1";
       ell(ctx, 51.5, 21.5, 2.7, 2.9);
-      ctx.fillStyle = "rgba(43,32,22,0.12)";
-      ell(ctx, 51.5, 20.2, 2.4, 1.1);
-      // iris — per-bird color, radial falloff to a dark rim
-      ctx.fillStyle = radialG(ctx, 51.8, 21.4, 0.2, 2, [
-        [0, shade(d.iris, 30)],
-        [0.6, d.iris],
-        [1, shade(d.iris, -60)],
-      ]);
-      ell(ctx, 52, 21.7, 1.9, 2.1);
-      // pupil
+      ctx.fillStyle = shade(d.iris, -55);
+      ell(ctx, 52, 21.7, 1.95, 2.15);
+      ctx.fillStyle = d.iris;
+      ell(ctx, 52, 21.7, 1.55, 1.75);
       ctx.fillStyle = "#12131c";
       ell(ctx, 52.15, 21.8, 1.05 * d.pupil, 1.2 * d.pupil);
-      // catchlights — big + small = the "alive" read
       ctx.fillStyle = "#ffffff";
       ell(ctx, 51.45, 20.75, 0.62, 0.62);
       ctx.fillStyle = "rgba(255,255,255,0.7)";
       ell(ctx, 52.85, 22.5, 0.3, 0.3);
       // upper lid line
-      ctx.strokeStyle = "rgba(32,34,46,0.6)";
+      ctx.strokeStyle = "rgba(32,34,46,0.55)";
       ctx.lineWidth = 0.5 * U;
       ctx.beginPath();
       ctx.arc(51.5 * U, 21.7 * U, 2.6 * U, Math.PI * 1.15, Math.PI * 1.8);
@@ -694,11 +581,7 @@ function drawPart(
     }
     case "accessory": {
       if (t.accessory === "crown") {
-        ctx.fillStyle = linearG(ctx, 43, 7, 55, 13, [
-          [0, "#F6DE6B"],
-          [0.5, "#E7C200"],
-          [1, "#B89200"],
-        ]);
+        ctx.fillStyle = "#E7C200";
         [45, 49, 53].forEach((cx) => {
           ctx.beginPath();
           ctx.moveTo((cx - 1.6) * U, 11 * U);
@@ -708,9 +591,8 @@ function drawPart(
           ctx.fill();
         });
         ctx.fillRect(43 * U, 11 * U, 12 * U, 2.2 * U);
-        ctx.strokeStyle = "rgba(43,32,22,0.35)";
-        ctx.lineWidth = 0.4 * U;
-        ctx.strokeRect(43 * U, 11 * U, 12 * U, 2.2 * U);
+        ctx.fillStyle = "#B89200"; // flat base shade band
+        ctx.fillRect(43 * U, 12.4 * U, 12 * U, 0.8 * U);
         // gem + ball tips
         ctx.fillStyle = "#D6342B";
         ell(ctx, 49, 12.1, 0.9, 0.9);
@@ -719,10 +601,7 @@ function drawPart(
         ctx.fillStyle = "#F6DE6B";
         [45, 49, 53].forEach((cx) => ell(ctx, cx, 6.8, 0.7, 0.7));
       } else if (t.accessory === "scarf") {
-        ctx.fillStyle = linearG(ctx, 44, 33, 44, 36.5, [
-          [0, "#E7554B"],
-          [1, "#B72A22"],
-        ]);
+        ctx.fillStyle = "#D6423A";
         ctx.beginPath();
         ctx.moveTo(43.5 * U, 33 * U);
         ctx.quadraticCurveTo(50 * U, 35.2 * U, 56.5 * U, 33.4 * U);
@@ -731,7 +610,7 @@ function drawPart(
         ctx.closePath();
         ctx.fill();
         // hanging end + fringe
-        ctx.fillStyle = "#C93A31";
+        ctx.fillStyle = "#B72A22";
         ctx.beginPath();
         ctx.moveTo(43.8 * U, 34.5 * U);
         ctx.quadraticCurveTo(42.6 * U, 38 * U, 44.4 * U, 41 * U);
@@ -747,7 +626,7 @@ function drawPart(
           ctx.lineTo((x - 0.2) * U, 41.8 * U);
           ctx.stroke();
         });
-        // knit ribs
+        // knit ribs — flat linework
         ctx.strokeStyle = "rgba(255,255,255,0.22)";
         ctx.lineWidth = 0.35 * U;
         [33.8, 34.7].forEach((y) => {
@@ -757,10 +636,7 @@ function drawPart(
           ctx.stroke();
         });
       } else if (t.accessory === "spurs") {
-        ctx.fillStyle = linearG(ctx, 30, 54, 32, 56, [
-          [0, "#f2f2f2"],
-          [1, "#9d9da6"],
-        ]);
+        ctx.fillStyle = "#cfcfcf";
         ell(ctx, 31, 55, 1.4, 1.4);
         ell(ctx, 42, 55, 1.4, 1.4);
         ctx.fillStyle = "rgba(255,255,255,0.7)";
@@ -788,7 +664,7 @@ function tinted(img: HTMLImageElement, color: string): HTMLCanvasElement {
 
 // Plumage pattern, clipped to the body. Each pattern mimics a real chicken
 // plumage read: barred (curved bands), laced (scalloped crescents), mottled
-// (seeded flecks) — recognizable at card size.
+// (seeded flecks) — recognizable at card size, all flat.
 function patternOverlay(ctx: CanvasRenderingContext2D, t: AvatarTraits, d: Detail) {
   if (t.pattern === "none") return;
   const wf = WEIGHT_BELLY[t.weight ?? "middle"] ?? 1;
@@ -823,9 +699,9 @@ function patternOverlay(ctx: CanvasRenderingContext2D, t: AvatarTraits, d: Detai
   } else {
     // mottled/speckle — seeded flecks, varied size & tilt, some light-tipped
     for (let i = 0; i < 46; i++) {
-      const fx = 21 + (h32(d.seed, 100 + i) % 1000) / 1000 * 30;
-      const fy = 25 + (h32(d.seed, 200 + i) % 1000) / 1000 * 26;
-      const fr = 0.5 + (h32(d.seed, 300 + i) % 1000) / 1000 * 0.7;
+      const fx = 21 + ((h32(d.seed, 100 + i) % 1000) / 1000) * 30;
+      const fy = 25 + ((h32(d.seed, 200 + i) % 1000) / 1000) * 26;
+      const fr = 0.5 + ((h32(d.seed, 300 + i) % 1000) / 1000) * 0.7;
       const rot = ((h32(d.seed, 400 + i) % 1000) / 1000) * Math.PI;
       ctx.save();
       ctx.translate(fx * U, fy * U);
@@ -847,15 +723,15 @@ function patternOverlay(ctx: CanvasRenderingContext2D, t: AvatarTraits, d: Detai
   ctx.restore();
 }
 
-// Premium metallic sheen — a diagonal gloss band composited onto bird pixels
+// Premium metallic sheen — a soft diagonal shine band composited onto bird pixels
 // only; slowly sweeps when animated (gold/silver birds shimmer on the hero).
 function premiumSheen(ctx: CanvasRenderingContext2D, time: number, animate: boolean) {
   const sweep = animate ? Math.sin(time * 0.6) * 0.18 : 0;
   const g = ctx.createLinearGradient(0, 0, R, R);
   const mid = 0.5 + sweep;
-  g.addColorStop(Math.max(0, mid - 0.18), "rgba(255,255,255,0)");
-  g.addColorStop(mid, "rgba(255,255,255,0.28)");
-  g.addColorStop(Math.min(1, mid + 0.18), "rgba(255,255,255,0)");
+  g.addColorStop(Math.max(0, mid - 0.16), "rgba(255,255,255,0)");
+  g.addColorStop(mid, "rgba(255,255,255,0.22)");
+  g.addColorStop(Math.min(1, mid + 0.16), "rgba(255,255,255,0)");
   ctx.save();
   ctx.globalCompositeOperation = "source-atop";
   ctx.fillStyle = g;

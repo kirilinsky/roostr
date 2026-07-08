@@ -7,18 +7,21 @@ import type { HydratedRoostr } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
 // Owner-facing lock notices: bird is working (farm/lab/defense), freed to the wild,
-// in gift limbo, or otherwise locked (e.g. on the market). At most one shows. The
-// "return from work" action lives on the page (ReturnFromWorkButton), not here.
+// in gift limbo, or otherwise locked (e.g. on the market). At most one shows.
+// `action` (e.g. the return-from-work button) renders on the right of the working
+// notice so the state and its remedy read as one row.
 export default function StatusNotices({
   roostr,
   isOwner,
   locked,
   freedAt,
+  action,
 }: {
   roostr: HydratedRoostr;
   isOwner: boolean;
   locked: boolean;
   freedAt?: number;
+  action?: React.ReactNode;
 }) {
   const t = useT();
   const locale = useLocale();
@@ -38,9 +41,19 @@ export default function StatusNotices({
     );
     return (
       <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
-        <Typography variant="body2" sx={{ fontWeight: 700 }}>
-          {isHospital ? "🏥" : "🔧"} {t("detail.atWork", { station: stationLabel })}
-        </Typography>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          justifyContent="space-between"
+          flexWrap="wrap"
+          useFlexGap
+        >
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {isHospital ? "🏥" : "🔧"} {t("detail.atWork", { station: stationLabel })}
+          </Typography>
+          {action}
+        </Stack>
       </Card>
     );
   }

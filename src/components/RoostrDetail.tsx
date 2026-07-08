@@ -71,11 +71,17 @@ export default function RoostrDetail({
         <CombatCard roostr={roostr} />
       </Box>
 
-      <StatusNotices roostr={roostr} isOwner={isOwner} locked={locked} freedAt={freedAt} />
-
-      {isOwner && roostr.status === "working" && (
-        <ReturnFromWorkButton roostrId={roostrId} kind={roostr.work?.kind} />
-      )}
+      <StatusNotices
+        roostr={roostr}
+        isOwner={isOwner}
+        locked={locked}
+        freedAt={freedAt}
+        action={
+          isOwner && roostr.status === "working" ? (
+            <ReturnFromWorkButton roostrId={roostrId} kind={roostr.work?.kind} />
+          ) : undefined
+        }
+      />
 
       {canManage && (
         <OwnerActions roostr={roostr} roostrId={roostrId} friends={friends} />

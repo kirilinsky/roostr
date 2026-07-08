@@ -57,7 +57,7 @@ export default function GeneUpgradeGrid({
   }
 
   return (
-    <>
+    <Stack spacing={1.5}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h5" sx={{ fontWeight: 800, textTransform: "uppercase" }}>
           {t("detail.geneticUpgrades")}
@@ -161,6 +161,6 @@ export default function GeneUpgradeGrid({
           );
         })}
       </Box>
-    </>
+    </Stack>
   );
 }

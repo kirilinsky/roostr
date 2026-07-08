@@ -37,12 +37,13 @@ export default function ReturnFromWorkButton({
   return (
     <Button
       variant="contained"
+      size="small"
       onClick={returnFromWork}
       disabled={busy}
       sx={{ alignSelf: "flex-start" }}
     >
       {busy ? (
-        <CircularProgress size={20} color="inherit" />
+        <CircularProgress size={18} color="inherit" />
       ) : (
         t(isHospital ? "hospital.discharge" : "detail.returnFromWork")
       )}

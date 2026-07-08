@@ -2,19 +2,17 @@ import Link from "next/link";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
-import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { TIERS } from "@/lib/roostr";
+import TierLadder from "@/components/TierLadder";
 import { getTranslations } from "@/i18n/server";
-import { contrastText } from "@/lib/contrast";
 
 // Roostrpedia article: tiers (overall power classes D–X) — what they are, where
-// they come from (rating), and how to climb. Ladder is sorted high → low.
+// they come from (rating), and how to climb. The ladder itself is the shared
+// TierLadder readout (same visual as the detail-page modal, no rating marker).
 export default async function PediaTiersPage() {
   const { t } = await getTranslations();
-  const ladder = [...TIERS].sort((a, b) => b.min - a.min);
 
   return (
     <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
@@ -39,38 +37,9 @@ export default async function PediaTiersPage() {
           <Typography variant="body2">{t("pedia.tiers.intro")}</Typography>
         </Card>
 
-        <Stack spacing={1}>
-          {ladder.map((tier) => (
-            <Card
-              key={tier.id}
-              sx={{
-                p: 1.5,
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 1.5,
-              }}
-            >
-              <Chip
-                label={`★ ${tier.id}`}
-                sx={{
-                  fontWeight: 900,
-                  fontSize: "1rem",
-                  minWidth: 64,
-                  bgcolor: tier.color,
-                  color: contrastText(tier.color),
-                }}
-              />
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {t("pedia.tiers.from", { n: String(tier.min) })}
-              </Typography>
-            </Card>
-          ))}
-        </Stack>
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
+          <TierLadder />
+        </Card>
       </Stack>
     </Container>
   );

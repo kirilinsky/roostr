@@ -90,9 +90,11 @@ export default function SynthGeneStrip({
       </Stack>
 
       {genes.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
-          {t("detail.synthEmpty")}
-        </Typography>
+        <Card sx={{ p: { xs: 1.5, md: 2 }, borderStyle: "dashed" }}>
+          <Typography variant="body2" color="text.secondary">
+            🧬 {t("detail.synthEmpty")}
+          </Typography>
+        </Card>
       ) : (
         <Box
           sx={{

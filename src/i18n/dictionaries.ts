@@ -63,7 +63,6 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.tiers.desc": "Overall power class (D–X).",
     "pedia.tiers.intro":
       "A rooster's tier is its overall level — a band of its rating. Rating = the sum of all 12 skills plus HALF its HP. No rooster is born rare (everyone hatches Common); you climb the ladder by upgrading genes — both buffs and debuffs grow with level, so smart builds rise fastest.",
-    "pedia.tiers.from": "from {n}",
     "pedia.archetypes.how":
       "An archetype is decided by a rooster's genes: a Work gene plus a combat/utility gene → Hybrid; otherwise the most-represented gene family sets the archetype. It's a hint, not a hard class.",
     "pedia.breeds.title": "Breeds",
@@ -290,6 +289,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "detail.combatStats": "All stats",
     "detail.breedTrait": "Breed trait",
     "detail.record": "Record",
+    "detail.tierLadderTitle": "Level ladder",
+    "detail.tierCurrentPos": "Current position by rating points",
     "detail.sendTo": "Recommended job",
     "detail.hatched": "Hatched",
     "detail.geneticUpgrades": "Genetic upgrades",
@@ -722,7 +723,6 @@ export const dictionaries: Record<Locale, Dict> = {
     "pedia.tiers.desc": "Общий класс силы (D–X).",
     "pedia.tiers.intro":
       "Класс (тир) петуха — его общий уровень, полоса рейтинга. Рейтинг = сумма всех 12 скиллов плюс ПОЛОВИНА HP. Никто не рождается редким (все вылупляются Common); по лестнице растёшь прокачкой генов — с уровнем растут и баффы, и дебафы, так что грамотные билды поднимаются быстрее.",
-    "pedia.tiers.from": "от {n}",
     "pedia.archetypes.how":
       "Архетип определяют гены петуха: ген работы + боевой/утилитарный → Гибрид; иначе самое представленное семейство генов задаёт архетип. Это подсказка, не жёсткий класс.",
     "pedia.breeds.title": "Породы",
@@ -948,6 +948,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "detail.combatStats": "Все статы",
     "detail.breedTrait": "Черта породы",
     "detail.record": "Счёт боёв",
+    "detail.tierLadderTitle": "Шкала уровней",
+    "detail.tierCurrentPos": "Текущая позиция по баллам",
     "detail.sendTo": "Рекомендуемая работа",
     "detail.hatched": "Вылупился",
     "detail.geneticUpgrades": "Генетические апгрейды",
