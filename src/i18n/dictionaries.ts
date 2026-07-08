@@ -347,6 +347,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "sell.price": "Price (coins)",
     "sell.bounds": "Allowed range: {min} – {max}",
     "sell.outOfRange": "Enter a price between {min} and {max}.",
+    "sell.ttlNote": "The listing stays live for {hours}h, then returns to you if unsold.",
     "sell.list": "List for sale",
     "breedInfo.info": "Breed info",
     "breedInfo.rarityHint":
@@ -1024,6 +1025,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "sell.price": "Цена (коины)",
     "sell.bounds": "Допустимо: {min} – {max}",
     "sell.outOfRange": "Введи цену от {min} до {max}.",
+    "sell.ttlNote": "Лот висит {hours}ч, потом вернётся тебе, если не куплен.",
     "sell.list": "Выставить на продажу",
     "breedInfo.info": "О породе",
     "breedInfo.rarityHint":
@@ -1143,6 +1145,9 @@ export const dictionaries: Record<Locale, Dict> = {
     "profile.eggsHatched": "Вылуплено яиц",
     "profile.coinsEarned": "Монет заработано",
     "profile.coinsSpent": "Монет потрачено",
+    "profile.sciSpent": "Науки потрачено",
+    "profile.eggsEarned": "Яиц получено",
+    "profile.potionsBought": "Зелий куплено",
     "profile.registered": "Регистрация",
     "profile.memberSince": "С нами с {date}",
     "profile.roostrsOwned": "Петухи",

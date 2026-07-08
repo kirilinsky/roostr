@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
@@ -7,12 +6,12 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import UserAvatar from "@/components/UserAvatar";
 import FriendButton from "@/components/FriendButton";
 import ShareProfileButton from "@/components/ShareProfileButton";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import { getFriends } from "@/db/queries";
-import { userPhoto } from "@/lib/tokens";
 
 // Full friends list for a user (by Telegram id) — the "all friends" target from
 // the profile's friends block. Mirrors the /[id]/achievements pattern. On your own
@@ -73,9 +72,7 @@ export default async function ProfileFriendsPage({
                   divider
                   sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
                 >
-                  <Avatar src={userPhoto(f.photoUrl)} alt={name}>
-                    {name.charAt(0)}
-                  </Avatar>
+                  <UserAvatar photoUrl={f.photoUrl} name={name} />
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
                       {name}

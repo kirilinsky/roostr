@@ -2,16 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Popup from "@/components/Popup";
+import UserAvatar from "@/components/UserAvatar";
 import { giftRoostrAction } from "@/app/collection/[id]/actions";
 import { useT } from "@/i18n/I18nProvider";
-import { userPhoto } from "@/lib/tokens";
 
 export interface GiftFriend {
   id: number;
@@ -83,9 +82,7 @@ export default function GiftRoostrButton({
           // Confirm step — avoids a mis-tap giving the bird away.
           <Stack spacing={2} sx={{ py: 1 }}>
             <Stack direction="row" spacing={1.5} alignItems="center">
-              <Avatar src={userPhoto(picked.photoUrl)} alt={friendName(picked)}>
-                {friendName(picked).charAt(0)}
-              </Avatar>
+              <UserAvatar photoUrl={picked.photoUrl} name={friendName(picked)} />
               <Typography variant="body1" sx={{ fontWeight: 700 }}>
                 {t("gift.confirm", { name: friendName(picked) })}
               </Typography>
@@ -132,9 +129,7 @@ export default function GiftRoostrButton({
                   "&:hover": { bgcolor: "action.hover" },
                 }}
               >
-                <Avatar src={userPhoto(f.photoUrl)} alt={friendName(f)}>
-                  {friendName(f).charAt(0)}
-                </Avatar>
+                <UserAvatar photoUrl={f.photoUrl} name={friendName(f)} />
                 <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
                   {friendName(f)}
                 </Typography>

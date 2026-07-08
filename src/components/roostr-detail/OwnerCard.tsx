@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import UserAvatar from "@/components/UserAvatar";
 import OwnershipHistoryModal from "@/components/roostr-detail/OwnershipHistoryModal";
 import type { ProvenanceEvent } from "@/db/queries";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -67,16 +67,14 @@ export default function OwnerCard({
               🕊️
             </Box>
           ) : (
-            <Avatar
+            <UserAvatar
               component={Link}
               href={`/${owner.id}`}
-              src={owner.photoUrl ?? undefined}
-              alt={owner.name}
+              photoUrl={owner.photoUrl}
+              name={owner.name}
               variant="square"
               sx={{ width: 48, height: 48, flexShrink: 0, border: 2, borderColor: "neutral.main" }}
-            >
-              {owner.name.charAt(0)}
-            </Avatar>
+            />
           )}
 
           <Box sx={{ minWidth: 0 }}>

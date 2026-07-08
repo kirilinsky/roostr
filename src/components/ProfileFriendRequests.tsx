@@ -3,11 +3,11 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import UserAvatar from "@/components/UserAvatar";
 import { useT } from "@/i18n/I18nProvider";
 import {
   acceptFriendRequestAction,
@@ -15,7 +15,6 @@ import {
   cancelFriendRequestAction,
 } from "@/app/[telegramid]/actions";
 import type { FriendRequestSummary } from "@/db/queries";
-import { userPhoto } from "@/lib/tokens";
 
 function name(u: FriendRequestSummary) {
   return (
@@ -50,15 +49,13 @@ export default function ProfileFriendRequests({
     children: React.ReactNode;
   }) => (
     <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
-      <Avatar
+      <UserAvatar
         component={Link}
         href={`/${u.id}`}
-        src={userPhoto(u.photoUrl)}
-        alt={name(u)}
+        photoUrl={u.photoUrl}
+        name={name(u)}
         sx={{ width: 32, height: 32 }}
-      >
-        {name(u).charAt(0)}
-      </Avatar>
+      />
       <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }} noWrap>
         {name(u)}
       </Typography>

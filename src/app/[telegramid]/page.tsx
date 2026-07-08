@@ -1,8 +1,8 @@
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import UserAvatar from "@/components/UserAvatar";
 import FriendButton from "@/components/FriendButton";
 import CollectionCard from "@/components/CollectionCard";
 import OwnProfile from "@/components/OwnProfile";
@@ -17,7 +17,6 @@ import {
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { parseReferralId } from "@/lib/referrals";
-import { userPhoto } from "@/lib/tokens";
 
 // Public profile reachable via the shared link: /<telegramId>. Single-segment
 // dynamic route — static routes (/market, /collection, …) win, so it only catches
@@ -101,13 +100,11 @@ export default async function PublicProfilePage({
         // Other player's profile: centered identity + friend control. Balances
         // (coins etc.) are PRIVATE — never shown on someone else's profile.
         <Stack spacing={3} alignItems="center" textAlign="center">
-          <Avatar
-            src={userPhoto(user.photoUrl)}
-            alt={displayName}
+          <UserAvatar
+            photoUrl={user.photoUrl}
+            name={displayName}
             sx={{ width: 96, height: 96 }}
-          >
-            {displayName.charAt(0)}
-          </Avatar>
+          />
 
           <Stack spacing={0.5} alignItems="center">
             <Typography variant="h4" component="h1">

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -16,7 +15,7 @@ import ProfileFriendRequests from "@/components/ProfileFriendRequests";
 import QuestBoard from "@/components/QuestBoard";
 import { PROFILE_ACHIEVEMENTS, evaluate } from "@/lib/achievements";
 import { getTranslations } from "@/i18n/server";
-import { userPhoto } from "@/lib/tokens";
+import UserAvatar from "@/components/UserAvatar";
 import {
   getProfileMetrics,
   getAchievementUnlocks,
@@ -121,13 +120,11 @@ export default async function OwnProfile({
             justifyContent="space-between"
           >
             <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
-              <Avatar
-                src={userPhoto(user.photoUrl)}
-                alt={displayName}
+              <UserAvatar
+                photoUrl={user.photoUrl}
+                name={displayName}
                 sx={{ width: 72, height: 72 }}
-              >
-                {displayName.charAt(0)}
-              </Avatar>
+              />
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant="h5" component="h1" noWrap>
                   {displayName}
@@ -487,9 +484,7 @@ function PersonRow({
       color="neutral"
       sx={{ justifyContent: "flex-start", textTransform: "none", gap: 1, px: 1 }}
     >
-      <Avatar src={userPhoto(photoUrl)} alt={name} sx={{ width: 28, height: 28 }}>
-        {name.charAt(0)}
-      </Avatar>
+      <UserAvatar photoUrl={photoUrl} name={name} sx={{ width: 28, height: 28 }} />
       <Typography variant="body2" noWrap>
         {name}
       </Typography>

@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Popup from "@/components/Popup";
-import { MONO_FONT, userPhoto } from "@/lib/tokens";
+import UserAvatar from "@/components/UserAvatar";
+import { MONO_FONT } from "@/lib/tokens";
 import type { ProvenanceEvent } from "@/db/queries";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
@@ -56,11 +56,11 @@ export default function OwnershipHistoryModal({
               {/* timeline rail: square node + connecting line */}
               <Stack alignItems="center" sx={{ width: 44, flexShrink: 0 }}>
                 {e.user ? (
-                  <Avatar
+                  <UserAvatar
                     component={Link}
                     href={`/${e.user.id}`}
-                    src={userPhoto(e.user.photoUrl)}
-                    alt={name}
+                    photoUrl={e.user.photoUrl}
+                    name={name}
                     variant="square"
                     sx={{
                       width: 44,
@@ -68,9 +68,7 @@ export default function OwnershipHistoryModal({
                       border: 2,
                       borderColor: last ? "secondary.main" : "neutral.main",
                     }}
-                  >
-                    {name.charAt(0)}
-                  </Avatar>
+                  />
                 ) : (
                   <Box
                     sx={{

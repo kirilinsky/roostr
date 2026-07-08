@@ -15,12 +15,11 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
-import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
 import DevLoginButtons from "@/components/DevLoginButtons";
 import Footer from "@/components/Footer";
 import ResourceBar from "@/components/ResourceBar";
-import { userPhoto } from "@/lib/tokens";
+import UserAvatar from "@/components/UserAvatar";
 
 const DRAWER_WIDTH = 260;
 
@@ -253,13 +252,11 @@ export default function AppShell({
             },
           }}
         >
-          <Avatar
-            src={userPhoto(user.photoUrl)}
-            alt={user.name}
+          <UserAvatar
+            photoUrl={user.photoUrl}
+            name={user.name}
             sx={{ width: 40, height: 40 }}
-          >
-            {user.name.charAt(0) || "?"}
-          </Avatar>
+          />
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography variant="subtitle1" noWrap>
               {user.name}

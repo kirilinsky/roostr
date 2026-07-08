@@ -68,6 +68,10 @@ export default function SellRoostrForm({ roostr }: { roostr: HydratedRoostr }) {
         }}
       />
 
+      <Typography variant="caption" color="text.secondary">
+        ⏳ {t("sell.ttlNote", { hours: LISTING_TTL_HOURS })}
+      </Typography>
+
       <Button
         variant="contained"
         size="large"

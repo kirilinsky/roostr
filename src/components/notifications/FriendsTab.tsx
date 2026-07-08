@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import List from "@mui/material/List";
@@ -20,7 +19,7 @@ import type {
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { BREED_NAME, EmptyNotice, unreadSx, usePager } from "./shared";
 import { useNotifActions } from "@/hooks/useNotifActions";
-import { userPhoto } from "@/lib/tokens";
+import UserAvatar from "@/components/UserAvatar";
 
 const personName = (
   f: Pick<FriendRequestSummary, "firstName" | "lastName" | "username" | "id">,
@@ -68,9 +67,7 @@ export default function FriendsTab({
                 divider
                 sx={[{ px: 0, gap: 1.5, flexWrap: "wrap" }, unreadSx(g.unread)]}
               >
-                <Avatar src={g.fromPhoto ?? undefined} alt={g.fromName}>
-                  {g.fromName.charAt(0)}
-                </Avatar>
+                <UserAvatar photoUrl={g.fromPhoto} name={g.fromName} />
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     🎁 {t("notifications.giftFrom", { name: g.fromName, bird })}
@@ -141,9 +138,7 @@ export default function FriendsTab({
                 divider
                 sx={[{ px: 0, gap: 1.5, flexWrap: "wrap" }, unreadSx(f.unread)]}
               >
-                <Avatar component={Link} href={`/${f.id}`} src={userPhoto(f.photoUrl)} alt={name}>
-                  {name.charAt(0)}
-                </Avatar>
+                <UserAvatar component={Link} href={`/${f.id}`} photoUrl={f.photoUrl} name={name} />
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
                     🎉 {t("notifications.newFriend", { name })}
@@ -177,9 +172,7 @@ export default function FriendsTab({
               const name = personName(r);
               return (
                 <ListItem key={r.id} divider sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}>
-                  <Avatar component={Link} href={`/${r.id}`} src={userPhoto(r.photoUrl)} alt={name}>
-                    {name.charAt(0)}
-                  </Avatar>
+                  <UserAvatar component={Link} href={`/${r.id}`} photoUrl={r.photoUrl} name={name} />
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       🤝 {t("notifications.friendRequest", { name })}
