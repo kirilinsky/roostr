@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import RoostrHeader from "@/components/roostr-detail/RoostrHeader";
+import OwnerCard from "@/components/roostr-detail/OwnerCard";
 import IdentityCard from "@/components/roostr-detail/IdentityCard";
 import CombatCard from "@/components/roostr-detail/CombatCard";
 import StatusNotices from "@/components/roostr-detail/StatusNotices";
@@ -14,6 +15,7 @@ import DevHurtButton from "@/components/roostr-detail/DevHurtButton";
 import GeneUpgradeGrid from "@/components/roostr-detail/GeneUpgradeGrid";
 import SynthGeneStrip from "@/components/roostr-detail/SynthGeneStrip";
 import type { GiftFriend } from "@/components/GiftRoostrButton";
+import type { ProvenanceEvent } from "@/db/queries";
 import type { HydratedRoostr } from "@/lib/roostr";
 import { useT } from "@/i18n/I18nProvider";
 
@@ -30,6 +32,8 @@ export default function RoostrDetail({
   friends = [],
   freedAt,
   isAdmin = false,
+  owner = null,
+  provenance = [],
 }: {
   roostr: HydratedRoostr;
   roostrId: string;
@@ -40,6 +44,8 @@ export default function RoostrDetail({
   friends?: GiftFriend[];
   freedAt?: number;
   isAdmin?: boolean;
+  owner?: { id: number; name: string; photoUrl: string | null } | null;
+  provenance?: ProvenanceEvent[];
 }) {
   const t = useT();
   // Sell / gift only an ACTIVE bird (market actions). Upgrading genes is allowed
@@ -57,6 +63,8 @@ export default function RoostrDetail({
       </Button>
 
       <RoostrHeader roostr={roostr} roostrId={roostrId} canRename={canRename} />
+
+      <OwnerCard isOwner={isOwner} owner={owner} provenance={provenance} />
 
       {/* avatar + stats — responsive 2-column grid */}
       <Box

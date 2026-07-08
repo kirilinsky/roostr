@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import Popup from "@/components/Popup";
 import { giftRoostrAction } from "@/app/collection/[id]/actions";
 import { useT } from "@/i18n/I18nProvider";
+import { userPhoto } from "@/lib/tokens";
 
 export interface GiftFriend {
   id: number;
@@ -82,7 +83,7 @@ export default function GiftRoostrButton({
           // Confirm step — avoids a mis-tap giving the bird away.
           <Stack spacing={2} sx={{ py: 1 }}>
             <Stack direction="row" spacing={1.5} alignItems="center">
-              <Avatar src={picked.photoUrl ?? undefined} alt={friendName(picked)}>
+              <Avatar src={userPhoto(picked.photoUrl)} alt={friendName(picked)}>
                 {friendName(picked).charAt(0)}
               </Avatar>
               <Typography variant="body1" sx={{ fontWeight: 700 }}>
@@ -131,7 +132,7 @@ export default function GiftRoostrButton({
                   "&:hover": { bgcolor: "action.hover" },
                 }}
               >
-                <Avatar src={f.photoUrl ?? undefined} alt={friendName(f)}>
+                <Avatar src={userPhoto(f.photoUrl)} alt={friendName(f)}>
                   {friendName(f).charAt(0)}
                 </Avatar>
                 <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>

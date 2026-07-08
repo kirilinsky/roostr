@@ -16,6 +16,7 @@ import ProfileFriendRequests from "@/components/ProfileFriendRequests";
 import QuestBoard from "@/components/QuestBoard";
 import { PROFILE_ACHIEVEMENTS, evaluate } from "@/lib/achievements";
 import { getTranslations } from "@/i18n/server";
+import { userPhoto } from "@/lib/tokens";
 import {
   getProfileMetrics,
   getAchievementUnlocks,
@@ -121,7 +122,7 @@ export default async function OwnProfile({
           >
             <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
               <Avatar
-                src={user.photoUrl ?? undefined}
+                src={userPhoto(user.photoUrl)}
                 alt={displayName}
                 sx={{ width: 72, height: 72 }}
               >
@@ -486,7 +487,7 @@ function PersonRow({
       color="neutral"
       sx={{ justifyContent: "flex-start", textTransform: "none", gap: 1, px: 1 }}
     >
-      <Avatar src={photoUrl ?? undefined} alt={name} sx={{ width: 28, height: 28 }}>
+      <Avatar src={userPhoto(photoUrl)} alt={name} sx={{ width: 28, height: 28 }}>
         {name.charAt(0)}
       </Avatar>
       <Typography variant="body2" noWrap>

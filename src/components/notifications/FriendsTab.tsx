@@ -20,6 +20,7 @@ import type {
 import { useLocale, useT } from "@/i18n/I18nProvider";
 import { BREED_NAME, EmptyNotice, unreadSx, usePager } from "./shared";
 import { useNotifActions } from "@/hooks/useNotifActions";
+import { userPhoto } from "@/lib/tokens";
 
 const personName = (
   f: Pick<FriendRequestSummary, "firstName" | "lastName" | "username" | "id">,
@@ -140,7 +141,7 @@ export default function FriendsTab({
                 divider
                 sx={[{ px: 0, gap: 1.5, flexWrap: "wrap" }, unreadSx(f.unread)]}
               >
-                <Avatar component={Link} href={`/${f.id}`} src={f.photoUrl ?? undefined} alt={name}>
+                <Avatar component={Link} href={`/${f.id}`} src={userPhoto(f.photoUrl)} alt={name}>
                   {name.charAt(0)}
                 </Avatar>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -176,7 +177,7 @@ export default function FriendsTab({
               const name = personName(r);
               return (
                 <ListItem key={r.id} divider sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}>
-                  <Avatar component={Link} href={`/${r.id}`} src={r.photoUrl ?? undefined} alt={name}>
+                  <Avatar component={Link} href={`/${r.id}`} src={userPhoto(r.photoUrl)} alt={name}>
                     {name.charAt(0)}
                   </Avatar>
                   <Box sx={{ minWidth: 0, flex: 1 }}>

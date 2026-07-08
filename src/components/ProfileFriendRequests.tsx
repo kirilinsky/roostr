@@ -15,6 +15,7 @@ import {
   cancelFriendRequestAction,
 } from "@/app/[telegramid]/actions";
 import type { FriendRequestSummary } from "@/db/queries";
+import { userPhoto } from "@/lib/tokens";
 
 function name(u: FriendRequestSummary) {
   return (
@@ -52,7 +53,7 @@ export default function ProfileFriendRequests({
       <Avatar
         component={Link}
         href={`/${u.id}`}
-        src={u.photoUrl ?? undefined}
+        src={userPhoto(u.photoUrl)}
         alt={name(u)}
         sx={{ width: 32, height: 32 }}
       >

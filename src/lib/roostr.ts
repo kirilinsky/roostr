@@ -503,6 +503,12 @@ const SELL_UPGRADE_FACTOR = 0.55; // share of sunk upgrade coins that counts
 const SELL_MAX_MULT = 5; // max = intrinsic × this
 const SELL_HARD_CAP = 500_000; // never crazier than this
 
+// How long a market listing stays live before it auto-expires back to the seller.
+// Single source of truth for the offer window — the create-listing action stamps
+// expiresAt = createdAt + this, and the UI counts down to it.
+export const LISTING_TTL_HOURS = 72;
+export const LISTING_TTL_MS = LISTING_TTL_HOURS * 3_600_000;
+
 export function sellPriceBounds(
   genes: Gene[],
   geneLevels: GeneLevels,

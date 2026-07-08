@@ -20,6 +20,7 @@ import Typography from "@mui/material/Typography";
 import DevLoginButtons from "@/components/DevLoginButtons";
 import Footer from "@/components/Footer";
 import ResourceBar from "@/components/ResourceBar";
+import { userPhoto } from "@/lib/tokens";
 
 const DRAWER_WIDTH = 260;
 
@@ -253,7 +254,7 @@ export default function AppShell({
           }}
         >
           <Avatar
-            src={user.photoUrl}
+            src={userPhoto(user.photoUrl)}
             alt={user.name}
             sx={{ width: 40, height: 40 }}
           >

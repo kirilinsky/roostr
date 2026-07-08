@@ -12,6 +12,7 @@ import ShareProfileButton from "@/components/ShareProfileButton";
 import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import { getFriends } from "@/db/queries";
+import { userPhoto } from "@/lib/tokens";
 
 // Full friends list for a user (by Telegram id) — the "all friends" target from
 // the profile's friends block. Mirrors the /[id]/achievements pattern. On your own
@@ -72,7 +73,7 @@ export default async function ProfileFriendsPage({
                   divider
                   sx={{ px: 0, gap: 1.5, flexWrap: "wrap" }}
                 >
-                  <Avatar src={f.photoUrl ?? undefined} alt={name}>
+                  <Avatar src={userPhoto(f.photoUrl)} alt={name}>
                     {name.charAt(0)}
                   </Avatar>
                   <Box sx={{ minWidth: 0, flex: 1 }}>

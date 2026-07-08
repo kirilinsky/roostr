@@ -17,6 +17,7 @@ import {
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { parseReferralId } from "@/lib/referrals";
+import { userPhoto } from "@/lib/tokens";
 
 // Public profile reachable via the shared link: /<telegramId>. Single-segment
 // dynamic route — static routes (/market, /collection, …) win, so it only catches
@@ -101,7 +102,7 @@ export default async function PublicProfilePage({
         // (coins etc.) are PRIVATE — never shown on someone else's profile.
         <Stack spacing={3} alignItems="center" textAlign="center">
           <Avatar
-            src={user.photoUrl ?? undefined}
+            src={userPhoto(user.photoUrl)}
             alt={displayName}
             sx={{ width: 96, height: 96 }}
           >

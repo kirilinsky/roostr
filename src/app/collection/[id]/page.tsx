@@ -14,6 +14,7 @@ import {
   getAchievementUnlocks,
   recordAchievementUnlocks,
   getRoostrHistory,
+  getRoostrProvenance,
   getFriends,
   getTopCategoryLeaders,
   getLatestRelease,
@@ -45,6 +46,21 @@ export default async function RoostrDetailPage({
   const me = isOwner && session ? await getUserById(session.id) : null;
   const coins = me?.coins ?? 0;
   const sci = me?.sci ?? 0;
+  // Current owner readout (header chip). A released bird belongs to no one —
+  // ownerId is kept on the row for provenance only, so show "the wild" instead.
+  const ownerUser =
+    row.status === "released" ? null : me ?? (await getUserById(row.ownerId));
+  const owner = ownerUser
+    ? {
+        id: ownerUser.id,
+        name:
+          [ownerUser.firstName, ownerUser.lastName].filter(Boolean).join(" ") ||
+          (ownerUser.username ? `@${ownerUser.username}` : String(ownerUser.id)),
+        photoUrl: ownerUser.photoUrl,
+      }
+    : null;
+  // Chain of custody (transfers + releases, display-ready) → the history modal.
+  const provenance = await getRoostrProvenance(id);
   // Friends list powers the gift picker (owner only — only the owner can gift).
   const friends = isOwner && session ? await getFriends(session.id) : [];
   const roostr = hydrateRoostr(row);
@@ -115,6 +131,8 @@ export default async function RoostrDetailPage({
         friends={friends}
         freedAt={freedAt}
         isAdmin={isAdmin(session?.id)}
+        owner={owner}
+        provenance={provenance}
       />
 
       {earned.length > 0 && (

@@ -913,6 +913,76 @@ export async function getRoostrHistory(roostrId: string) {
   }
 }
 
+// One entry of a rooster's chain of custody, ready for display. `user` is the
+// holder AFTER the event; null = the bird went to the wild (release). Kinds come
+// from roostr_transfers ("hatch" | "gift" | "market" | …) plus the synthetic
+// "release" rows merged in from roostr_releases.
+export interface ProvenanceEvent {
+  at: string; // ISO timestamp of the change
+  kind: string;
+  price: number | null; // coins, market sales only
+  user: { id: number; name: string; photoUrl: string | null } | null;
+}
+
+// Display-ready ownership timeline: transfers + releases merged, oldest first,
+// with holder names/photos resolved. Powers the detail-page history modal.
+export async function getRoostrProvenance(
+  roostrId: string,
+): Promise<ProvenanceEvent[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { roostrTransfers, roostrReleases, users } = await import("@/db/schema");
+    const { asc, eq, inArray } = await import("drizzle-orm");
+    const [transfers, releases] = await Promise.all([
+      db
+        .select()
+        .from(roostrTransfers)
+        .where(eq(roostrTransfers.roostrId, roostrId))
+        .orderBy(asc(roostrTransfers.at)),
+      db.select().from(roostrReleases).where(eq(roostrReleases.roostrId, roostrId)),
+    ]);
+    const ids = [
+      ...new Set(
+        transfers
+          .map((tr) => tr.toUserId)
+          .filter((n): n is number => n != null),
+      ),
+    ];
+    const rows = ids.length
+      ? await db.select().from(users).where(inArray(users.id, ids))
+      : [];
+    const byId = new Map(
+      rows.map((u) => [
+        u.id,
+        { id: u.id, name: displayName(u), photoUrl: u.photoUrl },
+      ]),
+    );
+    const events: ProvenanceEvent[] = transfers.map((tr) => ({
+      at: new Date(tr.at).toISOString(),
+      kind: tr.kind,
+      price: tr.price,
+      user:
+        tr.toUserId != null
+          ? byId.get(tr.toUserId) ?? { id: tr.toUserId, name: `#${tr.toUserId}`, photoUrl: null }
+          : null,
+    }));
+    for (const r of releases) {
+      events.push({
+        at: new Date(r.releasedAt).toISOString(),
+        kind: "release",
+        price: null,
+        user: null,
+      });
+    }
+    events.sort((a, b) => a.at.localeCompare(b.at));
+    return events;
+  } catch (e) {
+    console.error("getRoostrProvenance failed:", e);
+    return [];
+  }
+}
+
 // --- Rooster gifts (directed accept/decline ownership transfer) ---
 
 export interface IncomingGift {

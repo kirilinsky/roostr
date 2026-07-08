@@ -7,7 +7,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { sellPriceBounds, type HydratedRoostr } from "@/lib/roostr";
+import { sellPriceBounds, LISTING_TTL_HOURS, type HydratedRoostr } from "@/lib/roostr";
 import { useT } from "@/i18n/I18nProvider";
 
 // Sell form (visual foundation): a digits-only price input clamped to the

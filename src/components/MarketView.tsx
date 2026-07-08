@@ -16,16 +16,19 @@ import { useLocale, useT } from "@/i18n/I18nProvider";
 export interface MarketListing {
   roostr: HydratedRoostr;
   price: number;
-  expiresAt?: number; // ms epoch; offers end 24h after listing
+  expiresAt?: number; // ms epoch; offers end 72h after listing (LISTING_TTL_HOURS)
 }
 
-// Time left until an offer ends, compact ("5h 12m" / "12m"). Null once past.
+// Time left until an offer ends, compact ("2d 5h" / "5h 12m" / "12m"). The offer
+// window is 72h (LISTING_TTL_HOURS), so show days once past a day. Null once past.
 function timeLeft(ms?: number): string | null {
   if (ms == null) return null;
   const d = ms - Date.now();
   if (d <= 0) return null;
-  const h = Math.floor(d / 3_600_000);
+  const days = Math.floor(d / 86_400_000);
+  const h = Math.floor((d % 86_400_000) / 3_600_000);
   const m = Math.floor((d % 3_600_000) / 60_000);
+  if (days > 0) return `${days}d ${h}h`;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 

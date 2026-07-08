@@ -301,7 +301,7 @@ export const listings = pgTable("listings", {
     onDelete: "set null",
   }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(), // createdAt + 24h
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(), // createdAt + LISTING_TTL_HOURS (72h)
   closedAt: timestamp("closed_at", { withTimezone: true }), // sold / expired / cancelled
 });
 
