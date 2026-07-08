@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import RoostrHeader from "@/components/roostr-detail/RoostrHeader";
 import OwnerCard from "@/components/roostr-detail/OwnerCard";
+import CancelListingButton from "@/components/roostr-detail/CancelListingButton";
 import IdentityCard from "@/components/roostr-detail/IdentityCard";
 import CombatCard from "@/components/roostr-detail/CombatCard";
 import StatusNotices from "@/components/roostr-detail/StatusNotices";
@@ -34,6 +35,7 @@ export default function RoostrDetail({
   isAdmin = false,
   owner = null,
   provenance = [],
+  listingId = null,
 }: {
   roostr: HydratedRoostr;
   roostrId: string;
@@ -46,6 +48,7 @@ export default function RoostrDetail({
   isAdmin?: boolean;
   owner?: { id: number; name: string; photoUrl: string | null } | null;
   provenance?: ProvenanceEvent[];
+  listingId?: string | null; // the bird's live market listing (when status "listed")
 }) {
   const t = useT();
   // Sell / gift only an ACTIVE bird (market actions). Upgrading genes is allowed
@@ -87,6 +90,8 @@ export default function RoostrDetail({
         action={
           isOwner && roostr.status === "working" ? (
             <ReturnFromWorkButton roostrId={roostrId} kind={roostr.work?.kind} />
+          ) : isOwner && roostr.status === "listed" && listingId ? (
+            <CancelListingButton listingId={listingId} roostrId={roostrId} />
           ) : undefined
         }
       />

@@ -1070,6 +1070,21 @@
       },
       "metric": "wasRejected",
       "value": 1
+    },
+    {
+      "id": "cursed",
+      "icon": "🪬",
+      "tier": "rare",
+      "name": {
+        "en": "The Curse",
+        "ru": "Проклятие"
+      },
+      "desc": {
+        "en": "Listed for sale 3 times in a row and nobody bought.",
+        "ru": "Выставляли на продажу 3 раза подряд — и никто не купил."
+      },
+      "metric": "unsoldStreak",
+      "value": 3
     }
   ]
 }

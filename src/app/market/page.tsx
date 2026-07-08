@@ -3,13 +3,13 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import MarketView, { type MarketListing } from "@/components/MarketView";
 import { getSession } from "@/lib/auth";
-import { getActiveListings } from "@/db/queries";
+import { getActiveListings, getUserById, expireStaleListings } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 
 // Market: every live offer (active, not expired), soonest-ending first. Listing
-// rows are joined to their roostr and hydrated. Buying isn't wired yet, so until
-// the list/buy actions land this is empty (shows the "no listings" message).
+// rows are joined to their roostr and hydrated. Expired-but-unswept listings are
+// returned to their sellers first so the board is fresh.
 export default async function MarketPage() {
   const { t } = await getTranslations();
   const session = await getSession();
@@ -24,10 +24,16 @@ export default async function MarketPage() {
     );
   }
 
-  const rows = await getActiveListings();
+  await expireStaleListings(); // lazy sweep: return timed-out birds to sellers
+  const [rows, me] = await Promise.all([
+    getActiveListings(),
+    getUserById(session.id),
+  ]);
   const listings: MarketListing[] = rows.map(({ listing, roostr }) => ({
+    id: listing.id,
     roostr: hydrateRoostr(roostr),
     price: listing.price,
+    sellerId: listing.sellerId,
     expiresAt: listing.expiresAt.getTime(),
   }));
 
@@ -42,7 +48,7 @@ export default async function MarketPage() {
             {t("market.empty")}
           </Typography>
         ) : (
-          <MarketView listings={listings} />
+          <MarketView listings={listings} myId={session.id} coins={me?.coins ?? 0} />
         )}
       </Stack>
     </Container>

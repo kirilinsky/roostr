@@ -59,7 +59,7 @@ export default function OwnerActions({
       </Stack>
 
       <Popup open={sellOpen} onClose={() => setSellOpen(false)} title={t("detail.sellTitle")}>
-        <SellRoostrForm roostr={roostr} />
+        <SellRoostrForm roostr={roostr} onListed={() => setSellOpen(false)} />
       </Popup>
     </Card>
   );

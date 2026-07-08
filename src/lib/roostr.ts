@@ -500,6 +500,10 @@ const SELL_BASE = 45;
 const SELL_PER_GENE = 60; // each gene adds value
 const SELL_WEIGHT_STEP = 25; // per weight-class index (tiny → huge)
 const SELL_UPGRADE_FACTOR = 0.55; // share of sunk upgrade coins that counts
+// Lower bound = this share of intrinsic. Sellers can undercut a bit to move a bird
+// fast — the floor sits 6% below the old 0.40 (i.e. 0.376) so a cheaper listing is
+// allowed without letting birds be dumped for nothing (SELL_MIN still applies).
+const SELL_MIN_MULT = 0.4 * 0.94;
 const SELL_MAX_MULT = 5; // max = intrinsic × this
 const SELL_HARD_CAP = 500_000; // never crazier than this
 
@@ -530,7 +534,7 @@ export function sellPriceBounds(
     weightIdx * SELL_WEIGHT_STEP +
     Math.round(invested * SELL_UPGRADE_FACTOR);
 
-  const min = Math.max(SELL_MIN, Math.round(intrinsic * 0.4));
+  const min = Math.max(SELL_MIN, Math.round(intrinsic * SELL_MIN_MULT));
   const max = Math.min(SELL_HARD_CAP, Math.round(intrinsic * SELL_MAX_MULT));
   return { min, max };
 }

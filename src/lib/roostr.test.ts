@@ -474,4 +474,36 @@ describe("sellPriceBounds", () => {
     const leveled = sellPriceBounds(genes, { [genes[0].id]: 6 }, wc);
     expect(leveled.max).toBeGreaterThan(base.max);
   });
+
+  it("lower floor lets you undercut ~6% below the old 0.40 floor", () => {
+    const b = sellPriceBounds(GENES.slice(0, 2), {}, wc);
+    // max = intrinsic × 5 (this bird is well under the hard cap), so recover the
+    // intrinsic and check the floor moved from 0.40 → 0.376 (6% cheaper).
+    const intrinsic = b.max / 5;
+    const oldFloor = Math.round(intrinsic * 0.4);
+    const newFloor = Math.round(intrinsic * 0.4 * 0.94);
+    expect(b.min).toBe(newFloor);
+    expect(b.min).toBeLessThan(oldFloor);
+    // ~6% cheaper (allow a coin of rounding slack).
+    expect(b.min / oldFloor).toBeGreaterThan(0.93);
+    expect(b.min / oldFloor).toBeLessThan(0.95);
+  });
+
+  it("never drops below the absolute floor of 20", () => {
+    const tiny = WEIGHT_CLASSES.find((w) => w.id === "tiny")!;
+    // A minimal bird (no genes, lightest class) would compute a sub-20 floor;
+    // SELL_MIN clamps it up.
+    const b = sellPriceBounds([], {}, tiny);
+    expect(b.min).toBe(20);
+    expect(b.min).toBeLessThanOrEqual(b.max);
+  });
+
+  it("heavier weight class raises both bounds", () => {
+    const tiny = WEIGHT_CLASSES.find((w) => w.id === "tiny")!;
+    const huge = WEIGHT_CLASSES.find((w) => w.id === "huge")!;
+    const light = sellPriceBounds(GENES.slice(0, 2), {}, tiny);
+    const heavy = sellPriceBounds(GENES.slice(0, 2), {}, huge);
+    expect(heavy.max).toBeGreaterThan(light.max);
+    expect(heavy.min).toBeGreaterThanOrEqual(light.min);
+  });
 });

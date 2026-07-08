@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CollectionCard from "@/components/CollectionCard";
@@ -11,11 +13,14 @@ import Filters, { type FilterGroup } from "@/components/Filters";
 import { TIERS, type HydratedRoostr } from "@/lib/roostr";
 import { BREED_GROUPS, groupName } from "@/lib/breeds";
 import { countryFlag } from "@/lib/flag";
+import { buyListingAction } from "@/app/market/actions";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
 export interface MarketListing {
+  id: string; // listing id (for buy)
   roostr: HydratedRoostr;
   price: number;
+  sellerId: number;
   expiresAt?: number; // ms epoch; offers end 72h after listing (LISTING_TTL_HOURS)
 }
 
@@ -41,11 +46,22 @@ const PRICE_BUCKETS = [
 ] as const;
 
 // Market grid — same structure as the collection (universal Filters + reused
-// CollectionCard), plus a price tag on each card and a price-range filter.
-// VISUAL FOUNDATION: buying is not wired yet.
-export default function MarketView({ listings }: { listings: MarketListing[] }) {
+// CollectionCard), plus a price tag on each card and a price-range filter. Tap a
+// card → buy modal → buyListingAction (a bird you don't own, with enough coins).
+export default function MarketView({
+  listings,
+  myId,
+  coins,
+}: {
+  listings: MarketListing[];
+  myId: number;
+  coins: number;
+}) {
   const t = useT();
   const locale = useLocale();
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [buyErr, setBuyErr] = useState<string | null>(null);
   const [filters, setFilters] = useState<Record<string, string>>({
     level: "",
     group: "",
@@ -161,22 +177,63 @@ export default function MarketView({ listings }: { listings: MarketListing[] }) 
         </Box>
       )}
 
-      {/* Listing / buy modal — placeholder until trading is wired. */}
+      {/* Buy modal — confirm + purchase. Can't buy your own listing; the button
+          also blocks when you can't afford it. */}
       <Popup
         open={Boolean(selected)}
-        onClose={() => setSelected(null)}
+        onClose={() => (pending ? undefined : (setSelected(null), setBuyErr(null)))}
         title={selected ? selected.roostr.nickname || selected.roostr.breed.name[locale] : ""}
       >
-        {selected && (
-          <Stack spacing={2} sx={{ pb: 1 }}>
-            <Box sx={{ maxWidth: 220, mx: "auto", width: "100%" }}>
-              <CollectionCard roostr={selected.roostr} price={selected.price} />
-            </Box>
-            <Button variant="contained" size="large" fullWidth disabled>
-              {t("market.buySoon")}
-            </Button>
-          </Stack>
-        )}
+        {selected &&
+          (() => {
+            const mine = selected.sellerId === myId;
+            const afford = coins >= selected.price;
+            const buy = () => {
+              setBuyErr(null);
+              start(async () => {
+                const res = await buyListingAction(selected.id);
+                if (res.ok) {
+                  setSelected(null);
+                  router.refresh();
+                } else {
+                  setBuyErr(res.error);
+                }
+              });
+            };
+            return (
+              <Stack spacing={2} sx={{ pb: 1 }}>
+                <Box sx={{ maxWidth: 220, mx: "auto", width: "100%" }}>
+                  <CollectionCard roostr={selected.roostr} price={selected.price} />
+                </Box>
+                {buyErr && (
+                  <Typography variant="body2" color="error" textAlign="center">
+                    {t(buyErr === "gone" || buyErr === "expired" ? "market.buyGone" : "market.buyFailed")}
+                  </Typography>
+                )}
+                {mine ? (
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    {t("market.ownListing")}
+                  </Typography>
+                ) : (
+                  <Button
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    disabled={pending || !afford}
+                    onClick={buy}
+                  >
+                    {pending ? (
+                      <CircularProgress size={22} color="inherit" />
+                    ) : afford ? (
+                      t("market.buyFor", { price: selected.price.toLocaleString() })
+                    ) : (
+                      t("market.notEnough")
+                    )}
+                  </Button>
+                )}
+              </Stack>
+            );
+          })()}
       </Popup>
     </Stack>
   );

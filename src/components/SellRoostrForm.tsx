@@ -1,20 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import InputAdornment from "@mui/material/InputAdornment";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { sellPriceBounds, LISTING_TTL_HOURS, type HydratedRoostr } from "@/lib/roostr";
+import { listRoostrAction } from "@/app/market/actions";
 import { useT } from "@/i18n/I18nProvider";
 
-// Sell form (visual foundation): a digits-only price input clamped to the
-// roostr's allowed range. Bounds come from sellPriceBounds (weight class + gene
-// count + sunk upgrade coins). Listing isn't wired to the server yet.
-export default function SellRoostrForm({ roostr }: { roostr: HydratedRoostr }) {
+// Sell form: a digits-only price input clamped to the roostr's allowed range
+// (weight class + gene count + sunk upgrade coins). Submitting calls
+// listRoostrAction, which RE-CLAMPS the price server-side, so the client bounds
+// are just UX. `onListed` closes the modal on success.
+export default function SellRoostrForm({
+  roostr,
+  onListed,
+}: {
+  roostr: HydratedRoostr;
+  onListed?: () => void;
+}) {
   const t = useT();
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [serverErr, setServerErr] = useState<string | null>(null);
   const { min, max } = sellPriceBounds(
     roostr.genes,
     roostr.geneLevels,
@@ -28,7 +41,24 @@ export default function SellRoostrForm({ roostr }: { roostr: HydratedRoostr }) {
   const valid = price !== "" && inRange;
 
   // strip everything but digits so nothing non-numeric ever lands in the field
-  const onChange = (v: string) => setPrice(v.replace(/[^\d]/g, ""));
+  const onChange = (v: string) => {
+    setPrice(v.replace(/[^\d]/g, ""));
+    if (serverErr) setServerErr(null);
+  };
+
+  const submit = () => {
+    if (!valid || !roostr.id) return;
+    setServerErr(null);
+    start(async () => {
+      const res = await listRoostrAction(roostr.id!, num);
+      if (res.ok) {
+        onListed?.();
+        router.refresh();
+      } else {
+        setServerErr(res.error);
+      }
+    });
+  };
 
   return (
     <Stack spacing={2} sx={{ py: 1 }}>
@@ -72,15 +102,20 @@ export default function SellRoostrForm({ roostr }: { roostr: HydratedRoostr }) {
         ⏳ {t("sell.ttlNote", { hours: LISTING_TTL_HOURS })}
       </Typography>
 
+      {serverErr && (
+        <Typography variant="body2" color="error">
+          {t("sell.error")}
+        </Typography>
+      )}
+
       <Button
         variant="contained"
         size="large"
         fullWidth
-        disabled={!valid}
-        // TODO: wire to a listRoostr server action (create listing + status).
-        onClick={() => {}}
+        disabled={!valid || pending}
+        onClick={submit}
       >
-        {t("sell.list")}
+        {pending ? <CircularProgress size={22} color="inherit" /> : t("sell.list")}
       </Button>
     </Stack>
   );

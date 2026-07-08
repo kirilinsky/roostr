@@ -103,6 +103,7 @@ export async function recordTransfer(
   fromUserId: number | null,
   toUserId: number,
   kind: string,
+  price?: number, // sale price in coins (market only); omit for gift/hatch/…
 ): Promise<void> {
   if (!process.env.DATABASE_URL) return;
   try {
@@ -110,7 +111,7 @@ export async function recordTransfer(
     const { roostrTransfers } = await import("@/db/schema");
     await db
       .insert(roostrTransfers)
-      .values({ roostrId, fromUserId, toUserId, kind });
+      .values({ roostrId, fromUserId, toUserId, kind, price: price ?? null });
   } catch (e) {
     console.error("recordTransfer failed:", e);
   }
@@ -405,6 +406,7 @@ export async function getProfileMetrics(
       gifts,
       synthGeneEvents,
       roostrHospitalVisits,
+      roostrTransfers,
     } = await import("@/db/schema");
     const { and, eq, gt, lt, inArray, or, sql } = await import("drizzle-orm");
     const { hydrateRoostr, TIERS } = await import("@/lib/roostr");
@@ -579,6 +581,36 @@ export async function getProfileMetrics(
       .from(gifts)
       .where(and(eq(gifts.toUserId, userId), eq(gifts.status, "accepted")));
     metrics.giftsReceived = Number(gIn?.n ?? 0);
+
+    // Market sales: birds this user SOLD (market transfers where they were the
+    // seller) + total coins earned from those sales. Drives First Sale / Seasoned
+    // Trader (roostrsSold) and Market Mogul (saleEarnings). Reads the append-only
+    // provenance ledger, so it survives the bird changing hands again.
+    const [sales] = await db
+      .select({
+        n: sql<number>`count(*)`,
+        earned: sql<number>`coalesce(sum(${roostrTransfers.price}), 0)`,
+      })
+      .from(roostrTransfers)
+      .where(
+        and(
+          eq(roostrTransfers.fromUserId, userId),
+          eq(roostrTransfers.kind, "market"),
+        ),
+      );
+    metrics.roostrsSold = Number(sales?.n ?? 0);
+    metrics.saleEarnings = Number(sales?.earned ?? 0);
+    // Birds bought on the market (market transfers where they were the buyer).
+    const [buys] = await db
+      .select({ n: sql<number>`count(*)` })
+      .from(roostrTransfers)
+      .where(
+        and(
+          eq(roostrTransfers.toUserId, userId),
+          eq(roostrTransfers.kind, "market"),
+        ),
+      );
+    metrics.roostrsBought = Number(buys?.n ?? 0);
 
     // Roosters released to the wild — one "release" ledger row (the free feather)
     // per release. Drives the "Free Bird / Letting Go / Liberator" achievements.
@@ -3753,6 +3785,269 @@ export async function settleAllStations(): Promise<{ settled: number }> {
 }
 
 // --- Market ---
+
+// Lazy sweep (no cron): flip any market listing past its expiresAt to "expired"
+// and return its bird from "listed" limbo back to "active" (owner never changed
+// while listed). Mirrors expireStaleGifts. Idempotent + cheap when nothing's
+// stale. Called from the market/collection/detail surfaces so state is fresh.
+export async function expireStaleListings(): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    const { db } = await import("@/db");
+    const { listings, roostrs } = await import("@/db/schema");
+    const { and, eq, inArray, lt } = await import("drizzle-orm");
+    const stale = await db
+      .select({ id: listings.id, roostrId: listings.roostrId })
+      .from(listings)
+      .where(and(eq(listings.status, "active"), lt(listings.expiresAt, new Date())));
+    if (stale.length === 0) return;
+    const ids = stale.map((s) => s.id);
+    const roostrIds = stale.map((s) => s.roostrId);
+    await db
+      .update(listings)
+      .set({ status: "expired", closedAt: new Date() })
+      .where(inArray(listings.id, ids));
+    // Only unlock birds still parked in "listed" (don't clobber another status).
+    await db
+      .update(roostrs)
+      .set({ status: "active" })
+      .where(and(inArray(roostrs.id, roostrIds), eq(roostrs.status, "listed")));
+  } catch (e) {
+    console.error("expireStaleListings failed:", e);
+  }
+}
+
+// List an ACTIVE bird the caller owns on the market. Owner + status are enforced
+// by CAS (active → listed); the price is re-clamped SERVER-SIDE to the bird's
+// sellPriceBounds (never trust the client). On a lost CAS or a failed insert the
+// lock is reverted so the bird can't orphan in "listed" limbo. Returns the new
+// listing id or a reason.
+export async function createListing(
+  roostrId: string,
+  sellerId: number,
+  price: number,
+): Promise<{ ok: boolean; reason?: string; listingId?: string }> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
+  if (!Number.isInteger(price) || price <= 0) return { ok: false, reason: "price" };
+  try {
+    const { db } = await import("@/db");
+    const { listings, roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const { hydrateRoostr, sellPriceBounds, LISTING_TTL_MS } = await import("@/lib/roostr");
+    // Server-side price clamp: recompute the allowed band from the DB row so a
+    // tampered client price can't list at 0 / negative / above the hard cap.
+    const row = await getRoostr(roostrId);
+    if (!row) return { ok: false, reason: "notfound" };
+    if (row.ownerId !== sellerId) return { ok: false, reason: "owner" };
+    if (row.status !== "active") return { ok: false, reason: "unavailable" };
+    const h = hydrateRoostr(row);
+    const { min, max } = sellPriceBounds(h.genes, h.geneLevels, h.weightClass);
+    if (price < min || price > max) return { ok: false, reason: "price" };
+
+    // CAS lock: only an ACTIVE bird still owned by the seller flips to "listed".
+    const locked = await db
+      .update(roostrs)
+      .set({ status: "listed" })
+      .where(
+        and(
+          eq(roostrs.id, roostrId),
+          eq(roostrs.ownerId, sellerId),
+          eq(roostrs.status, "active"),
+        ),
+      )
+      .returning({ id: roostrs.id });
+    if (locked.length === 0) return { ok: false, reason: "unavailable" };
+    // Bird now locked to "listed"; if the insert fails, undo the lock.
+    try {
+      const [l] = await db
+        .insert(listings)
+        .values({
+          roostrId,
+          sellerId,
+          price,
+          expiresAt: new Date(Date.now() + LISTING_TTL_MS),
+        })
+        .returning({ id: listings.id });
+      return { ok: true, listingId: l?.id };
+    } catch (insErr) {
+      await db
+        .update(roostrs)
+        .set({ status: "active" })
+        .where(and(eq(roostrs.id, roostrId), eq(roostrs.status, "listed")));
+      console.error("createListing insert failed, lock reverted:", insErr);
+      return { ok: false, reason: "error" };
+    }
+  } catch (e) {
+    console.error("createListing failed:", e);
+    return { ok: false, reason: "error" };
+  }
+}
+
+// Cancel one's own ACTIVE listing early: CAS the listing to "cancelled" and
+// return the bird from "listed" to "active". Seller-guarded via sellerId in the
+// CAS. Returns ok even if already gone (idempotent-ish → reports notfound).
+export async function cancelListing(
+  listingId: string,
+  sellerId: number,
+): Promise<{ ok: boolean; reason?: string }> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
+  try {
+    const { db } = await import("@/db");
+    const { listings, roostrs } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const closed = await db
+      .update(listings)
+      .set({ status: "cancelled", closedAt: new Date() })
+      .where(
+        and(
+          eq(listings.id, listingId),
+          eq(listings.sellerId, sellerId),
+          eq(listings.status, "active"),
+        ),
+      )
+      .returning({ roostrId: listings.roostrId });
+    if (closed.length === 0) return { ok: false, reason: "notfound" };
+    await db
+      .update(roostrs)
+      .set({ status: "active" })
+      .where(and(eq(roostrs.id, closed[0].roostrId), eq(roostrs.status, "listed")));
+    return { ok: true };
+  } catch (e) {
+    console.error("cancelListing failed:", e);
+    return { ok: false, reason: "error" };
+  }
+}
+
+// Buy a live listing. Single-winner CAS on the listing row (status active→sold)
+// decides who gets the bird, so two concurrent buyers can't both win. Then:
+// charge the buyer, pay the seller, move ownership, write the market transfer
+// (with price), unlock the bird, and grant the buyer the dex unlock. On an
+// insufficient-coin buyer the sale is fully rolled back (listing → active, bird
+// stays listed). Guards: can't buy your own bird, listing must be live/unexpired.
+export async function buyListing(
+  listingId: string,
+  buyerId: number,
+): Promise<{ ok: boolean; reason?: string; price?: number }> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
+  try {
+    const { db } = await import("@/db");
+    const { listings, roostrs } = await import("@/db/schema");
+    const { and, eq, gt } = await import("drizzle-orm");
+    // Read the listing (live + unexpired) and pre-check the self-buy guard before
+    // we claim it, so we don't needlessly lock a listing we'll just release.
+    const [pre] = await db
+      .select()
+      .from(listings)
+      .where(and(eq(listings.id, listingId), eq(listings.status, "active")))
+      .limit(1);
+    if (!pre) return { ok: false, reason: "gone" };
+    if (pre.expiresAt <= new Date()) return { ok: false, reason: "expired" };
+    if (pre.sellerId === buyerId) return { ok: false, reason: "self" };
+
+    // Single-winner CAS: claim the listing. Only one concurrent buyer flips it.
+    const claimed = await db
+      .update(listings)
+      .set({ status: "sold", buyerId, closedAt: new Date() })
+      .where(
+        and(
+          eq(listings.id, listingId),
+          eq(listings.status, "active"),
+          gt(listings.expiresAt, new Date()),
+        ),
+      )
+      .returning({ roostrId: listings.roostrId, sellerId: listings.sellerId, price: listings.price });
+    if (claimed.length === 0) return { ok: false, reason: "gone" };
+    const { roostrId, sellerId, price } = claimed[0];
+
+    // Charge the buyer. If they can't afford it, roll the listing back to active.
+    const paid = await spendResource(buyerId, "coin", price, "market", roostrId);
+    if (paid === null) {
+      await db
+        .update(listings)
+        .set({ status: "active", buyerId: null, closedAt: null })
+        .where(and(eq(listings.id, listingId), eq(listings.status, "sold")));
+      return { ok: false, reason: "coins" };
+    }
+    // Pay the seller (ledger row kind "market_sale" → drives sale achievements).
+    await grantResource(sellerId, "coin", price, "market_sale", roostrId);
+    // Move ownership + unlock the bird (guard on "listed" so we don't clobber).
+    await db
+      .update(roostrs)
+      .set({ ownerId: buyerId, status: "active" })
+      .where(and(eq(roostrs.id, roostrId), eq(roostrs.status, "listed")));
+    // Provenance + buyer's dex unlock.
+    await recordTransfer(roostrId, sellerId, buyerId, "market", price);
+    const bought = await getRoostr(roostrId);
+    if (bought) await recordDiscovery(buyerId, bought.breedId);
+    return { ok: true, price };
+  } catch (e) {
+    console.error("buyListing failed:", e);
+    return { ok: false, reason: "error" };
+  }
+}
+
+// Current streak of consecutive UNSOLD listings for a bird — how many times in a
+// row it was listed and expired (nobody bought), counting back from the latest
+// closed listing until a "sold" breaks the streak. A cancel doesn't count as a
+// sale but does end the visible attempt, so we count only "expired" and stop at
+// the first "sold". Drives the per-bird "The Curse" achievement. Active (still
+// live) listings aren't counted — the attempt isn't over yet.
+export async function getUnsoldStreak(roostrId: string): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0;
+  try {
+    const { db } = await import("@/db");
+    const { listings } = await import("@/db/schema");
+    const { and, desc, eq, inArray } = await import("drizzle-orm");
+    const closed = await db
+      .select({ status: listings.status })
+      .from(listings)
+      .where(
+        and(
+          eq(listings.roostrId, roostrId),
+          inArray(listings.status, ["expired", "sold"]),
+        ),
+      )
+      .orderBy(desc(listings.closedAt));
+    let streak = 0;
+    for (const row of closed) {
+      if (row.status === "sold") break; // a sale breaks the cursed streak
+      streak++;
+    }
+    return streak;
+  } catch (e) {
+    console.error("getUnsoldStreak failed:", e);
+    return 0;
+  }
+}
+
+// The bird's current live listing (active + unexpired), if any. Powers the
+// "cancel listing" affordance on the detail page. Null when not listed.
+export async function getActiveListingForRoostr(
+  roostrId: string,
+): Promise<{ id: string; price: number; expiresAt: Date } | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { listings } = await import("@/db/schema");
+    const { and, desc, eq, gt } = await import("drizzle-orm");
+    const [l] = await db
+      .select({ id: listings.id, price: listings.price, expiresAt: listings.expiresAt })
+      .from(listings)
+      .where(
+        and(
+          eq(listings.roostrId, roostrId),
+          eq(listings.status, "active"),
+          gt(listings.expiresAt, new Date()),
+        ),
+      )
+      .orderBy(desc(listings.createdAt))
+      .limit(1);
+    return l ?? null;
+  } catch (e) {
+    console.error("getActiveListingForRoostr failed:", e);
+    return null;
+  }
+}
 
 // Live market offers: active, not yet expired, soonest-ending first. Returns the
 // listing joined with its roostr row (hydrate the roostr in the caller).

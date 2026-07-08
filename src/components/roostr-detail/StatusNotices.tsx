@@ -91,6 +91,26 @@ export default function StatusNotices({
     );
   }
 
+  if (roostr.status === "listed") {
+    return (
+      <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          justifyContent="space-between"
+          flexWrap="wrap"
+          useFlexGap
+        >
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            🛒 {t("detail.onMarket")}
+          </Typography>
+          {action}
+        </Stack>
+      </Card>
+    );
+  }
+
   if (locked) {
     return (
       <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>

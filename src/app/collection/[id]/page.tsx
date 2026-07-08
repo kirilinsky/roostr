@@ -15,6 +15,9 @@ import {
   recordAchievementUnlocks,
   getRoostrHistory,
   getRoostrProvenance,
+  getActiveListingForRoostr,
+  getUnsoldStreak,
+  expireStaleListings,
   getFriends,
   getTopCategoryLeaders,
   getLatestRelease,
@@ -37,6 +40,7 @@ export default async function RoostrDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await expireStaleListings(); // sweep first so a timed-out "listed" bird reads active
   const row = await getRoostr(id);
   if (!row) notFound();
 
@@ -61,6 +65,9 @@ export default async function RoostrDetailPage({
     : null;
   // Chain of custody (transfers + releases, display-ready) → the history modal.
   const provenance = await getRoostrProvenance(id);
+  // If listed on the market, the live listing (for the owner's cancel button).
+  const listing =
+    row.status === "listed" && isOwner ? await getActiveListingForRoostr(id) : null;
   // Friends list powers the gift picker (owner only — only the owner can gift).
   const friends = isOwner && session ? await getFriends(session.id) : [];
   const roostr = hydrateRoostr(row);
@@ -91,6 +98,8 @@ export default async function RoostrDetailPage({
   const topLeaders = await getTopCategoryLeaders();
   // Hospital history (visits / nine-lives) — per-bird, not derivable from the bird.
   const hosp = await getRoostrHospitalStats(id);
+  // Consecutive expired-without-sale listings → "The Curse".
+  const unsoldStreak = await getUnsoldStreak(id);
   const rStatuses = evaluate(ROOSTER_ACHIEVEMENTS, {
     ...roosterMetricsFrom(roostr),
     owners: ownerSet.size,
@@ -101,6 +110,7 @@ export default async function RoostrDetailPage({
     topCategory: topLeaders.has(id) ? 1 : 0,
     hospitalVisits: hosp.visits,
     nineLives: hosp.nineLives ? 1 : 0,
+    unsoldStreak,
   });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
   const newlyIds =
@@ -133,6 +143,7 @@ export default async function RoostrDetailPage({
         isAdmin={isAdmin(session?.id)}
         owner={owner}
         provenance={provenance}
+        listingId={listing?.id ?? null}
       />
 
       {earned.length > 0 && (
