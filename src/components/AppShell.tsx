@@ -22,6 +22,7 @@ import ResourceBar from "@/components/ResourceBar";
 import UserAvatar from "@/components/UserAvatar";
 
 const DRAWER_WIDTH = 260;
+const headlineFamily = "var(--font-headline), system-ui, sans-serif";
 
 export interface NavItem {
   href: string;
@@ -173,7 +174,8 @@ export default function AppShell({
         pt: { xs: "52px", md: 0 },
       }}
     >
-      {/* Logo — hidden on mobile (the top bar already shows it). */}
+      {/* Logo — hidden on mobile (the top bar already shows it). Arcade wordmark:
+          gradient title, playful logo pop on hover, color-dotted tagline. */}
       <Box
         component={Link}
         href="/"
@@ -189,43 +191,94 @@ export default function AppShell({
           color: "inherit",
           borderBottom: "1px solid",
           borderColor: "divider",
-          "&:hover": {
-            bgcolor: "action.hover",
+          transition: "background-color .15s",
+          "&:hover": { bgcolor: "action.hover" },
+          "&:hover .brand-logo": {
+            transform: "rotate(-8deg) scale(1.1)",
+          },
+          "&:hover .brand-word": {
+            backgroundPosition: "100% 0",
           },
         }}
       >
-        <Image
-          src="/roostr_logo.png"
-          alt="Roostr"
-          width={92}
-          height={40}
-          priority
-          style={{ height: 48, width: "auto", display: "block", flexShrink: 0 }}
-        />
+        <Box
+          className="brand-logo"
+          sx={{
+            flexShrink: 0,
+            display: "flex",
+            transition: "transform .25s cubic-bezier(.34,1.56,.64,1)",
+            transformOrigin: "center",
+          }}
+        >
+          <Image
+            src="/roostr_logo.png"
+            alt="Roostr"
+            width={92}
+            height={40}
+            priority
+            style={{ height: 48, width: "auto", display: "block" }}
+          />
+        </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography
-            sx={{
-              fontFamily: "var(--font-headline), system-ui, sans-serif",
-              fontWeight: 800,
-              fontSize: "1rem",
+            className="brand-word"
+            sx={(theme) => ({
+              fontFamily: headlineFamily,
+              fontWeight: 900,
+              fontSize: "1.15rem",
               lineHeight: 1,
+              letterSpacing: "0.02em",
               textTransform: "uppercase",
-            }}
+              // Animated tri-color arcade gradient (blue → magenta → gold), sweeps
+              // on hover via a shifting background-position.
+              backgroundImage: `linear-gradient(100deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 45%, ${theme.palette.tertiary.main} 90%)`,
+              backgroundSize: "200% 100%",
+              backgroundPosition: "0% 0",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+              transition: "background-position .5s ease",
+            })}
           >
             Roostr
           </Typography>
-          <Typography
-            variant="caption"
-            color="text.secondary"
+          <Box
             sx={{
-              display: "block",
-              mt: 0.25,
-              lineHeight: 1.1,
-              textTransform: "uppercase",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              mt: 0.4,
             }}
           >
-            Hatch / Fight / Trade
-          </Typography>
+            {["Hatch", "Fight", "Trade"].map((word, i) => (
+              <Box key={word} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                {i > 0 && (
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 4,
+                      height: 4,
+                      borderRadius: "50%",
+                      bgcolor: i === 1 ? "secondary.main" : "tertiary.main",
+                    }}
+                  />
+                )}
+                <Typography
+                  component="span"
+                  sx={{
+                    fontSize: "0.62rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.09em",
+                    lineHeight: 1,
+                    textTransform: "uppercase",
+                    color: "text.secondary",
+                  }}
+                >
+                  {word}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Box>
 
