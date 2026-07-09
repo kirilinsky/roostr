@@ -2955,6 +2955,7 @@ export async function getFriends(userId: number) {
         firstName: users.firstName,
         lastName: users.lastName,
         photoUrl: users.photoUrl,
+        collectionPublic: users.collectionPublic,
         since: friendships.createdAt,
       })
       .from(friendships)
@@ -2966,6 +2967,26 @@ export async function getFriends(userId: number) {
       .orderBy(friendships.createdAt);
   } catch (e) {
     console.error("getFriends failed:", e);
+    return [];
+  }
+}
+
+// Active roosters for MANY owners in ONE query (batched), newest first. Used by
+// the friends page to preview each friend's public collection without N queries.
+// Same "active only" visibility as getRoostrs (listed/working/… stay hidden).
+export async function getRoostrsForOwners(ownerIds: number[]) {
+  if (!process.env.DATABASE_URL || ownerIds.length === 0) return [];
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { and, desc, eq, inArray } = await import("drizzle-orm");
+    return await db
+      .select()
+      .from(roostrs)
+      .where(and(inArray(roostrs.ownerId, ownerIds), eq(roostrs.status, "active")))
+      .orderBy(desc(roostrs.createdAt));
+  } catch (e) {
+    console.error("getRoostrsForOwners failed:", e);
     return [];
   }
 }
