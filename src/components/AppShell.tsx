@@ -196,9 +196,6 @@ export default function AppShell({
           "&:hover .brand-logo": {
             transform: "rotate(-8deg) scale(1.1)",
           },
-          "&:hover .brand-word": {
-            backgroundPosition: "100% 0",
-          },
         }}
       >
         <Box
@@ -222,23 +219,15 @@ export default function AppShell({
         <Box sx={{ minWidth: 0 }}>
           <Typography
             className="brand-word"
-            sx={(theme) => ({
+            sx={{
               fontFamily: headlineFamily,
               fontWeight: 900,
               fontSize: "1.15rem",
               lineHeight: 1,
               letterSpacing: "0.02em",
               textTransform: "uppercase",
-              // Animated tri-color arcade gradient (blue → magenta → gold), sweeps
-              // on hover via a shifting background-position.
-              backgroundImage: `linear-gradient(100deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 45%, ${theme.palette.tertiary.main} 90%)`,
-              backgroundSize: "200% 100%",
-              backgroundPosition: "0% 0",
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-              transition: "background-position .5s ease",
-            })}
+              color: "text.primary",
+            }}
           >
             Roostr
           </Typography>
