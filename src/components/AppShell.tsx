@@ -133,7 +133,11 @@ export default function AppShell({
             href={it.href}
             selected={pathname === it.href}
             onClick={close}
-            sx={{
+            sx={(theme) => ({
+              // §V24 (extended): theme fns NESTED inside selector objects are not
+              // resolved by MUI — emotion serializes fn.toString() into the CSS,
+              // and prod minification stringifies server vs client differently →
+              // hydration hash mismatch. Top-level sx callback only.
               borderRadius: 0,
               // Mobile: bigger tap target; desktop keeps the tighter row.
               py: { xs: 1.15, md: 0.75 },
@@ -145,14 +149,13 @@ export default function AppShell({
                 textTransform: "uppercase",
               },
               "&:hover": {
-                boxShadow: (theme) => `inset 3px 0 0 ${theme.palette.divider}`,
+                boxShadow: `inset 3px 0 0 ${theme.palette.divider}`,
               },
               "&.Mui-selected, &.Mui-selected:hover": {
                 bgcolor: "action.selected",
-                boxShadow: (theme) =>
-                  `inset 3px 0 0 ${theme.palette.secondary.main}`,
+                boxShadow: `inset 3px 0 0 ${theme.palette.secondary.main}`,
               },
-            }}
+            })}
           >
             <ListItemIcon sx={{ minWidth: { xs: 44, md: 40 }, fontSize: { xs: 26, md: 22 } }}>
               {it.icon}

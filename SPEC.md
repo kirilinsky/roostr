@@ -220,12 +220,15 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   MMR + anti-smurf; TEAM rules — exact size, whether queued/fighting birds get LOCKED (status, like
   working/raiding/listed per V13), 3v3 turn order / targeting, squad synergy; bot difficulty curve;
   energy cost + cooldown per mode; loss penalty (if any). Decide the format here, then split into §T.
-- V24 — MUI `sx` responsive BREAKPOINT values must be PLAIN values, ⊥ per-breakpoint theme fns
-  (`bgcolor: { xs: (theme) => … }`): MUI doesn't resolve fns nested inside a breakpoint object —
-  emotion serializes `fn.toString()` into the CSS, and Turbopack stringifies imports differently on
-  server vs client → SSR/hydration emotion-hash mismatch → React `removeChild` crash (B2). Theme
-  access in sx ONLY via a TOP-LEVEL callback: `sx={(theme) => ({ bgcolor: { xs: alpha(...) } })}`.
-  Guard: `TestV24` (`src/lib/sx-invariant.test.ts`) greps src for `(xs|sm|md|lg|xl): (theme)`.
+- V24 — MUI `sx`: theme fns must NEVER sit NESTED inside an sx object literal — neither in a
+  BREAKPOINT object (`bgcolor: { xs: (theme) => … }`) nor in a SELECTOR object
+  (`"&:hover": { boxShadow: (theme) => … }`): MUI doesn't resolve nested fns — emotion serializes
+  `fn.toString()` into the CSS. Dev can HIDE it (Turbopack may stringify both sides identically);
+  the PROD build minifies server vs client bundles differently → emotion-hash mismatch →
+  hydration failure → React `removeChild` crash, PROD-ONLY (B2, and the /raids prod crash).
+  Theme access in sx ONLY via a TOP-LEVEL callback `sx={(theme) => ({ … })}`; top-level property
+  fns (depth 1) are resolved by MUI and stay legal. Guard: `TestV24`
+  (`src/lib/sx-invariant.test.ts`) — depth-aware scan of every `sx={{…}}` literal.
 
 ## §T — Tasks
 

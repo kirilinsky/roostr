@@ -42,10 +42,16 @@ export const RAID_MIN_MS = 1 * HOUR_MS;
 export const RAID_MAX_MS = 24 * HOUR_MS;
 export const RAID_BASE_HOURS = 6; // scaling constant for watch/speed
 
+// Watch enters SUPER-linearly (^1.1, product 2026-07-12): tough coops take
+// disproportionately longer to case out — scarecrow +12%, golden ranch +41% —
+// so the risk-pays loot bonus is balanced by a real time cost.
+const RAID_WATCH_EXP = 1.1;
+
 export function raidDurationMs(watch: number, speed: number): number {
   // No speed at all → the slowest possible run.
   if (speed <= 0) return RAID_MAX_MS;
-  const raw = (RAID_BASE_HOURS * HOUR_MS * Math.max(1, watch)) / speed;
+  const raw =
+    (RAID_BASE_HOURS * HOUR_MS * Math.max(1, watch) ** RAID_WATCH_EXP) / speed;
   return Math.min(RAID_MAX_MS, Math.max(RAID_MIN_MS, Math.round(raw)));
 }
 
