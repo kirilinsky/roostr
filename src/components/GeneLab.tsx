@@ -30,6 +30,7 @@ import {
   type RolledRoostr,
 } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
+import ResourceIcon from "@/components/ResourceIcon";
 
 const SKILL_KIND = Object.fromEntries(SKILLS.map((s) => [s.id, s.kind])) as Record<
   string,
@@ -100,7 +101,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
             }}
           />
           <Chip
-            label={`🌽 ${coins}`}
+            label={<><ResourceIcon kind="coin" size={13} /> {coins}</>}
             size="small"
             sx={{
               bgcolor: "tertiary.main",
@@ -172,7 +173,7 @@ export default function GeneLab({ roostr }: { roostr: RolledRoostr }) {
                 onClick={() => upgrade(g.id)}
                 sx={{ flexShrink: 0, minWidth: 88 }}
               >
-                {maxed ? t("lab.max") : `🌽 ${cost}`}
+                {maxed ? t("lab.max") : <><ResourceIcon kind="coin" size={13} /> {cost}</>}
               </Button>
             </Stack>
           );

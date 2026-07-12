@@ -8,6 +8,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { acceptGiftAction, declineGiftAction } from "@/app/gift/[id]/actions";
 import { useAchievementToasts } from "@/hooks/useAchievementToasts";
+import ResourceIcon from "@/components/ResourceIcon";
 import { useT } from "@/i18n/I18nProvider";
 
 // Accept / decline controls on the /gift/[id] page. Accept costs a flat coin tax
@@ -69,7 +70,7 @@ export default function GiftActions({
             onClick={accept}
             disabled={busy || !canAfford}
           >
-            ✓ {t("gift.accept")} · {tax} 🌽
+            ✓ {t("gift.accept")} · {tax} <ResourceIcon kind="coin" size={13} />
           </Button>
           <Button
             variant="outlined"

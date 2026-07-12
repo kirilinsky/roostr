@@ -44,10 +44,11 @@ export default function Filters({
       sx={{
         display: "grid",
         gap: 1,
-        // Mobile: 2 compact columns. Desktop: tighter natural-width pills in a row.
+        // Mobile: 2 compact columns. Desktop: the row stretches edge-to-edge —
+        // every select shares the full width equally (1fr, not max-content).
         gridTemplateColumns: {
           xs: "repeat(2, minmax(0, 1fr))",
-          sm: "repeat(auto-fit, minmax(128px, max-content))",
+          sm: "repeat(auto-fit, minmax(128px, 1fr))",
         },
       }}
     >

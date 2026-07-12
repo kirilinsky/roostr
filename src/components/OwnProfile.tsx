@@ -167,8 +167,9 @@ export default async function OwnProfile({
       </Card>
 
       {/* Quests — onboarding chain that teaches mechanics + pays out (anti-plateau).
-          Hidden once every quest is claimed to declutter veteran profiles. */}
-      {questsActive && (
+          Once EVERY quest is claimed the big board collapses to a one-line "all
+          done ✓" so veterans know the chain finished (not vanished). */}
+      {questsActive ? (
         <Card
           sx={{
             borderColor: "secondary.main",
@@ -196,6 +197,17 @@ export default async function OwnProfile({
             </Stack>
             <QuestBoard states={questStates} />
           </CardContent>
+        </Card>
+      ) : (
+        <Card sx={{ p: { xs: 1.5, md: 2 } }}>
+          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              🎯 {t("quests.allDone")}
+            </Typography>
+            <Typography variant="h6" component="span" sx={{ lineHeight: 1 }}>
+              ✅
+            </Typography>
+          </Stack>
         </Card>
       )}
 

@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import { GENE_MAX_LEVEL, TIERS, geneUpgradeCost } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 import { contrastText } from "@/lib/contrast";
+import ResourceIcon from "@/components/ResourceIcon";
 
 function Section({
   title,
@@ -98,7 +99,7 @@ export default async function PediaUpgradesPage() {
                 key={r.from}
                 size="small"
                 variant="outlined"
-                label={`Lv ${r.from}→${r.to}: ${r.cost} 🌽`}
+                label={<>Lv {r.from}→{r.to}: {r.cost} <ResourceIcon kind="coin" size={12} /></>}
               />
             ))}
           </Stack>

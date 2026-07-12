@@ -15,6 +15,7 @@ import Typography from "@mui/material/Typography";
 import RoostrAvatar from "@/components/RoostrAvatar";
 import CollectionCard from "@/components/CollectionCard";
 import Popup from "@/components/Popup";
+import ResourceIcon from "@/components/ResourceIcon";
 import { useNowTick } from "@/hooks/useNowTick";
 import {
   buyRaidSlotAction,
@@ -416,7 +417,10 @@ export default function RaidsView({
               ) : activeRaid ? (
                 `🗡 ${t("raids.partyAway")}`
               ) : (
-                `🗡 ${t("raids.launch")} · 🪶${RAID_FEATHER_COST}`
+                <>
+                  🗡 {t("raids.launch")} · {RAID_FEATHER_COST}{" "}
+                  <ResourceIcon kind="feather" size={14} />
+                </>
               )}
             </Button>
           </Stack>
@@ -450,7 +454,10 @@ export default function RaidsView({
         </Stack>
       </Card>
 
-      {/* Party */}
+      {/* Party — hidden entirely while a raid is in flight (the crew is away;
+          staging an empty grid under "one raid at a time" just reads as noise). */}
+      {!activeRaid && (
+      <>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography variant="h6">
           {t("raids.party")} ({party.length}/{slotsOwned})
@@ -527,6 +534,8 @@ export default function RaidsView({
           </Card>
         )}
       </Box>
+      </>
+      )}
 
       {/* Raid log — who was hit, when, and the haul. Append-only history. */}
       {history.length > 0 && (
@@ -556,7 +565,10 @@ export default function RaidsView({
                     >
                       {h.success ? (
                         <>
-                          +{h.lootCoins} 🌽{h.lootEggs > 0 && <> +{h.lootEggs} 🥚</>}
+                          +{h.lootCoins} <ResourceIcon kind="coin" size={12} />
+                          {h.lootEggs > 0 && (
+                            <> +{h.lootEggs} <ResourceIcon kind="egg" size={12} /></>
+                          )}
                         </>
                       ) : (
                         "—"
@@ -702,8 +714,10 @@ export default function RaidsView({
               {outcome.success ? (
                 <>
                   <Typography variant="h6" sx={{ fontWeight: 900 }}>
-                    +{outcome.lootCoins} 🌽
-                    {outcome.lootEggs > 0 && <> · +{outcome.lootEggs} 🥚</>}
+                    +{outcome.lootCoins} <ResourceIcon kind="coin" size={18} />
+                    {outcome.lootEggs > 0 && (
+                      <> · +{outcome.lootEggs} <ResourceIcon kind="egg" size={18} /></>
+                    )}
                   </Typography>
                   {outcome.wasConsolation && (
                     <Typography variant="caption" color="text.secondary">
