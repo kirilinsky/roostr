@@ -138,15 +138,15 @@ export default function DefenseView({
           spacing={1}
           alignItems="center"
           textAlign="center"
-          sx={{
+          sx={(theme) => ({
             position: "relative",
             zIndex: 1,
             bgcolor: {
-              xs: (theme) => alpha(theme.palette.background.paper, 0.78),
+              xs: alpha(theme.palette.background.paper, 0.78),
               md: "transparent",
             },
             p: { xs: 1.5, md: 0 },
-          }}
+          })}
         >
           <Typography variant="overline" color="text.secondary">
             {t("defense.baseDefense")}

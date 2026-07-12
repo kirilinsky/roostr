@@ -276,18 +276,18 @@ export default function StationView({
         />
         <Stack
           spacing={2}
-          sx={{
+          sx={(theme) => ({
             position: "relative",
             zIndex: 1,
             // Mobile: a translucent panel behind the text so it stays readable over
             // the busy artwork. Desktop is unchanged (no panel).
             bgcolor: {
-              xs: (theme) => alpha(theme.palette.background.paper, 0.78),
+              xs: alpha(theme.palette.background.paper, 0.78),
               md: "transparent",
             },
             borderRadius: { xs: 2, md: 0 },
             p: { xs: 1.5, md: 0 },
-          }}
+          })}
         >
           {/* Title + rate — desktop only here; on mobile they're above the card. */}
           <Stack

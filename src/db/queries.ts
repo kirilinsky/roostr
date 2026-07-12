@@ -2279,6 +2279,11 @@ export async function launchRaid(
     if (rows.length !== ids.length) return { ok: false, reason: "party" };
     if (rows.some((r) => r.status !== "active")) return { ok: false, reason: "party" };
     const party = rows.map(hydrateRoostr);
+    // Every raider must survive the worst-case HP toll — too-hurt birds are benched.
+    const { canJoinRaid } = await import("@/lib/raids");
+    if (party.some((h, i) => !canJoinRaid(rows[i].currentHp, h.maxHealth))) {
+      return { ok: false, reason: "party" };
+    }
     const power = partyPower(party);
     const luck = partyLuck(party);
     const speed = partySpeed(party);
@@ -2445,7 +2450,7 @@ export async function resolveRaid(
     let lootCoins = 0;
     let wasConsolation = false;
     if (success) {
-      lootCoins = raidLoot(raid.luckSnapshot, raid.targetPool);
+      lootCoins = raidLoot(raid.luckSnapshot, raid.targetPool, raid.defenseSnapshot);
       if (lootCoins <= 0) {
         lootCoins =
           RAID_CONSOLATION_MIN +

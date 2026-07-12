@@ -150,17 +150,17 @@ export default function HospitalView({
         />
         <Stack
           spacing={1}
-          sx={{
+          sx={(theme) => ({
             position: "relative",
             zIndex: 1,
             bgcolor: {
-              xs: (theme) => alpha(theme.palette.background.paper, 0.78),
+              xs: alpha(theme.palette.background.paper, 0.78),
               md: "transparent",
             },
             borderRadius: { xs: 2, md: 0 },
             py: { xs: 1.5, md: 0 },
             px: { xs: "calc(12px + 10px)", md: "10px" },
-          }}
+          })}
         >
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h6" sx={{ fontWeight: 800 }}>

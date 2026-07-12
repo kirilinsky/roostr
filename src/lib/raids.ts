@@ -60,8 +60,21 @@ export function raidDurationMs(watch: number, speed: number): number {
 // slow the faucet a touch — kept as an explicit ×0.94 so the cut is auditable.
 export const RAID_LOOT_PER_LUCK = 6 * 0.94; // = 5.64
 
-export function raidLoot(partyLuckSum: number, targetPool: number): number {
-  const grabbed = Math.round(RAID_LOOT_PER_LUCK * Math.max(0, partyLuckSum));
+// Risk pays: a harder coop (higher Watch) multiplies the haul, so the tough
+// targets aren't strictly worse than farming the scarecrow (their odds are lower
+// AND their coops are richer). +2% loot per Watch point.
+export function raidRiskMult(watch: number): number {
+  return 1 + Math.max(0, watch) / 50;
+}
+
+export function raidLoot(
+  partyLuckSum: number,
+  targetPool: number,
+  watch = 0,
+): number {
+  const grabbed = Math.round(
+    RAID_LOOT_PER_LUCK * Math.max(0, partyLuckSum) * raidRiskMult(watch),
+  );
   return Math.max(0, Math.min(targetPool, grabbed));
 }
 
@@ -94,6 +107,14 @@ export const RAID_EGG_AMOUNT = 1;
 // Broke target → consolation faucet so a raid is never fully empty (spec: 2–16).
 export const RAID_CONSOLATION_MIN = 2;
 export const RAID_CONSOLATION_MAX = 16;
+
+// A bird must be able to PAY the worst-case toll to enlist: current HP must be
+// above the fail cost. Below that it's benched (heal it first) — no send-a-dying-
+// bird-and-floor-at-1 cheese.
+export const RAID_MIN_HP = RAID_HP_COST_LOSS;
+export function canJoinRaid(currentHp: number | null, maxHealth: number): boolean {
+  return (currentHp ?? maxHealth) > RAID_MIN_HP;
+}
 
 // One raid in flight per player — keeps the mode simple and the party lock honest.
 // (Multiple concurrent raids = a later phase decision, not a bug.)

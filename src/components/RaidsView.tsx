@@ -31,9 +31,11 @@ import {
   raidDurationMs,
   raidLoot,
   raidBotById,
+  canJoinRaid,
   RAID_FEATHER_COST,
   RAID_HP_COST_WIN,
   RAID_HP_COST_LOSS,
+  RAID_MIN_HP,
   RAID_EGG_CHANCE,
   type RaidBot,
 } from "@/lib/raids";
@@ -193,12 +195,16 @@ export default function RaidsView({
   const hasParty = party.length > 0;
   const durationMs = raidDurationMs(target.watch, speed);
   const durationLabel = hasParty ? fmtDuration(durationMs, locale) : "—";
-  const loot = hasParty ? raidLoot(luck, target.coinPool) : 0;
+  const loot = hasParty ? raidLoot(luck, target.coinPool, target.watch) : 0;
 
   const inParty = new Set(party.map(rid));
+  // Too-hurt birds (HP ≤ worst-case toll) are benched — heal first, raid later.
   const pickable = available
-    .filter((r) => !inParty.has(rid(r)))
+    .filter((r) => !inParty.has(rid(r)) && canJoinRaid(r.currentHp, r.maxHealth))
     .sort((a, b) => (b.stats.Stealth ?? 0) - (a.stats.Stealth ?? 0));
+  const benched = available.filter(
+    (r) => !inParty.has(rid(r)) && !canJoinRaid(r.currentHp, r.maxHealth),
+  ).length;
 
   const removeFromParty = (id: string) =>
     setParty((p) => p.filter((r) => rid(r) !== id));
@@ -254,7 +260,7 @@ export default function RaidsView({
         bot: raidBotById(activeRaid.botId),
         left: activeRaid.endsAt - now,
         odds: raidSuccess(activeRaid.power, activeRaid.defense),
-        loot: raidLoot(activeRaid.luck, activeRaid.pool),
+        loot: raidLoot(activeRaid.luck, activeRaid.pool, activeRaid.defense),
         done: now >= activeRaid.endsAt,
       }
     : null;
@@ -339,16 +345,16 @@ export default function RaidsView({
         />
         <Stack
           spacing={2}
-          sx={{
+          sx={(theme) => ({
             position: "relative",
             zIndex: 1,
             bgcolor: {
-              xs: (theme) => alpha(theme.palette.background.paper, 0.78),
+              xs: alpha(theme.palette.background.paper, 0.78),
               md: "transparent",
             },
             borderRadius: { xs: 2, md: 0 },
             p: { xs: 1.5, md: 0 },
-          }}
+          })}
         >
           {/* Title — desktop only here; on mobile it's above the card. */}
           <Typography variant="h6" sx={{ display: { xs: "none", md: "block" } }}>
@@ -591,7 +597,7 @@ export default function RaidsView({
         >
           {targets.map((tg) => {
             const selected = tg.id === target.id;
-            const tgLoot = hasParty ? raidLoot(luck, tg.coinPool) : null;
+            const tgLoot = hasParty ? raidLoot(luck, tg.coinPool, tg.watch) : null;
             return (
               <Card
                 key={tg.id}
@@ -667,6 +673,11 @@ export default function RaidsView({
               />
             ))}
           </Box>
+        )}
+        {benched > 0 && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>
+            🏥 {t("raids.benched", { n: benched, hp: RAID_MIN_HP })}
+          </Typography>
         )}
       </Popup>
 

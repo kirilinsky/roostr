@@ -220,6 +220,12 @@ arena, market; mint TON NFT later. Premium look via shared design system.
   MMR + anti-smurf; TEAM rules — exact size, whether queued/fighting birds get LOCKED (status, like
   working/raiding/listed per V13), 3v3 turn order / targeting, squad synergy; bot difficulty curve;
   energy cost + cooldown per mode; loss penalty (if any). Decide the format here, then split into §T.
+- V24 — MUI `sx` responsive BREAKPOINT values must be PLAIN values, ⊥ per-breakpoint theme fns
+  (`bgcolor: { xs: (theme) => … }`): MUI doesn't resolve fns nested inside a breakpoint object —
+  emotion serializes `fn.toString()` into the CSS, and Turbopack stringifies imports differently on
+  server vs client → SSR/hydration emotion-hash mismatch → React `removeChild` crash (B2). Theme
+  access in sx ONLY via a TOP-LEVEL callback: `sx={(theme) => ({ bgcolor: { xs: alpha(...) } })}`.
+  Guard: `TestV24` (`src/lib/sx-invariant.test.ts`) greps src for `(xs|sm|md|lg|xl): (theme)`.
 
 ## §T — Tasks
 
@@ -277,3 +283,4 @@ arena, market; mint TON NFT later. Premium look via shared design system.
 | id | date | cause | fix |
 |----|------|-------|-----|
 | B1 | 2026-06-23 | station claim did nothing (lab+farm): `settleStation` CAS `eq(lastSettleAt, jsDate)` compared Postgres micros vs Drizzle ms `Date` → never matched → settle no-op → `pending` never persisted (stayed 0) → claim granted 0 | V15 |
+| B2 | 2026-07-12 | /hospital dev crash `removeChild NotFoundError`: sx used a PER-BREAKPOINT theme fn (`bgcolor:{xs:(theme)=>alpha(...)}`) — MUI doesn't resolve fns nested in breakpoint objects, emotion serialized `fn.toString()` into CSS; Turbopack stringifies the imported `alpha` differently on server vs client → emotion hash diverged → hydration mismatch → React removeChild crash. Same pattern in 4 hero views | V24 |

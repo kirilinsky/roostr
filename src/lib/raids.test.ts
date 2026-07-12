@@ -3,6 +3,7 @@ import {
   raidSuccess,
   raidDurationMs,
   raidLoot,
+  raidRiskMult,
   raidBotById,
   RAID_BOTS,
   RAID_MIN_MS,
@@ -65,6 +66,13 @@ describe("raidLoot", () => {
     expect(raidLoot(-5, 100)).toBe(0);
     expect(raidLoot(5, 0)).toBe(0);
   });
+
+  it("risk pays: a harder coop multiplies the haul (+2%/Watch)", () => {
+    expect(raidRiskMult(0)).toBe(1);
+    expect(raidRiskMult(30)).toBeCloseTo(1.6);
+    // Same party, richer/harder coop → strictly bigger grab (pools permitting).
+    expect(raidLoot(12, 10_000, 30)).toBeGreaterThan(raidLoot(12, 10_000, 3));
+  });
 });
 
 describe("raid economy contract (the numbers shown in the UI)", () => {
@@ -95,7 +103,7 @@ describe("raid economy contract (the numbers shown in the UI)", () => {
     const luck = 24;
     const stealth = 30;
     const speed = 20;
-    const loot = raidLoot(luck, bot.coinPool);
+    const loot = raidLoot(luck, bot.coinPool, bot.watch);
     const p = raidSuccess(stealth, bot.watch);
     const hours = raidDurationMs(bot.watch, speed) / 3_600_000;
     const ratePerHour = (loot * p) / hours;
