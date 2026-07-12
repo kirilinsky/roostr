@@ -378,18 +378,22 @@ export default function RaidsView({
             alignItems={{ md: "center" }}
             spacing={1}
           >
-            <Button
-              variant="outlined"
-              onClick={() => setTargetPickerOpen(true)}
-              sx={{ width: { xs: "100%", md: "auto" } }}
-            >
-              🎯 {t("raids.chooseTarget")}
-            </Button>
+            {/* One raid at a time — while the party is away there's nothing to
+                aim at, so the target chooser hides entirely. */}
+            {!activeRaid && (
+              <Button
+                variant="outlined"
+                onClick={() => setTargetPickerOpen(true)}
+                sx={{ width: { xs: "100%", md: "auto" } }}
+              >
+                🎯 {t("raids.chooseTarget")}
+              </Button>
+            )}
             <Button
               variant="contained"
               disabled={!canLaunch}
               onClick={launch}
-              sx={{ width: { xs: "100%", md: "auto" } }}
+              sx={{ width: { xs: "100%", md: "auto" }, ml: { md: "auto" } }}
             >
               {busy ? (
                 <CircularProgress size={20} color="inherit" />
