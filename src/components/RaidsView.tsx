@@ -178,6 +178,8 @@ export default function RaidsView({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [targetPickerOpen, setTargetPickerOpen] = useState(false);
   const [outcome, setOutcome] = useState<RaidOutcome | null>(null);
+  // Mission banner gif (public/raid-loop.gif) — hides itself until the art lands.
+  const [gifOk, setGifOk] = useState(true);
   // Live clock (30s tick) while a raid is in flight — null pre-mount, so the SSR
   // HTML never bakes a server-side Date.now() (no hydration mismatch).
   const nowMs = useNowTick(30_000, { enabled: Boolean(activeRaid) });
@@ -274,12 +276,35 @@ export default function RaidsView({
     <Stack spacing={2}>
       {/* ── Mission in flight — replaces the launch controls until collected ── */}
       {activeRaid && flight && (
-        <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "secondary.main" }}>
+        <Card
+          sx={{ borderColor: "secondary.main", overflow: "hidden" }}
+        >
+          {/* Wide, short mission banner (public/raid-loop.gif — the marching
+              party). Self-hides until the asset lands (onError). */}
+          {gifOk && (
+            <Box
+              component="img"
+              src="/raid-loop.gif"
+              alt=""
+              loading="lazy"
+              decoding="async"
+              onError={() => setGifOk(false)}
+              sx={{
+                display: "block",
+                width: "100%",
+                // The art is 1029×179 — scale by aspect, never crop.
+                height: "auto",
+                borderBottom: "1px solid",
+                borderColor: "divider",
+              }}
+            />
+          )}
           <Stack
             direction={{ xs: "column", md: "row" }}
             spacing={1.5}
             alignItems={{ md: "center" }}
             justifyContent="space-between"
+            sx={{ p: { xs: 1.5, md: 2 } }}
           >
             <Box sx={{ minWidth: 0 }}>
               <Typography variant="body2" sx={{ fontWeight: 800 }}>
@@ -307,6 +332,10 @@ export default function RaidsView({
         </Card>
       )}
 
+      {/* Target hero (title + bg card) — hidden entirely while the party is away:
+          the in-flight banner IS the whole story until Collect. */}
+      {!activeRaid && (
+      <>
       {/* Title + odds above the hero on mobile (off the image) — mirrors StationView. */}
       <Stack
         direction="row"
@@ -426,6 +455,8 @@ export default function RaidsView({
           </Stack>
         </Stack>
       </Card>
+      </>
+      )}
 
       {/* The raid contract — every cost and chance, flat and visible. */}
       <Card variant="surface" sx={{ p: { xs: 1.25, md: 1.5 } }}>
