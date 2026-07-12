@@ -107,7 +107,9 @@ describe("gene catalog", () => {
       GENES.filter((g) => (g.statMods?.[stat as keyof typeof g.statMods] ?? 0) < 0)
         .length;
 
-    expect(boosted("Endurance")).toBeGreaterThanOrEqual(2);
+    // Endurance was the coverage hole (only 2 boosting genes vs 4–6 for every
+    // other skill) — "second-wind" (#33) closed it; don't regress below 3.
+    expect(boosted("Endurance")).toBeGreaterThanOrEqual(3);
     expect(boosted("Intellect")).toBeGreaterThanOrEqual(4);
     expect(boosted("Stealth")).toBeGreaterThanOrEqual(4);
     expect(debuffed("Accuracy")).toBeGreaterThanOrEqual(2);

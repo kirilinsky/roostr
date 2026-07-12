@@ -617,7 +617,7 @@
       "statMods": {
         "Intellect": 2,
         "Accuracy": 1,
-        "Luck": -1
+        "Luck": -2
       },
       "passive": {
         "en": "Sharp blood flow improves focus, but leaves fewer lucky breaks.",
@@ -694,9 +694,34 @@
       },
       "passive": {
         "en": "Rides on luck — huge swings, but aim gets sloppy.",
-        "ru": "Живёт на удаче: огромные качели, но прицел хромает."
+        "ru": "Живёт на удаче: опирается на везение, из-за этого хромает точность."
       },
       "no": 32
+    },
+    {
+      "id": "second-wind",
+      "no": 33,
+      "name": {
+        "en": "Second Wind",
+        "ru": "Второе дыхание"
+      },
+      "family": "Stamina",
+      "boosts": [
+        "Endurance",
+        "Recovery"
+      ],
+      "weakness": "Damage, Crit",
+      "role": "Grinder",
+      "statMods": {
+        "Endurance": 2,
+        "Recovery": 1,
+        "Damage": -1,
+        "Crit": -1
+      },
+      "passive": {
+        "en": "Just when the fight should end, this bird catches its breath and keeps going — hits softer, lasts forever.",
+        "ru": "Когда бой должен бы кончиться, эта птица переводит дух и продолжает — бьёт мягче, держится вечно."
+      }
     }
   ]
 }
