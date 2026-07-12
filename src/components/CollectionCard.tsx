@@ -73,7 +73,18 @@ export default function CollectionCard({
   // mount (avoids SSR/client time mismatch) and ticks each minute.
   const isWorking = roostr.status === "working";
   const work = roostr.work;
-  const nowMs = useNowTick(60_000, { enabled: isWorking });
+  // Ticker also runs for freshly-hatched birds (the "NEW" badge needs a clock; the
+  // 36h pre-filter keeps older cards interval-free). `enabled` only gates the
+  // client effect, so the render-time Date.now() here can't cause an SSR mismatch.
+  const recentHatch =
+    roostr.hatchedAt != null && Date.now() - roostr.hatchedAt < 36 * 3_600_000;
+  const nowMs = useNowTick(60_000, { enabled: isWorking || recentHatch });
+  // "NEW" = hatched TODAY (viewer's local calendar day). null nowMs pre-mount →
+  // badge appears after hydration, never mismatches the server HTML.
+  const isNewToday =
+    nowMs != null &&
+    roostr.hatchedAt != null &&
+    new Date(roostr.hatchedAt).toDateString() === new Date(nowMs).toDateString();
 
   // Sum of stats per kind → shows where the build leans.
   const kindSum = useMemo(() => {
@@ -105,6 +116,24 @@ export default function CollectionCard({
             size="small"
             color="primary"
             sx={{ position: "absolute", top: 6, right: 6, fontWeight: 800 }}
+          />
+        )}
+        {/* hatched TODAY → "NEW" ribbon (hidden in picker-selected state — the
+            checkmark owns that corner) */}
+        {isNewToday && !selected && (
+          <Chip
+            label={`🐣 ${t("card.new")}`}
+            size="small"
+            color="secondary"
+            sx={{
+              position: "absolute",
+              top: 6,
+              right: 6,
+              height: 20,
+              fontWeight: 900,
+              fontSize: 10,
+              letterSpacing: "0.06em",
+            }}
           />
         )}
         {/* enhancement marks (top-left, stacked): gold upgrade-level badge, then a

@@ -122,7 +122,8 @@ export default function CollectionView({
       (!filters.country || r.breed.region.iso === filters.country),
   );
 
-  // Sort (desc): the default keeps the server's newest-first order.
+  // Sort (desc). Default = hatch date, newest first — explicit (not an accident
+  // of server order), so it's honest after any future server-order change.
   const tierRank = (r: HydratedRoostr) =>
     TIERS.findIndex((tr) => tr.id === r.tier.id);
   const weightRank = (r: HydratedRoostr) =>
@@ -132,6 +133,7 @@ export default function CollectionView({
   else if (sort === "stats") view.sort((a, b) => statTotal(b) - statTotal(a));
   else if (sort === "level") view.sort((a, b) => tierRank(b) - tierRank(a));
   else if (sort === "class") view.sort((a, b) => weightRank(b) - weightRank(a));
+  else view.sort((a, b) => (b.hatchedAt ?? 0) - (a.hatchedAt ?? 0));
 
   return (
     <Stack spacing={2}>
@@ -151,7 +153,7 @@ export default function CollectionView({
             data-testid="collection-sort"
             sx={{ width: "100%", minWidth: 0 }}
           >
-            <MenuItem value="">{t("sort.default")}</MenuItem>
+            <MenuItem value="">{t("sort.hatched")}</MenuItem>
             <MenuItem value="hp">{t("sort.hp")}</MenuItem>
             <MenuItem value="stats">{t("sort.stats")}</MenuItem>
             <MenuItem value="level">{t("sort.level")}</MenuItem>
