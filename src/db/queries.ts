@@ -2346,6 +2346,18 @@ export async function launchRaid(
   }
 }
 
+// One party member's line in the raid-result summary (display-ready).
+export interface RaidPartyMember {
+  id: string;
+  nickname: string | null;
+  breedName: { en: string; ru: string };
+  stealth: number;
+  luck: number;
+  hpBefore: number;
+  hpAfter: number;
+  maxHealth: number;
+}
+
 export type ResolveRaidResult =
   | {
       ok: true;
@@ -2353,6 +2365,9 @@ export type ResolveRaidResult =
       lootCoins: number;
       lootEggs: number;
       wasConsolation: boolean;
+      hpCost: number;
+      botId: string | null;
+      party: RaidPartyMember[];
     }
   | { ok: false; reason: "nodb" | "gone" | "early" | "error" };
 
@@ -2427,10 +2442,29 @@ export async function resolveRaid(
     const lootEggs =
       success && Math.random() < RAID_EGG_CHANCE ? RAID_EGG_AMOUNT : 0;
 
-    // HP cost + unlock in ONE statement per party: floor at 1, never kill.
-    // coalesce(currentHp, maxHealth) handles the "full HP = null" convention.
+    // Snapshot the party BEFORE the toll (names/stats/HP feed the result summary).
     const hpCost = success ? RAID_HP_COST_WIN : RAID_HP_COST_LOSS;
     const ids = raid.partyRoostrIds ?? [];
+    const partyRows = ids.length
+      ? await db.select().from(roostrs).where(inArray(roostrs.id, ids))
+      : [];
+    const party: RaidPartyMember[] = partyRows.map((row) => {
+      const h = hydrateRoostr(row);
+      const hpBefore = row.currentHp ?? h.maxHealth;
+      return {
+        id: row.id,
+        nickname: row.nickname,
+        breedName: h.breed.name,
+        stealth: h.stats.Stealth ?? 0,
+        luck: h.stats.Luck ?? 0,
+        hpBefore,
+        hpAfter: Math.max(1, hpBefore - hpCost),
+        maxHealth: h.maxHealth,
+      };
+    });
+
+    // HP cost + unlock in ONE statement per party: floor at 1, never kill.
+    // coalesce(currentHp, maxHealth) handles the "full HP = null" convention.
     if (ids.length > 0) {
       await db
         .update(roostrs)
@@ -2452,7 +2486,16 @@ export async function resolveRaid(
       .set({ success, lootCoins, lootEggs, wasConsolation })
       .where(eq(raids.id, raidId));
 
-    return { ok: true, success, lootCoins, lootEggs, wasConsolation };
+    return {
+      ok: true,
+      success,
+      lootCoins,
+      lootEggs,
+      wasConsolation,
+      hpCost,
+      botId: raid.botId,
+      party,
+    };
   } catch (e) {
     console.error("resolveRaid failed:", e);
     return { ok: false, reason: "error" };

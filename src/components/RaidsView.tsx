@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { alpha } from "@mui/material/styles";
@@ -15,6 +15,7 @@ import Typography from "@mui/material/Typography";
 import RoostrAvatar from "@/components/RoostrAvatar";
 import CollectionCard from "@/components/CollectionCard";
 import Popup from "@/components/Popup";
+import { useNowTick } from "@/hooks/useNowTick";
 import {
   buyRaidSlotAction,
   launchRaidAction,
@@ -51,12 +52,25 @@ export interface ActiveRaidUi {
   partySize: number;
 }
 
-// Collect outcome for the result popup.
+// Collect outcome for the result popup — the full debrief (who went, what it
+// cost, what came back).
 interface RaidOutcome {
   success: boolean;
   lootCoins: number;
   lootEggs: number;
   wasConsolation: boolean;
+  hpCost: number;
+  botId: string | null;
+  party: {
+    id: string;
+    nickname: string | null;
+    breedName: { en: string; ru: string };
+    stealth: number;
+    luck: number;
+    hpBefore: number;
+    hpAfter: number;
+    maxHealth: number;
+  }[];
 }
 
 // One resolved raid for the log (display-ready).
@@ -161,13 +175,10 @@ export default function RaidsView({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [targetPickerOpen, setTargetPickerOpen] = useState(false);
   const [outcome, setOutcome] = useState<RaidOutcome | null>(null);
-  // Tick every 30s while a raid is in flight so the countdown/Collect stay fresh.
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!activeRaid) return;
-    const iv = window.setInterval(() => setNow(Date.now()), 30_000);
-    return () => window.clearInterval(iv);
-  }, [activeRaid]);
+  // Live clock (30s tick) while a raid is in flight — null pre-mount, so the SSR
+  // HTML never bakes a server-side Date.now() (no hydration mismatch).
+  const nowMs = useNowTick(30_000, { enabled: Boolean(activeRaid) });
+  const now = nowMs ?? 0;
 
   const [targetId, setTargetId] = useState(targets[0]?.id ?? "");
   const target = targets.find((tg) => tg.id === targetId) ?? targets[0];
@@ -228,9 +239,8 @@ export default function RaidsView({
       if (res.ok) {
         setOutcome(res);
         router.refresh();
-      } else if (res.reason === "early") {
-        setNow(Date.now());
       } else {
+        // "early" (clock skew) or any other failure → refresh re-syncs the timer.
         router.refresh();
       }
     });
@@ -660,7 +670,8 @@ export default function RaidsView({
         )}
       </Popup>
 
-      {/* Raid result — success/fail + the haul + the HP toll. */}
+      {/* Raid result — the full debrief: target, haul, then every raider with
+          stats and a LOUD HP toll (health is part of the raid price). */}
       <Popup
         open={Boolean(outcome)}
         onClose={() => setOutcome(null)}
@@ -668,35 +679,86 @@ export default function RaidsView({
         maxWidth="xs"
       >
         {outcome && (
-          <Stack spacing={1.5} sx={{ pb: 1 }} alignItems="center" textAlign="center">
-            <Typography sx={{ fontSize: 48, lineHeight: 1 }}>
-              {outcome.success ? "💰" : "🪶"}
-            </Typography>
-            {outcome.success ? (
-              <>
-                <Typography variant="body1" sx={{ fontWeight: 800 }}>
-                  +{outcome.lootCoins} 🌽
-                  {outcome.lootEggs > 0 && <> · +{outcome.lootEggs} 🥚</>}
-                </Typography>
-                {outcome.wasConsolation && (
-                  <Typography variant="caption" color="text.secondary">
-                    {t("raids.consolation")}
+          <Stack spacing={1.5} sx={{ pb: 1 }}>
+            {/* target + haul */}
+            <Stack alignItems="center" textAlign="center" spacing={0.5}>
+              <Typography sx={{ fontSize: 44, lineHeight: 1 }}>
+                {outcome.success ? "💰" : "🪶"}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                🏠 {raidBotById(outcome.botId ?? "")?.name[locale] ?? "…"}
+              </Typography>
+              {outcome.success ? (
+                <>
+                  <Typography variant="h6" sx={{ fontWeight: 900 }}>
+                    +{outcome.lootCoins} 🌽
+                    {outcome.lootEggs > 0 && <> · +{outcome.lootEggs} 🥚</>}
                   </Typography>
-                )}
-                <Typography variant="caption" color="text.secondary">
-                  ❤️ {t("raids.hpTaken", { n: RAID_HP_COST_WIN })}
-                </Typography>
-              </>
-            ) : (
-              <>
+                  {outcome.wasConsolation && (
+                    <Typography variant="caption" color="text.secondary">
+                      {t("raids.consolation")}
+                    </Typography>
+                  )}
+                </>
+              ) : (
                 <Typography variant="body2" color="text.secondary">
                   {t("raids.lossText")}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  ❤️ {t("raids.hpTaken", { n: RAID_HP_COST_LOSS })}
-                </Typography>
-              </>
-            )}
+              )}
+            </Stack>
+
+            {/* the party — each raider, their raid stats, and the HP they paid */}
+            <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1 }}>
+              {t("raids.resultParty")}
+            </Typography>
+            <Stack spacing={0.75}>
+              {outcome.party.map((m) => (
+                <Stack
+                  key={m.id}
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  sx={{ minWidth: 0 }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 0, flexGrow: 1 }} noWrap>
+                    {m.nickname || m.breedName[locale]}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ fontVariantNumeric: "tabular-nums", flexShrink: 0 }}
+                  >
+                    🥷 {m.stealth} · 🍀 {m.luck}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 900,
+                      fontVariantNumeric: "tabular-nums",
+                      color: "error.main",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ♥ {m.hpBefore}→{m.hpAfter}
+                  </Typography>
+                </Stack>
+              ))}
+            </Stack>
+
+            {/* the toll, loud */}
+            <Box
+              sx={(theme) => ({
+                textAlign: "center",
+                py: 0.75,
+                bgcolor: "error.main",
+                color: theme.palette.error.contrastText,
+                fontWeight: 900,
+                fontSize: "0.9rem",
+              })}
+            >
+              ❤️ −{outcome.hpCost} HP × {outcome.party.length}
+            </Box>
+
             <Button variant="contained" fullWidth onClick={() => setOutcome(null)}>
               {t("raids.resultClose")}
             </Button>

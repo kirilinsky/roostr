@@ -3,209 +3,319 @@
     "id": "hatch-first",
     "order": 1,
     "icon": "🥚",
-    "name": { "en": "Crack the first egg", "ru": "Разбей первое яйцо" },
+    "name": {
+      "en": "Crack the first egg",
+      "ru": "Разбей первое яйцо"
+    },
     "desc": {
       "en": "Hatch your very first rooster in the Incubator.",
       "ru": "Вылупи своего первого петуха в Инкубаторе."
     },
     "metric": "eggsHatched",
     "value": 1,
-    "reward": { "resource": "egg", "amount": 1 },
+    "reward": {
+      "resource": "egg",
+      "amount": 1
+    },
     "href": "/incubator"
   },
   {
     "id": "farm-worker",
     "order": 2,
     "icon": "🌾",
-    "name": { "en": "Put them to work", "ru": "Отправь работать" },
+    "name": {
+      "en": "Put them to work",
+      "ru": "Отправь работать"
+    },
     "desc": {
       "en": "Assign a rooster to the Farm to produce eggs over time.",
       "ru": "Поставь петуха на Ферму — он будет нести яйца со временем."
     },
     "metric": "stationWorkers",
     "value": 1,
-    "reward": { "resource": "egg", "amount": 1 },
+    "reward": {
+      "resource": "egg",
+      "amount": 1
+    },
     "href": "/farm"
   },
   {
     "id": "own-three",
     "order": 3,
     "icon": "🐔",
-    "name": { "en": "Start a flock", "ru": "Собери стаю" },
+    "name": {
+      "en": "Start a flock",
+      "ru": "Собери стаю"
+    },
     "desc": {
       "en": "Own 3 roosters. Hatch more eggs to grow your roster.",
       "ru": "Заведи 3 петухов. Вылупляй больше яиц, чтобы расширить состав."
     },
     "metric": "roostrsOwned",
     "value": 3,
-    "reward": { "resource": "egg", "amount": 1 },
+    "reward": {
+      "resource": "egg",
+      "amount": 1
+    },
     "href": "/collection"
   },
   {
     "id": "discover-three",
     "order": 4,
     "icon": "📕",
-    "name": { "en": "Field researcher", "ru": "Полевой исследователь" },
+    "name": {
+      "en": "Field researcher",
+      "ru": "Полевой исследователь"
+    },
     "desc": {
       "en": "Discover 3 breeds. New breeds register in the Roostrdex.",
       "ru": "Открой 3 породы. Новые породы попадают в Рустрдекс."
     },
     "metric": "breedsDiscovered",
     "value": 3,
-    "reward": { "resource": "coin", "amount": 75 },
+    "reward": {
+      "resource": "coin",
+      "amount": 75
+    },
     "href": "/roostrdex"
   },
   {
     "id": "station-claim",
     "order": 5,
     "icon": "🧺",
-    "name": { "en": "Reap the harvest", "ru": "Собери урожай" },
+    "name": {
+      "en": "Reap the harvest",
+      "ru": "Собери урожай"
+    },
     "desc": {
       "en": "Claim a station's buffer (Farm eggs or Lab science).",
       "ru": "Забери накопленное со станции (яйца с фермы или науку из лабы)."
     },
     "metric": "stationClaims",
     "value": 1,
-    "reward": { "resource": "sci", "amount": 25 },
+    "reward": {
+      "resource": "sci",
+      "amount": 25
+    },
     "href": "/farm"
   },
   {
-    "id": "science-fifty",
+    "id": "raid-first",
     "order": 6,
+    "icon": "🗡️",
+    "name": {
+      "en": "Coop & Dagger",
+      "ru": "Перо и кинжал"
+    },
+    "desc": {
+      "en": "Send a raid party to rob a coop and collect the loot. Costs 1 feather; raiders lose a little HP.",
+      "ru": "Отправь отряд грабить двор и забери добычу. Стоит 1 перо; рейдеры теряют немного HP."
+    },
+    "metric": "raidsDone",
+    "value": 1,
+    "reward": {
+      "resource": "feather",
+      "amount": 2
+    },
+    "href": "/raids"
+  },
+  {
+    "id": "science-fifty",
+    "order": 7,
     "icon": "🔬",
-    "name": { "en": "Mad scientist", "ru": "Безумный учёный" },
+    "name": {
+      "en": "Mad scientist",
+      "ru": "Безумный учёный"
+    },
     "desc": {
       "en": "Brew 50 science in the Lab to fuel future upgrades.",
       "ru": "Навари 50 науки в Лаборатории для будущих прокачек."
     },
     "metric": "sciEarned",
     "value": 50,
-    "reward": { "resource": "coin", "amount": 125 },
+    "reward": {
+      "resource": "coin",
+      "amount": 125
+    },
     "href": "/lab"
   },
   {
     "id": "farm-expand",
-    "order": 7,
+    "order": 8,
     "icon": "🏗️",
-    "name": { "en": "Expand the farm", "ru": "Расширь ферму" },
+    "name": {
+      "en": "Expand the farm",
+      "ru": "Расширь ферму"
+    },
     "desc": {
       "en": "Buy a +1 worker slot on the Farm to run more roosters.",
       "ru": "Купи +1 слот воркера на Ферме — больше петухов в деле."
     },
     "metric": "farmSlots",
     "value": 3,
-    "reward": { "resource": "sci", "amount": 55 },
+    "reward": {
+      "resource": "sci",
+      "amount": 55
+    },
     "href": "/farm"
   },
   {
     "id": "lab-expand",
-    "order": 8,
+    "order": 9,
     "icon": "🔧",
-    "name": { "en": "Expand the lab", "ru": "Расширь лабу" },
+    "name": {
+      "en": "Expand the lab",
+      "ru": "Расширь лабу"
+    },
     "desc": {
       "en": "Buy a +1 worker slot in the Lab to brew more science.",
       "ru": "Купи +1 слот воркера в Лаборатории — больше науки."
     },
     "metric": "labSlots",
     "value": 3,
-    "reward": { "resource": "coin", "amount": 55 },
+    "reward": {
+      "resource": "coin",
+      "amount": 55
+    },
     "href": "/lab"
   },
   {
     "id": "defense-guard",
-    "order": 9,
+    "order": 10,
     "icon": "🛡️",
-    "name": { "en": "Stand watch", "ru": "Заступи в дозор" },
+    "name": {
+      "en": "Stand watch",
+      "ru": "Заступи в дозор"
+    },
     "desc": {
       "en": "Assign a rooster to the Defense — its Crow guards your base.",
       "ru": "Поставь петуха в Дозор — его Крик защищает базу."
     },
     "metric": "defenseGuards",
     "value": 1,
-    "reward": { "resource": "sci", "amount": 55 },
+    "reward": {
+      "resource": "sci",
+      "amount": 55
+    },
     "href": "/defense"
   },
   {
     "id": "first-friend",
-    "order": 10,
+    "order": 11,
     "icon": "🤝",
-    "name": { "en": "Make a friend", "ru": "Заведи друга" },
+    "name": {
+      "en": "Make a friend",
+      "ru": "Заведи друга"
+    },
     "desc": {
       "en": "Add your first friend. Visit another player's profile to send a request.",
       "ru": "Добавь первого друга. Зайди на профиль другого игрока и отправь заявку."
     },
     "metric": "friends",
     "value": 1,
-    "reward": { "resource": "coin", "amount": 55 }
+    "reward": {
+      "resource": "coin",
+      "amount": 55
+    }
   },
   {
     "id": "first-referral",
-    "order": 11,
+    "order": 12,
     "icon": "🎁",
-    "name": { "en": "Spread the word", "ru": "Позови своих" },
+    "name": {
+      "en": "Spread the word",
+      "ru": "Позови своих"
+    },
     "desc": {
       "en": "Invite a friend with your referral link — you both get rewards.",
       "ru": "Пригласи друга по реферальной ссылке — награды получите оба."
     },
     "metric": "referralsCount",
     "value": 1,
-    "reward": { "resource": "egg", "amount": 2 },
+    "reward": {
+      "resource": "egg",
+      "amount": 2
+    },
     "href": "/pedia/mechanics/referrals"
   },
   {
     "id": "gift-friend",
-    "order": 12,
+    "order": 13,
     "icon": "🎁",
-    "name": { "en": "Share the flock", "ru": "Поделись стаей" },
+    "name": {
+      "en": "Share the flock",
+      "ru": "Поделись стаей"
+    },
     "desc": {
       "en": "Send one of your roosters to a friend as a gift.",
       "ru": "Отправь одного из своих петухов другу в подарок."
     },
     "metric": "giftsSent",
     "value": 1,
-    "reward": { "resource": "egg", "amount": 1 },
+    "reward": {
+      "resource": "egg",
+      "amount": 1
+    },
     "href": "/collection"
   },
   {
     "id": "referral-three",
-    "order": 13,
+    "order": 14,
     "icon": "📣",
-    "name": { "en": "Flock leader", "ru": "Вожак стаи" },
+    "name": {
+      "en": "Flock leader",
+      "ru": "Вожак стаи"
+    },
     "desc": {
       "en": "Invite 3 friends. Each one who joins grows your flock — and your rewards.",
       "ru": "Пригласи 3 друзей. Каждый присоединившийся растит твою стаю — и награды."
     },
     "metric": "referralsCount",
     "value": 3,
-    "reward": { "resource": "coin", "amount": 250 },
+    "reward": {
+      "resource": "coin",
+      "amount": 250
+    },
     "href": "/pedia/mechanics/referrals"
   },
   {
     "id": "referral-five",
-    "order": 14,
+    "order": 15,
     "icon": "👑",
-    "name": { "en": "Roostr recruiter", "ru": "Главный вербовщик" },
+    "name": {
+      "en": "Roostr recruiter",
+      "ru": "Главный вербовщик"
+    },
     "desc": {
       "en": "Invite 5 friends. Top recruiters earn the richest rewards.",
       "ru": "Пригласи 5 друзей. Лучшие вербовщики получают самые жирные награды."
     },
     "metric": "referralsCount",
     "value": 5,
-    "reward": { "resource": "egg", "amount": 4 },
+    "reward": {
+      "resource": "egg",
+      "amount": 4
+    },
     "href": "/pedia/mechanics/referrals"
   },
   {
     "id": "buy-synth-gene",
-    "order": 15,
+    "order": 16,
     "icon": "🧬",
-    "name": { "en": "First synth gene", "ru": "Первый синт-ген" },
+    "name": {
+      "en": "First synth gene",
+      "ru": "Первый синт-ген"
+    },
     "desc": {
       "en": "Buy a synthetic gene in the Shop and splice it into one of your roosters.",
       "ru": "Купи синтетический ген в Магазине и вживи его одному из своих петухов."
     },
     "metric": "synthGenesBought",
     "value": 1,
-    "reward": { "resource": "sci", "amount": 150 },
+    "reward": {
+      "resource": "sci",
+      "amount": 150
+    },
     "href": "/shop/synth-genes"
   }
 ]

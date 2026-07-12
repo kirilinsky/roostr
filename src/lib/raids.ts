@@ -56,7 +56,9 @@ export function raidDurationMs(watch: number, speed: number): number {
 // The haul is capped by the TARGET's wealth (its coin pool / real balance) — you
 // can't grab more than the coop holds. This is the amount ON SUCCESS; success is a
 // separate roll (E[loot] = loot · success). Deliberately small (a slow trickle).
-export const RAID_LOOT_PER_LUCK = 6; // coins per party Luck point
+// Coins per party Luck point. Was a flat 6; trimmed 6% (product, 2026-07-12) to
+// slow the faucet a touch — kept as an explicit ×0.94 so the cut is auditable.
+export const RAID_LOOT_PER_LUCK = 6 * 0.94; // = 5.64
 
 export function raidLoot(partyLuckSum: number, targetPool: number): number {
   const grabbed = Math.round(RAID_LOOT_PER_LUCK * Math.max(0, partyLuckSum));
@@ -77,10 +79,11 @@ export function raidSuccess(power: number, defense: number): number {
 export const RAID_FEATHER_COST = 1;
 
 // HP the raid takes from EVERY party bird on return — flat so the risk is legible
-// pre-launch. Fail hurts ~2×; HP floors at 1 (a raid never kills — the hospital
-// exists for the recovery loop).
-export const RAID_HP_COST_WIN = 3;
-export const RAID_HP_COST_LOSS = 7;
+// pre-launch. Deliberately NOTICEABLE (~16% / ~32% of a typical 31-HP bird): the
+// hospital loop is part of the raid price, not an afterthought. Fail hurts 2×;
+// HP floors at 1 (a raid never kills).
+export const RAID_HP_COST_WIN = 5;
+export const RAID_HP_COST_LOSS = 10;
 
 // Faucet egg drop on a SUCCESSFUL raid — the "sometimes eggs" spice. Always a
 // GAME FAUCET (bots have no owner; PvP later will also drop from the game, never

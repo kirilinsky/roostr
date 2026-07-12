@@ -53,8 +53,8 @@ describe("raidDurationMs", () => {
 });
 
 describe("raidLoot", () => {
-  it("scales with Luck at the fixed per-point rate", () => {
-    expect(raidLoot(10, 10_000)).toBe(10 * RAID_LOOT_PER_LUCK);
+  it("scales with Luck at the fixed per-point rate (rounded to whole coins)", () => {
+    expect(raidLoot(10, 10_000)).toBe(Math.round(10 * RAID_LOOT_PER_LUCK));
   });
 
   it("is capped by the target pool (can't grab more than the coop holds)", () => {
@@ -68,13 +68,17 @@ describe("raidLoot", () => {
 });
 
 describe("raid economy contract (the numbers shown in the UI)", () => {
-  it("flat, legible costs: 1 feather; −3 HP win / −7 HP fail; 15% egg", () => {
+  it("flat, legible costs: 1 feather; −5 HP win / −10 HP fail; 15% egg", () => {
     expect(RAID_FEATHER_COST).toBe(1);
-    expect(RAID_HP_COST_WIN).toBe(3);
-    expect(RAID_HP_COST_LOSS).toBe(7);
+    expect(RAID_HP_COST_WIN).toBe(5);
+    expect(RAID_HP_COST_LOSS).toBe(10);
     expect(RAID_HP_COST_LOSS).toBeGreaterThan(RAID_HP_COST_WIN); // fail hurts more
     expect(RAID_EGG_CHANCE).toBeGreaterThan(0);
     expect(RAID_EGG_CHANCE).toBeLessThanOrEqual(0.25); // eggs stay a spice, not a faucet
+  });
+
+  it("loot rate carries the 6% trim (6 × 0.94)", () => {
+    expect(RAID_LOOT_PER_LUCK).toBeCloseTo(5.64);
   });
 
   it("consolation band matches the spec (2–16)", () => {
