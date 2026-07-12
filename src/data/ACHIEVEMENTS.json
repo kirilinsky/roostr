@@ -922,6 +922,21 @@
       "value": 1
     },
     {
+      "id": "hp-sponge",
+      "icon": "🩹",
+      "tier": "rare",
+      "name": {
+        "en": "Held Together by Band-Aids",
+        "ru": "Держится на пластырях"
+      },
+      "desc": {
+        "en": "Recover a total of 150 HP in the hospital.",
+        "ru": "Суммарно восстанови 150 HP в госпитале."
+      },
+      "metric": "hospitalHpHealed",
+      "value": 150
+    },
+    {
       "id": "tough",
       "icon": "🧱",
       "tier": "collectible",

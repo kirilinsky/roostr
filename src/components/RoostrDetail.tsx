@@ -69,13 +69,15 @@ export default function RoostrDetail({
 
       <OwnerCard isOwner={isOwner} owner={owner} provenance={provenance} />
 
-      {/* avatar + stats — responsive 2-column grid */}
+      {/* avatar + stats — responsive 2-column grid. Stretch (not start) so both
+          columns bottom-align: the stats card grows and the trait card meets the
+          level card's baseline. */}
       <Box
         sx={{
           display: "grid",
           gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "300px minmax(0, 1fr)" },
           gap: 3,
-          alignItems: "start",
+          alignItems: "stretch",
         }}
       >
         <IdentityCard roostr={roostr} />

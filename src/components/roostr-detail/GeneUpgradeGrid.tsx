@@ -80,7 +80,10 @@ export default function GeneUpgradeGrid({
           const canAfford = coins >= cost;
           const disabled = !isOwner || maxed || !canAfford || (pending && busyGene === gene.id);
           return (
-            <Card key={gene.id} sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
+            <Card
+              key={gene.id}
+              sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1, height: "100%" }}
+            >
               <Stack direction="row" alignItems="center" spacing={1.5}>
                 <GeneIcon no={gene.no} family={gene.family} size={64} />
                 <Stack spacing={0.5} sx={{ minWidth: 0, flexGrow: 1 }}>
@@ -111,11 +114,14 @@ export default function GeneUpgradeGrid({
                       size="small"
                       disabled={disabled}
                       onClick={() => upgrade(gene.id)}
-                      sx={
-                        flashGene === gene.id
+                      sx={{
+                        // Pin to the card's bottom so every row's buttons align even
+                        // when badge counts differ between genes.
+                        mt: "auto",
+                        ...(flashGene === gene.id
                           ? { animation: `${successPulse} 0.6s ease` }
-                          : undefined
-                      }
+                          : {}),
+                      }}
                     >
                       {busy ? (
                         <CircularProgress size={18} color="inherit" />

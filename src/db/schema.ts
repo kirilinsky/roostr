@@ -394,6 +394,9 @@ export const roostrHospitalVisits = pgTable("roostr_hospital_visits", {
   admittedAt: timestamp("admitted_at", { withTimezone: true }).notNull().defaultNow(),
   dischargedAt: timestamp("discharged_at", { withTimezone: true }), // null = still healing
   healedFull: boolean("healed_full").notNull().default(false), // reached max HP on discharge
+  // HP at discharge (null while healing / for legacy rows). With admitHp this gives
+  // the visit's healed amount → the per-bird "total HP restored" achievement metric.
+  dischargeHp: integer("discharge_hp"),
 });
 
 export const battles = pgTable("battles", {

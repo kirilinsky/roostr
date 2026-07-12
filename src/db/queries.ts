@@ -1803,7 +1803,11 @@ export async function admitToHospital(
 }
 
 // Close the latest OPEN visit for a bird (called on discharge / auto-discharge).
-async function closeHospitalVisit(roostrId: string, healedFull: boolean): Promise<void> {
+async function closeHospitalVisit(
+  roostrId: string,
+  healedFull: boolean,
+  dischargeHp: number,
+): Promise<void> {
   try {
     const { db } = await import("@/db");
     const { roostrHospitalVisits } = await import("@/db/schema");
@@ -1819,7 +1823,7 @@ async function closeHospitalVisit(roostrId: string, healedFull: boolean): Promis
     if (!open) return;
     await db
       .update(roostrHospitalVisits)
-      .set({ dischargedAt: new Date(), healedFull })
+      .set({ dischargedAt: new Date(), healedFull, dischargeHp })
       .where(eq(roostrHospitalVisits.id, open.id));
   } catch (e) {
     console.error("closeHospitalVisit failed:", e);
@@ -1865,7 +1869,7 @@ export async function dischargeFromHospital(
       )
       .returning({ id: roostrs.id });
     if (res.length === 0) return false;
-    await closeHospitalVisit(id, healed >= maxHealth);
+    await closeHospitalVisit(id, healed >= maxHealth, healed);
     return true;
   } catch (e) {
     console.error("dischargeFromHospital failed:", e);
@@ -2586,8 +2590,8 @@ export async function damageRoostr(
 // patient") + whether it ever came in at rock-bottom HP and fully healed ("nine lives").
 export async function getRoostrHospitalStats(
   roostrId: string,
-): Promise<{ visits: number; nineLives: boolean }> {
-  if (!process.env.DATABASE_URL) return { visits: 0, nineLives: false };
+): Promise<{ visits: number; nineLives: boolean; hpHealed: number }> {
+  if (!process.env.DATABASE_URL) return { visits: 0, nineLives: false, hpHealed: 0 };
   try {
     const { db } = await import("@/db");
     const { roostrHospitalVisits } = await import("@/db/schema");
@@ -2596,13 +2600,20 @@ export async function getRoostrHospitalStats(
       .select({
         visits: sql<number>`count(*)`,
         nine: sql<number>`count(*) filter (where ${roostrHospitalVisits.admitHp} <= 1 and ${roostrHospitalVisits.healedFull})`,
+        // Lifetime HP restored on this bird's beds (legacy rows without a
+        // dischargeHp count as 0 — we don't invent history).
+        healed: sql<number>`coalesce(sum(greatest(0, ${roostrHospitalVisits.dischargeHp} - ${roostrHospitalVisits.admitHp})), 0)`,
       })
       .from(roostrHospitalVisits)
       .where(eq(roostrHospitalVisits.roostrId, roostrId));
-    return { visits: Number(c?.visits ?? 0), nineLives: Number(c?.nine ?? 0) > 0 };
+    return {
+      visits: Number(c?.visits ?? 0),
+      nineLives: Number(c?.nine ?? 0) > 0,
+      hpHealed: Number(c?.healed ?? 0),
+    };
   } catch (e) {
     console.error("getRoostrHospitalStats failed:", e);
-    return { visits: 0, nineLives: false };
+    return { visits: 0, nineLives: false, hpHealed: 0 };
   }
 }
 

@@ -63,8 +63,9 @@ export default function IdentityCard({ roostr }: { roostr: HydratedRoostr }) {
         />
       </Box>
 
-      {/* level / rating progress — click opens the tier ladder */}
-      <Card sx={{ p: 1.5 }}>
+      {/* level / rating progress — click opens the tier ladder. flexGrow fills the
+          column so its bottom lines up with the stats column next to it. */}
+      <Card sx={{ p: 1.5, flexGrow: 1 }}>
         <Box
           role="button"
           tabIndex={0}

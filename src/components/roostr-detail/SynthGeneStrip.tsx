@@ -107,9 +107,11 @@ export default function SynthGeneStrip({
           sx={{
             display: "grid",
             gap: 2,
+            // Same grid as GeneUpgradeGrid so both sections line up column-for-column.
             gridTemplateColumns: {
               xs: "minmax(0, 1fr)",
               sm: "repeat(2, minmax(0, 1fr))",
+              lg: "repeat(4, minmax(0, 1fr))",
             },
           }}
         >
@@ -121,7 +123,10 @@ export default function SynthGeneStrip({
             const busy = pending && busyGene === g.id;
             const disabled = maxed || !canAfford || busy;
             return (
-              <Card key={g.id} sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 0.75 }}>
+              <Card
+                key={g.id}
+                sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 0.75, height: "100%" }}
+              >
                 <Stack direction="row" alignItems="center" spacing={1.5}>
                   <SynthGeneIcon no={g.no} size={56} />
                   <Box sx={{ minWidth: 0, flexGrow: 1 }}>
@@ -150,7 +155,10 @@ export default function SynthGeneStrip({
                     color="secondary"
                     disabled={disabled}
                     onClick={() => upgrade(g.id)}
-                    sx={flashGene === g.id ? { animation: `${successPulse} 0.6s ease` } : undefined}
+                    sx={{
+                      mt: "auto", // bottom-pinned — rows of buttons stay level
+                      ...(flashGene === g.id ? { animation: `${successPulse} 0.6s ease` } : {}),
+                    }}
                   >
                     {busy ? (
                       <CircularProgress size={18} color="inherit" />

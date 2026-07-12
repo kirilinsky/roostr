@@ -110,6 +110,7 @@ export default async function RoostrDetailPage({
     topCategory: topLeaders.has(id) ? 1 : 0,
     hospitalVisits: hosp.visits,
     nineLives: hosp.nineLives ? 1 : 0,
+    hospitalHpHealed: hosp.hpHealed,
     unsoldStreak,
   });
   const satisfiedIds = rStatuses.filter((s) => s.unlocked).map((s) => s.def.id);
