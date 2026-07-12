@@ -70,6 +70,31 @@ export function raidSuccess(power: number, defense: number): number {
   return Math.min(0.95, Math.max(0.05, power / (power + defense)));
 }
 
+// --- Phase 2: launch/resolve tunables (all deliberately FLAT + visible in the UI
+// so the raid contract reads at a glance: "1 feather, −3/−7 HP, 15% egg") ---
+
+// Launch cost — one feather (battle energy, regen 1/hour, cap 10).
+export const RAID_FEATHER_COST = 1;
+
+// HP the raid takes from EVERY party bird on return — flat so the risk is legible
+// pre-launch. Fail hurts ~2×; HP floors at 1 (a raid never kills — the hospital
+// exists for the recovery loop).
+export const RAID_HP_COST_WIN = 3;
+export const RAID_HP_COST_LOSS = 7;
+
+// Faucet egg drop on a SUCCESSFUL raid — the "sometimes eggs" spice. Always a
+// GAME FAUCET (bots have no owner; PvP later will also drop from the game, never
+// steal from the victim — eggs are the growth gate, .notes/RAIDS.md §Loot rules).
+export const RAID_EGG_CHANCE = 0.15;
+export const RAID_EGG_AMOUNT = 1;
+
+// Broke target → consolation faucet so a raid is never fully empty (spec: 2–16).
+export const RAID_CONSOLATION_MIN = 2;
+export const RAID_CONSOLATION_MAX = 16;
+
+// One raid in flight per player — keeps the mode simple and the party lock honest.
+// (Multiple concurrent raids = a later phase decision, not a bug.)
+
 // Bot targets — synthetic opponents mixed into matchmaking while the player base is
 // tiny (.notes/RAIDS.md §Matchmaking). Data-only; NEVER written to `users`, so the
 // bot layer is a single knob to turn off later.
@@ -80,3 +105,6 @@ export interface RaidBot {
   coinPool: number; // coin pool for loot math (phase 2)
 }
 export const RAID_BOTS = raidBotsData.bots as RaidBot[];
+export function raidBotById(id: string): RaidBot | null {
+  return RAID_BOTS.find((b) => b.id === id) ?? null;
+}

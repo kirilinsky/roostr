@@ -95,6 +95,51 @@
       "value": 10000
     },
     {
+      "id": "first-raid",
+      "icon": "🗡️",
+      "tier": "common",
+      "name": {
+        "en": "First Heist",
+        "ru": "Первый налёт"
+      },
+      "desc": {
+        "en": "Complete your first raid.",
+        "ru": "Заверши первый рейд."
+      },
+      "metric": "raidsDone",
+      "value": 1
+    },
+    {
+      "id": "raider-25",
+      "icon": "🏴‍☠️",
+      "tier": "medium",
+      "name": {
+        "en": "Seasoned Raider",
+        "ru": "Матёрый налётчик"
+      },
+      "desc": {
+        "en": "Complete 25 raids.",
+        "ru": "Заверши 25 рейдов."
+      },
+      "metric": "raidsDone",
+      "value": 25
+    },
+    {
+      "id": "raid-loot-1k",
+      "icon": "🧺",
+      "tier": "rare",
+      "name": {
+        "en": "Master Thief",
+        "ru": "Барон воришка"
+      },
+      "desc": {
+        "en": "Loot 1,000 coins from raids.",
+        "ru": "Награбь 1 000 монет в рейдах."
+      },
+      "metric": "raidLoot",
+      "value": 1000
+    },
+    {
       "id": "first-sci",
       "icon": "💡",
       "tier": "common",

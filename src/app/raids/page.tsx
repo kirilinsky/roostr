@@ -1,61 +1,89 @@
 import Container from "@mui/material/Container";
-import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import LaunchGate from "@/components/LaunchGate";
 import RaidsView from "@/components/RaidsView";
 import { getSession } from "@/lib/auth";
-import { isAdmin } from "@/lib/admin";
-import { countUsers, getRoostrs, getRaidSlots, getRaidCandidates } from "@/db/queries";
+import {
+  getRoostrs,
+  getRaidSlots,
+  getActiveRaid,
+  getRaidHistory,
+  getUserById,
+} from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
 import { RAID_BOTS } from "@/lib/raids";
+import { featherState } from "@/lib/feathers";
 import { getTranslations } from "@/i18n/server";
 
-const LAUNCH_AT_PLAYERS = 14;
-
-// Raids (Coop & Dagger). DEV: admins get the live phase-1 window (party staging +
-// slot buy vs a bot target); everyone else still sees the coming-soon LaunchGate.
+// Raids (Coop & Dagger) — PHASE 2, open to everyone: assemble a party, pick a BOT
+// target, launch (1 feather), wait out the timer, Collect. Real-player targets
+// (PvP, shields, victim notifications) are phase 3 — bots only for now.
 export default async function RaidsPage() {
+  const { t } = await getTranslations();
   const session = await getSession();
 
-  if (session && isAdmin(session.id)) {
-    const { t } = await getTranslations();
-    const available = (await getRoostrs(session.id))
-      .map(hydrateRoostr)
-      .filter((r) => r.status === "active");
-    const slotsOwned = await getRaidSlots(session.id);
-    // Emulated matchmaking (phase 1, admin): candidate list = a few random REAL
-    // players without immunity + the bot roster; the admin PICKS one in the UI.
-    const players = await getRaidCandidates(session.id);
-    const targets = RAID_BOTS;
-
+  if (!session) {
     return (
-      <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
-        <Stack spacing={3}>
-          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-            <Typography variant="h4" component="h1">
-              {t("nav.raids")}
-            </Typography>
-            <Chip size="small" color="secondary" label={t("raids.devBadge")} sx={{ fontWeight: 800 }} />
-          </Stack>
-          <RaidsView
-            available={available}
-            slotsOwned={slotsOwned}
-            targets={targets}
-            players={players}
-          />
-        </Stack>
+      <Container maxWidth="sm" sx={{ py: 8 }}>
+        <Typography color="text.secondary" textAlign="center">
+          {t("collection.guest")}
+        </Typography>
       </Container>
     );
   }
 
-  const current = await countUsers();
+  const [roostrs, slotsOwned, activeRaid, history, me] = await Promise.all([
+    getRoostrs(session.id),
+    getRaidSlots(session.id),
+    getActiveRaid(session.id),
+    getRaidHistory(session.id),
+    getUserById(session.id),
+  ]);
+  const available = roostrs.map(hydrateRoostr).filter((r) => r.status === "active");
+  const feathers = me
+    ? featherState(
+        me.feathers,
+        me.featherMax,
+        new Date(me.feathersAt).getTime(),
+        Date.now(),
+      ).current
+    : 0;
+
   return (
-    <LaunchGate
-      titleKey="nav.raids"
-      current={current}
-      target={LAUNCH_AT_PLAYERS}
-      bg="/bg/raids.png"
-    />
+    <Container maxWidth="lg" sx={{ pt: { xs: 2.5, md: 3 }, pb: { xs: 4, md: 6 } }}>
+      <Stack spacing={3}>
+        <Typography variant="h4" component="h1">
+          {t("nav.raids")}
+        </Typography>
+        <RaidsView
+          available={available}
+          slotsOwned={slotsOwned}
+          targets={RAID_BOTS}
+          feathers={feathers}
+          history={history.map((h) => ({
+            id: h.id,
+            botId: h.botId ?? "",
+            success: h.success ?? false,
+            lootCoins: h.lootCoins ?? 0,
+            lootEggs: h.lootEggs ?? 0,
+            at: (h.resolvedAt ?? h.startedAt).getTime(),
+          }))}
+          activeRaid={
+            activeRaid
+              ? {
+                  id: activeRaid.id,
+                  botId: activeRaid.botId ?? "",
+                  endsAt: activeRaid.endsAt.getTime(),
+                  power: activeRaid.raidPowerSnapshot,
+                  defense: activeRaid.defenseSnapshot,
+                  luck: activeRaid.luckSnapshot,
+                  pool: activeRaid.targetPool,
+                  partySize: (activeRaid.partyRoostrIds ?? []).length,
+                }
+              : null
+          }
+        />
+      </Stack>
+    </Container>
   );
 }

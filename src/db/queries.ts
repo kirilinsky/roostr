@@ -631,25 +631,25 @@ export async function getProfileMetrics(
     metrics.hospitalAdmits = Number(hosp?.admits ?? 0);
     metrics.hospitalHealed = Number(hosp?.healed ?? 0);
 
-    // Raids (TBA) — count + looted coins from the ledger (kind "raid"). 0 until the
-    // raid system ships, then auto-fills. hpSpent has no source yet (combat unbuilt).
+    // Raids — count + looted coins from the append-only `raids` table (failed
+    // raids count as raids too; the coin ledger would miss them). hpSpent = the
+    // flat HP toll summed over resolved raids (win/loss × party size).
+    const { raids } = await import("@/db/schema");
+    const { RAID_HP_COST_WIN, RAID_HP_COST_LOSS } = await import("@/lib/raids");
     const [raid] = await db
       .select({
         n: sql<number>`count(*)`,
-        loot: sql<number>`coalesce(sum(${resourceTxns.amount}), 0)`,
+        loot: sql<number>`coalesce(sum(${raids.lootCoins}), 0)`,
+        hpWin: sql<number>`coalesce(sum(case when ${raids.success} then jsonb_array_length(${raids.partyRoostrIds}) else 0 end), 0)`,
+        hpLoss: sql<number>`coalesce(sum(case when not ${raids.success} then jsonb_array_length(${raids.partyRoostrIds}) else 0 end), 0)`,
       })
-      .from(resourceTxns)
-      .where(
-        and(
-          eq(resourceTxns.userId, userId),
-          eq(resourceTxns.resource, "coin"),
-          eq(resourceTxns.kind, "raid"),
-          gt(resourceTxns.amount, 0),
-        ),
-      );
+      .from(raids)
+      .where(and(eq(raids.attackerUserId, userId), eq(raids.status, "resolved")));
     metrics.raidsDone = Number(raid?.n ?? 0);
     metrics.raidLoot = Number(raid?.loot ?? 0);
-    metrics.hpSpent = 0; // TODO: wire when combat/raids log HP loss
+    metrics.hpSpent =
+      Number(raid?.hpWin ?? 0) * RAID_HP_COST_WIN +
+      Number(raid?.hpLoss ?? 0) * RAID_HP_COST_LOSS;
   } catch (e) {
     console.error("getProfileMetrics failed:", e);
   }
@@ -2143,6 +2143,356 @@ export async function getRaidCandidates(
   }
 }
 
+// --- Raid launch / resolve (phase 2 — bot targets, .notes/RAIDS.md) ---
+
+// Settle feather regen lazily, then spend `amount`. current = stored + whole hours
+// since the anchor (capped at max); spend writes (current − amount) back and resets
+// the anchor. CAS on the previously-read stored value so two concurrent spends
+// can't both win off one balance. Returns the new stored count, or null if short.
+export async function spendFeathers(
+  userId: number,
+  amount: number,
+): Promise<number | null> {
+  if (!process.env.DATABASE_URL) return null;
+  if (!Number.isInteger(amount) || amount <= 0) return null;
+  try {
+    const { db } = await import("@/db");
+    const { users, resourceTxns } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const { currentFeathers } = await import("@/lib/feathers");
+    const [u] = await db
+      .select({
+        feathers: users.feathers,
+        featherMax: users.featherMax,
+        feathersAt: users.feathersAt,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!u) return null;
+    const now = Date.now();
+    const current = currentFeathers(
+      u.feathers,
+      u.featherMax,
+      new Date(u.feathersAt).getTime(),
+      now,
+    );
+    if (current < amount) return null;
+    const next = current - amount;
+    const res = await db
+      .update(users)
+      .set({ feathers: next, feathersAt: new Date(now), updatedAt: new Date(now) })
+      .where(and(eq(users.id, userId), eq(users.feathers, u.feathers)))
+      .returning({ f: users.feathers });
+    if (res.length === 0) return null; // lost a concurrent race — caller retries/fails
+    await db.insert(resourceTxns).values({
+      userId,
+      resource: "feather",
+      amount: -amount,
+      kind: "raid",
+      balanceAfter: next,
+    });
+    return next;
+  } catch (e) {
+    console.error("spendFeathers failed:", e);
+    return null;
+  }
+}
+
+// The attacker's raid in flight (or awaiting Collect) — one per player.
+export async function getActiveRaid(userId: number) {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const { db } = await import("@/db");
+    const { raids } = await import("@/db/schema");
+    const { and, eq } = await import("drizzle-orm");
+    const [r] = await db
+      .select()
+      .from(raids)
+      .where(and(eq(raids.attackerUserId, userId), eq(raids.status, "active")))
+      .limit(1);
+    return r ?? null;
+  } catch (e) {
+    console.error("getActiveRaid failed:", e);
+    return null;
+  }
+}
+
+export type LaunchRaidResult =
+  | { ok: true; raidId: string; endsAt: number }
+  | {
+      ok: false;
+      reason: "nodb" | "bot" | "busy" | "party" | "feather" | "locked" | "error";
+    };
+
+// Launch a raid vs a BOT: validate the party (owned + active), enforce one raid in
+// flight, spend 1 feather, CAS-lock every party bird active→raiding, snapshot the
+// contest inputs and insert the raids row. Any failure after the feather spend
+// refunds it; a partial party lock is fully reverted (no bird orphans in "raiding").
+export async function launchRaid(
+  userId: number,
+  botId: string,
+  partyIds: string[],
+): Promise<LaunchRaidResult> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
+  try {
+    const { db } = await import("@/db");
+    const { raids, roostrs } = await import("@/db/schema");
+    const { and, eq, inArray } = await import("drizzle-orm");
+    const {
+      raidBotById,
+      partyPower,
+      partyLuck,
+      partySpeed,
+      raidDurationMs,
+      RAID_FEATHER_COST,
+    } = await import("@/lib/raids");
+
+    const bot = raidBotById(botId);
+    if (!bot) return { ok: false, reason: "bot" };
+    const ids = [...new Set(partyIds)].filter(Boolean);
+    const slots = await getRaidSlots(userId);
+    if (ids.length === 0 || ids.length > slots) return { ok: false, reason: "party" };
+
+    // One raid in flight per player.
+    if (await getActiveRaid(userId)) return { ok: false, reason: "busy" };
+
+    // Validate + snapshot the party from the DB (never trust client stats).
+    const rows = await db
+      .select()
+      .from(roostrs)
+      .where(and(inArray(roostrs.id, ids), eq(roostrs.ownerId, userId)));
+    if (rows.length !== ids.length) return { ok: false, reason: "party" };
+    if (rows.some((r) => r.status !== "active")) return { ok: false, reason: "party" };
+    const party = rows.map(hydrateRoostr);
+    const power = partyPower(party);
+    const luck = partyLuck(party);
+    const speed = partySpeed(party);
+    const durationMs = raidDurationMs(bot.watch, speed);
+
+    // Pay the feather BEFORE locking (cheapest thing to refund on a lost race).
+    const feathers = await spendFeathers(userId, RAID_FEATHER_COST);
+    if (feathers === null) return { ok: false, reason: "feather" };
+    const refundFeather = async () => {
+      // Feathers regen to a cap, so a "+1" grant is the honest refund shape.
+      try {
+        const { users } = await import("@/db/schema");
+        const { eq: eq2, sql } = await import("drizzle-orm");
+        await db
+          .update(users)
+          .set({ feathers: sql`${users.feathers} + ${RAID_FEATHER_COST}` })
+          .where(eq2(users.id, userId));
+      } catch (e) {
+        console.error("feather refund failed:", e);
+      }
+    };
+
+    // CAS-lock the party: every bird must still be active + owned. Anything short
+    // of a full lock reverts entirely.
+    const locked = await db
+      .update(roostrs)
+      .set({ status: "raiding" })
+      .where(
+        and(
+          inArray(roostrs.id, ids),
+          eq(roostrs.ownerId, userId),
+          eq(roostrs.status, "active"),
+        ),
+      )
+      .returning({ id: roostrs.id });
+    if (locked.length !== ids.length) {
+      await db
+        .update(roostrs)
+        .set({ status: "active" })
+        .where(
+          and(
+            inArray(roostrs.id, locked.map((l) => l.id)),
+            eq(roostrs.status, "raiding"),
+          ),
+        );
+      await refundFeather();
+      return { ok: false, reason: "locked" };
+    }
+
+    const endsAt = new Date(Date.now() + durationMs);
+    try {
+      const [r] = await db
+        .insert(raids)
+        .values({
+          attackerUserId: userId,
+          botId,
+          partyRoostrIds: ids,
+          raidPowerSnapshot: power,
+          defenseSnapshot: bot.watch,
+          luckSnapshot: luck,
+          targetPool: bot.coinPool,
+          endsAt,
+        })
+        .returning({ id: raids.id });
+      return { ok: true, raidId: r.id, endsAt: endsAt.getTime() };
+    } catch (insErr) {
+      // Insert failed → free the party + refund; nothing launched.
+      await db
+        .update(roostrs)
+        .set({ status: "active" })
+        .where(and(inArray(roostrs.id, ids), eq(roostrs.status, "raiding")));
+      await refundFeather();
+      console.error("launchRaid insert failed, reverted:", insErr);
+      return { ok: false, reason: "error" };
+    }
+  } catch (e) {
+    console.error("launchRaid failed:", e);
+    return { ok: false, reason: "error" };
+  }
+}
+
+export type ResolveRaidResult =
+  | {
+      ok: true;
+      success: boolean;
+      lootCoins: number;
+      lootEggs: number;
+      wasConsolation: boolean;
+    }
+  | { ok: false; reason: "nodb" | "gone" | "early" | "error" };
+
+// Manual "Collect": resolve a raid whose timer has ended. Single-winner CAS claims
+// the row (active→resolved), then: roll success (Stealth vs Watch snapshot), apply
+// the flat HP cost to every party bird (floor 1 — a raid never kills), unlock the
+// party, and pay the loot (coins kind "raid" — the achievements/metrics ledger key;
+// egg drop is a separate faucet grant). Bird unlock comes BEFORE the grants so a
+// mid-resolve crash can't orphan the party in "raiding".
+export async function resolveRaid(
+  raidId: string,
+  userId: number,
+): Promise<ResolveRaidResult> {
+  if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
+  try {
+    const { db } = await import("@/db");
+    const { raids, roostrs } = await import("@/db/schema");
+    const { and, eq, inArray, lte, sql } = await import("drizzle-orm");
+    const {
+      raidSuccess,
+      raidLoot,
+      RAID_HP_COST_WIN,
+      RAID_HP_COST_LOSS,
+      RAID_EGG_CHANCE,
+      RAID_EGG_AMOUNT,
+      RAID_CONSOLATION_MIN,
+      RAID_CONSOLATION_MAX,
+    } = await import("@/lib/raids");
+
+    const now = new Date();
+    // Pre-read to distinguish "not yours/gone" from "timer not done".
+    const [pre] = await db
+      .select()
+      .from(raids)
+      .where(
+        and(
+          eq(raids.id, raidId),
+          eq(raids.attackerUserId, userId),
+          eq(raids.status, "active"),
+        ),
+      )
+      .limit(1);
+    if (!pre) return { ok: false, reason: "gone" };
+    if (pre.endsAt > now) return { ok: false, reason: "early" };
+
+    // Single-winner claim.
+    const claimed = await db
+      .update(raids)
+      .set({ status: "resolved", resolvedAt: now })
+      .where(and(eq(raids.id, raidId), eq(raids.status, "active"), lte(raids.endsAt, now)))
+      .returning();
+    if (claimed.length === 0) return { ok: false, reason: "gone" };
+    const raid = claimed[0];
+
+    // The contest roll — snapshots only, as speced.
+    const p = raidSuccess(raid.raidPowerSnapshot, raid.defenseSnapshot);
+    const success = Math.random() < p;
+
+    // Loot: winners grab Luck×rate capped by the pool; an empty grab still pays a
+    // small consolation. Losers get nothing (the hours + HP were the price).
+    let lootCoins = 0;
+    let wasConsolation = false;
+    if (success) {
+      lootCoins = raidLoot(raid.luckSnapshot, raid.targetPool);
+      if (lootCoins <= 0) {
+        lootCoins =
+          RAID_CONSOLATION_MIN +
+          Math.floor(Math.random() * (RAID_CONSOLATION_MAX - RAID_CONSOLATION_MIN + 1));
+        wasConsolation = true;
+      }
+    }
+    const lootEggs =
+      success && Math.random() < RAID_EGG_CHANCE ? RAID_EGG_AMOUNT : 0;
+
+    // HP cost + unlock in ONE statement per party: floor at 1, never kill.
+    // coalesce(currentHp, maxHealth) handles the "full HP = null" convention.
+    const hpCost = success ? RAID_HP_COST_WIN : RAID_HP_COST_LOSS;
+    const ids = raid.partyRoostrIds ?? [];
+    if (ids.length > 0) {
+      await db
+        .update(roostrs)
+        .set({
+          status: "active",
+          currentHp: sql`greatest(1, coalesce(${roostrs.currentHp}, ${roostrs.maxHealth}) - ${hpCost})`,
+        })
+        .where(and(inArray(roostrs.id, ids), eq(roostrs.status, "raiding")));
+    }
+
+    // Pay out (bot target = pure faucet; no victim side in phase 2).
+    if (lootCoins > 0) await grantResource(userId, "coin", lootCoins, "raid", raid.botId ?? raidId);
+    if (lootEggs > 0) await grantResource(userId, "egg", lootEggs, "raid", raid.botId ?? raidId);
+
+    // Stamp the outcome on the row (post-claim, so a crash here loses only display
+    // fields, not money or bird state).
+    await db
+      .update(raids)
+      .set({ success, lootCoins, lootEggs, wasConsolation })
+      .where(eq(raids.id, raidId));
+
+    return { ok: true, success, lootCoins, lootEggs, wasConsolation };
+  } catch (e) {
+    console.error("resolveRaid failed:", e);
+    return { ok: false, reason: "error" };
+  }
+}
+
+// 1 when the player's raid timer has ended and the loot awaits Collect, else 0.
+// Ephemeral ready-signal (like getHospitalReadyCount) — clears itself on collect,
+// no read-tracking rows needed.
+export async function getRaidReadyCount(userId: number): Promise<number> {
+  if (!process.env.DATABASE_URL) return 0;
+  try {
+    const raid = await getActiveRaid(userId);
+    return raid && raid.endsAt <= new Date() ? 1 : 0;
+  } catch (e) {
+    console.error("getRaidReadyCount failed:", e);
+    return 0;
+  }
+}
+
+// Raid log — the attacker's resolved raids, newest first. The `raids` table is
+// append-only, so this IS the full history (who was hit, when, outcome, haul).
+export async function getRaidHistory(userId: number, limit = 12) {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { raids } = await import("@/db/schema");
+    const { and, desc, eq } = await import("drizzle-orm");
+    return await db
+      .select()
+      .from(raids)
+      .where(and(eq(raids.attackerUserId, userId), eq(raids.status, "resolved")))
+      .orderBy(desc(raids.resolvedAt))
+      .limit(limit);
+  } catch (e) {
+    console.error("getRaidHistory failed:", e);
+    return [];
+  }
+}
+
 // DEV ONLY: knock `damage` HP off a bird (to test the hospital before combat
 // exists). Owner + active guarded; result floored at 1; a full result → null.
 export async function damageRoostr(
@@ -2638,7 +2988,7 @@ export async function markNotificationRead(
 export async function countUnreadNotifications(userId: number): Promise<number> {
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
-    const [news, ach, dex, friends, requests, gifts, giftUpdates, synth, readyQ, stations, hospitalReady] =
+    const [news, ach, dex, friends, requests, gifts, giftUpdates, synth, readyQ, stations, hospitalReady, raidReady] =
       await Promise.all([
         getNews(userId),
         getNewAchievements(userId),
@@ -2651,6 +3001,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
         countReadyQuests(userId),
         getStationAlerts(userId),
         getHospitalReadyCount(userId),
+        getRaidReadyCount(userId),
       ]);
     const unread =
       news.filter((n) => n.unread).length +
@@ -2660,7 +3011,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       gifts.filter((g) => g.unread).length +
       giftUpdates.filter((g) => g.unread).length +
       synth.filter((s) => s.unread).length;
-    return unread + requests.length + readyQ + stations.length + hospitalReady;
+    return unread + requests.length + readyQ + stations.length + hospitalReady + raidReady;
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);
     return 0;

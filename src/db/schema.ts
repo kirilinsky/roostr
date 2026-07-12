@@ -244,7 +244,7 @@ export const roostrs = pgTable("roostrs", {
   // Lifecycle state. Recycling/selling sets a non-active status instead of
   // hard-deleting the row, so the rooster's history (and provenance below)
   // survives. breed_discoveries already assumes the dex unlock outlives the bird.
-  status: text("status").notNull().default("active"), // active | working | gifting | listed | sold | recycled | released (freed to the wild — ownerless limbo, excluded from all listings)
+  status: text("status").notNull().default("active"), // active | working | raiding (party away on a raid, V14) | gifting | listed | sold | recycled | released (freed to the wild — ownerless limbo, excluded from all listings)
   // Forward catch-all for small, evolving per-rooster fields (achievements,
   // flags, aura cache, …). Add keys here WITHOUT a migration; promote to a typed
   // column once a field's shape is stable. Keep big/queried data in real columns.
@@ -436,6 +436,39 @@ export const expeditions = pgTable("expeditions", {
   status: text("status").notNull().default("active"), // active | claimed | cancelled
   reward: jsonb("reward").$type<unknown>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Raid missions ("Coop & Dagger", .notes/RAIDS.md) — append-only, one row per
+// launched raid. Contest inputs are SNAPSHOTTED at launch (raidPower/defense) so a
+// target changing their Watch mid-flight doesn't rewrite an in-progress raid.
+// Phase 2: bot targets only (botId set, defenderUserId null). Phase 3 (PvP) will
+// set defenderUserId instead. Resolve is a manual "Collect" after endsAt.
+export const raids = pgTable("raids", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  attackerUserId: bigint("attacker_user_id", { mode: "number" })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  // Exactly one of (defenderUserId, botId) is set — bot raids have no victim row.
+  defenderUserId: bigint("defender_user_id", { mode: "number" }).references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
+  botId: text("bot_id"),
+  partyRoostrIds: jsonb("party_roostr_ids").$type<string[]>().notNull(),
+  // Launch-time snapshots (the contest is decided by these, not live values).
+  raidPowerSnapshot: integer("raid_power_snapshot").notNull(), // Σ party Stealth
+  defenseSnapshot: integer("defense_snapshot").notNull(), // target Watch (Σ Crow)
+  luckSnapshot: integer("luck_snapshot").notNull(), // Σ party Luck → loot size
+  targetPool: integer("target_pool").notNull(), // coins grabbable at launch
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+  status: text("status").notNull().default("active"), // active | resolved
+  // Resolution outcome (null until resolved).
+  success: boolean("success"),
+  lootCoins: integer("loot_coins"),
+  lootEggs: integer("loot_eggs"), // faucet egg drop (never stolen from a victim)
+  wasConsolation: boolean("was_consolation"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
 });
 
 // Mutual friendship, one row per pair. Stored canonically (userAId < userBId)

@@ -26,6 +26,7 @@ import AchievementsList from "@/components/notifications/AchievementsList";
 import SynthGeneList from "@/components/notifications/SynthGeneList";
 import StationNotice from "@/components/notifications/StationNotice";
 import HospitalNotice from "@/components/notifications/HospitalNotice";
+import RaidNotice from "@/components/notifications/RaidNotice";
 
 // Filter categories. Only "friends" carries data today (incoming requests);
 // the rest are placeholders for future notification types.
@@ -39,6 +40,7 @@ const TABS = [
   { key: "farm", labelKey: "nav.farm" },
   { key: "lab", labelKey: "nav.lab" },
   { key: "hospital", labelKey: "nav.hospital" },
+  { key: "raids", labelKey: "nav.raids" },
   { key: "roostrdex", labelKey: "nav.roostrdex" },
 ] as const;
 
@@ -57,6 +59,7 @@ export default function NotificationsView({
   giftUpdates = [],
   synthGenes = [],
   hospitalReady = 0,
+  raidReady = 0,
   selfId = null,
 }: {
   requests: FriendRequestSummary[];
@@ -70,6 +73,7 @@ export default function NotificationsView({
   giftUpdates?: GiftUpdate[];
   synthGenes?: SynthGeneNotification[];
   hospitalReady?: number;
+  raidReady?: number;
   selfId?: number | null;
 }) {
   const t = useT();
@@ -88,6 +92,7 @@ export default function NotificationsView({
     farm: fullStations.includes("farm") ? 1 : 0,
     lab: (fullStations.includes("lab") ? 1 : 0) + unread(synthGenes),
     hospital: hospitalReady,
+    raids: raidReady,
     roostrdex: unread(discoveries),
   };
 
@@ -187,6 +192,8 @@ export default function NotificationsView({
         )
       ) : tab === "hospital" ? (
         hospitalReady > 0 ? <HospitalNotice ready={hospitalReady} /> : <EmptyNotice />
+      ) : tab === "raids" ? (
+        raidReady > 0 ? <RaidNotice /> : <EmptyNotice />
       ) : stationFull ? (
         <StationNotice kind={tab as "farm" | "lab"} />
       ) : (
