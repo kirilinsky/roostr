@@ -54,3 +54,11 @@ export async function backfillCosmeticsAction(): Promise<{
   const res = await backfillCosmetics();
   return { ok: true, ...res };
 }
+
+// DEBUG readout — latest global hatch + live raid count. Admin-only.
+export async function getDebugGlobalStatsAction() {
+  const session = await getSession();
+  if (!session || !isAdmin(session.id)) return null;
+  const { getDebugGlobalStats } = await import("@/db/queries");
+  return getDebugGlobalStats();
+}

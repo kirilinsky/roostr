@@ -342,10 +342,10 @@ export function breedWithTrait(breed: Breed, traitId?: string | null): Breed {
 // (~1/50000 each) — a lone gene or a rich four-combo. Weights sum to 100000 so
 // they read as direct odds. (Decision: GAME-DESIGN §11.)
 const GENE_COUNT_WEIGHTS = [
-  { count: 1, weight: 50 },
+  { count: 1, weight: 70 },
   { count: 2, weight: 99696 },
-  { count: 3, weight: 919 },
-  { count: 4, weight: 5 },
+  { count: 3, weight: 999 },
+  { count: 4, weight: 10 },
 ];
 
 function geneRollWeight(gene: Gene, breed: Breed): number {
@@ -712,7 +712,7 @@ export function mulberry32(seed: number): Rng {
 // pattern + seed + geneLevels. Cards/pages rehydrate the full objects from the
 // catalogs and recompute the derived stats (never stored) on read.
 
-const BREED_BY_ID = Object.fromEntries(BREEDS.map((b) => [b.id, b]));
+export const BREED_BY_ID = Object.fromEntries(BREEDS.map((b) => [b.id, b]));
 const WEIGHT_BY_ID = Object.fromEntries(WEIGHT_CLASSES.map((w) => [w.id, w]));
 const GENE_BY_ID = Object.fromEntries(GENES.map((g) => [g.id, g]));
 

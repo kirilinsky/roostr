@@ -4,17 +4,15 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
-import RoostrAvatar from "@/components/RoostrAvatar";
-import CollectionCard from "@/components/CollectionCard";
-import Popup from "@/components/Popup";
+import PatientCard from "@/components/hospital/PatientCard";
+import AdmitPickerPopup from "@/components/hospital/AdmitPickerPopup";
+import { fmtEta, DASHED_TILE } from "@/components/hospital/shared";
 import { useNowTick } from "@/hooks/useNowTick";
 import {
   healedHp,
@@ -28,31 +26,7 @@ import {
   dischargeFromHospitalAction,
   buyHospitalSlotAction,
 } from "@/app/hospital/actions";
-import { useLocale, useT } from "@/i18n/I18nProvider";
-
-function fmtEta(ms: number): string {
-  if (ms <= 0) return "";
-  const m = Math.ceil(ms / 60000);
-  if (m < 60) return `${m}m`;
-  const h = Math.floor(m / 60);
-  return `${h}h ${m % 60}m`;
-}
-
-const DASHED_TILE = {
-  minHeight: 190,
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 1,
-  cursor: "pointer",
-  border: "2px dashed",
-  borderColor: "divider",
-  bgcolor: "transparent",
-  boxShadow: "none",
-  color: "text.secondary",
-  transition: "border-color 0.15s, color 0.15s",
-} as const;
+import { useT } from "@/i18n/I18nProvider";
 
 export default function HospitalView({
   patients,
@@ -64,7 +38,6 @@ export default function HospitalView({
   slots: number;
 }) {
   const t = useT();
-  const locale = useLocale();
   const router = useRouter();
   const [busy, start] = useTransition();
   const [pickOpen, setPickOpen] = useState(false);
@@ -223,43 +196,15 @@ export default function HospitalView({
             },
           }}
         >
-          {patients.map((p) => {
-            const cur = healedHp(p.currentHp, p.maxHealth, p.stats.Recovery ?? 0, p.hpAtMs, nowMs);
-            const eta = healEtaMs(p.currentHp, p.maxHealth, p.stats.Recovery ?? 0, p.hpAtMs, nowMs);
-            const pct = p.maxHealth > 0 ? (cur / p.maxHealth) * 100 : 100;
-            const ready = eta <= 0;
-            return (
-              <Card key={p.id} sx={{ p: 1.5, display: "flex", flexDirection: "column", gap: 1 }}>
-                <Box sx={{ aspectRatio: "1 / 1", border: 2, borderColor: "neutral.main", overflow: "hidden" }}>
-                  <RoostrAvatar traits={p.cosmetic} fill />
-                </Box>
-                <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-                  {p.nickname || p.breed.name[locale]}
-                </Typography>
-                <Stack direction="row" justifyContent="space-between" alignItems="baseline">
-                  <Typography
-                    variant="caption"
-                    sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "error.main" }}
-                  >
-                    ♥ {cur}/{p.maxHealth}
-                  </Typography>
-                  <Typography variant="caption" color={ready ? "success.main" : "text.secondary"}>
-                    {ready ? "✓" : fmtEta(eta)}
-                  </Typography>
-                </Stack>
-                <LinearProgress variant="determinate" color="error" value={pct} sx={{ height: 8, borderRadius: 0 }} />
-                <Button
-                  size="small"
-                  variant={ready ? "contained" : "outlined"}
-                  color={ready ? "primary" : "neutral"}
-                  disabled={busy}
-                  onClick={() => discharge(p.id!)}
-                >
-                  {ready ? t("hospital.collect") : t("hospital.discharge")}
-                </Button>
-              </Card>
-            );
-          })}
+          {patients.map((p) => (
+            <PatientCard
+              key={p.id}
+              patient={p}
+              nowMs={nowMs}
+              busy={busy}
+              onDischarge={discharge}
+            />
+          ))}
 
           {freeBeds > 0 && (
             <Card
@@ -301,53 +246,15 @@ export default function HospitalView({
         </Box>
       </Box>
 
-      <Popup
+      <AdmitPickerPopup
         open={pickOpen}
-        onClose={() => !busy && setPickOpen(false)}
-        title={t("hospital.pickTitle")}
-        maxWidth="md"
-        fullScreenOnMobile
-      >
-        <Stack spacing={2}>
-          {injured.length === 0 ? (
-            <Typography color="text.secondary" textAlign="center" sx={{ py: 4 }}>
-              {t("hospital.noHurt")}
-            </Typography>
-          ) : (
-            <Box
-              sx={{
-                display: "grid",
-                gap: 1.5,
-                gridTemplateColumns: {
-                  xs: "repeat(2, minmax(0, 1fr))",
-                  sm: "repeat(3, minmax(0, 1fr))",
-                },
-              }}
-            >
-              {sortedInjured.map((r) => (
-                <CollectionCard
-                  key={r.id}
-                  roostr={r}
-                  compact
-                  metric="hp"
-                  selected={picked === r.id}
-                  onClick={() => setPicked(picked === r.id ? null : (r.id ?? null))}
-                />
-              ))}
-            </Box>
-          )}
-          <Button
-            variant="contained"
-            size="large"
-            fullWidth
-            disabled={!picked || busy}
-            onClick={admit}
-            sx={{ position: "sticky", bottom: 0 }}
-          >
-            {busy ? <CircularProgress size={20} color="inherit" /> : t("hospital.admitConfirm")}
-          </Button>
-        </Stack>
-      </Popup>
+        injured={sortedInjured}
+        picked={picked}
+        busy={busy}
+        onPick={setPicked}
+        onClose={() => setPickOpen(false)}
+        onAdmit={admit}
+      />
     </Stack>
   );
 }

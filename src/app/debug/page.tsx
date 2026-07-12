@@ -9,10 +9,11 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import RoostrCard from "@/components/RoostrCard";
-import GeneLab from "@/components/GeneLab";
-import DebugCoinGrant from "@/components/DebugCoinGrant";
-import DebugBackfillCosmetics from "@/components/DebugBackfillCosmetics";
-import NewsPublisher from "@/components/NewsPublisher";
+import GeneLab from "@/components/debug/GeneLab";
+import DebugGlobalStats from "@/components/debug/DebugGlobalStats";
+import DebugCoinGrant from "@/components/debug/DebugCoinGrant";
+import DebugBackfillCosmetics from "@/components/debug/DebugBackfillCosmetics";
+import NewsPublisher from "@/components/debug/NewsPublisher";
 import { useToast } from "@/components/ToastProvider";
 import AchievementIcon from "@/components/AchievementIcon";
 import { rollRoostr, type RolledRoostr } from "@/lib/roostr";
@@ -101,6 +102,9 @@ export default function DebugPage() {
           🐔 Avatar V2 Lab
         </Button>
         <DebugBackfillCosmetics />
+
+        {/* Global pulse — latest hatch anywhere + live raid count. */}
+        <DebugGlobalStats />
 
         <Stack
           direction="row"

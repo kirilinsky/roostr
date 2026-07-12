@@ -2559,6 +2559,118 @@ export async function getRaidHistory(userId: number, limit = 12) {
   }
 }
 
+// One raid for the detailed history page — the raw row plus its party resolved to
+// display names (nickname / breed).
+export interface RaidHistoryEntry {
+  id: string;
+  botId: string | null;
+  success: boolean;
+  lootCoins: number;
+  lootEggs: number;
+  wasConsolation: boolean;
+  power: number; // Σ party Stealth at launch
+  defense: number; // target Watch at launch
+  luck: number;
+  startedAt: number; // ms epoch
+  resolvedAt: number; // ms epoch
+  party: { id: string; nickname: string | null; breedId: string }[];
+}
+
+// Full detailed raid history: the raids plus every party bird's name, resolved in
+// ONE batched roostrs query across all raids (no N+1). Powers /raids/history.
+export async function getRaidHistoryDetailed(
+  userId: number,
+  limit = 50,
+): Promise<RaidHistoryEntry[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const { db } = await import("@/db");
+    const { roostrs } = await import("@/db/schema");
+    const { inArray } = await import("drizzle-orm");
+    const rows = await getRaidHistory(userId, limit);
+    const allIds = [...new Set(rows.flatMap((r) => r.partyRoostrIds ?? []))];
+    const birds = allIds.length
+      ? await db
+          .select({ id: roostrs.id, nickname: roostrs.nickname, breedId: roostrs.breedId })
+          .from(roostrs)
+          .where(inArray(roostrs.id, allIds))
+      : [];
+    const byId = new Map(birds.map((b) => [b.id, b]));
+    return rows.map((r) => ({
+      id: r.id,
+      botId: r.botId,
+      success: r.success ?? false,
+      lootCoins: r.lootCoins ?? 0,
+      lootEggs: r.lootEggs ?? 0,
+      wasConsolation: r.wasConsolation ?? false,
+      power: r.raidPowerSnapshot,
+      defense: r.defenseSnapshot,
+      luck: r.luckSnapshot,
+      startedAt: r.startedAt.getTime(),
+      resolvedAt: (r.resolvedAt ?? r.startedAt).getTime(),
+      party: (r.partyRoostrIds ?? []).map((id) => {
+        const b = byId.get(id);
+        return { id, nickname: b?.nickname ?? null, breedId: b?.breedId ?? "" };
+      }),
+    }));
+  } catch (e) {
+    console.error("getRaidHistoryDetailed failed:", e);
+    return [];
+  }
+}
+
+// DEBUG readouts (admin page): the latest hatch across ALL players + how many
+// raids are in flight right now, game-wide.
+export async function getDebugGlobalStats(): Promise<{
+  lastHatch: {
+    id: string;
+    breedId: string;
+    nickname: string | null;
+    ownerId: number;
+    hatchedAt: number;
+  } | null;
+  activeRaids: number;
+}> {
+  if (!process.env.DATABASE_URL) return { lastHatch: null, activeRaids: 0 };
+  try {
+    const { db } = await import("@/db");
+    const { roostrs, raids } = await import("@/db/schema");
+    const { desc, eq, sql } = await import("drizzle-orm");
+    const [[last], [raidCount]] = await Promise.all([
+      db
+        .select({
+          id: roostrs.id,
+          breedId: roostrs.breedId,
+          nickname: roostrs.nickname,
+          ownerId: roostrs.ownerId,
+          createdAt: roostrs.createdAt,
+        })
+        .from(roostrs)
+        .orderBy(desc(roostrs.createdAt))
+        .limit(1),
+      db
+        .select({ n: sql<number>`count(*)` })
+        .from(raids)
+        .where(eq(raids.status, "active")),
+    ]);
+    return {
+      lastHatch: last
+        ? {
+            id: last.id,
+            breedId: last.breedId,
+            nickname: last.nickname,
+            ownerId: last.ownerId,
+            hatchedAt: last.createdAt.getTime(),
+          }
+        : null,
+      activeRaids: Number(raidCount?.n ?? 0),
+    };
+  } catch (e) {
+    console.error("getDebugGlobalStats failed:", e);
+    return { lastHatch: null, activeRaids: 0 };
+  }
+}
+
 // DEV ONLY: knock `damage` HP off a bird (to test the hospital before combat
 // exists). Owner + active guarded; result floored at 1; a full result → null.
 export async function damageRoostr(

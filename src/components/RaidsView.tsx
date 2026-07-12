@@ -16,6 +16,18 @@ import RoostrAvatar from "@/components/RoostrAvatar";
 import CollectionCard from "@/components/CollectionCard";
 import Popup from "@/components/Popup";
 import ResourceIcon from "@/components/ResourceIcon";
+import RaidInFlightBanner from "@/components/raids/RaidInFlightBanner";
+import RaidTermsStrip from "@/components/raids/RaidTermsStrip";
+import RaidLogList from "@/components/raids/RaidLogList";
+import RaidResultPopup from "@/components/raids/RaidResultPopup";
+import {
+  Metric,
+  dashedSx,
+  fmtDuration,
+  type ActiveRaidUi,
+  type RaidLogEntry,
+  type RaidOutcome,
+} from "@/components/raids/shared";
 import { useNowTick } from "@/hooks/useNowTick";
 import {
   buyRaidSlotAction,
@@ -31,130 +43,24 @@ import {
   raidSuccess,
   raidDurationMs,
   raidLoot,
-  raidBotById,
   canJoinRaid,
   RAID_FEATHER_COST,
-  RAID_HP_COST_WIN,
-  RAID_HP_COST_LOSS,
   RAID_MIN_HP,
-  RAID_EGG_CHANCE,
   type RaidBot,
 } from "@/lib/raids";
 import type { HydratedRoostr } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
-// The attacker's raid in flight (server snapshot, display-ready).
-export interface ActiveRaidUi {
-  id: string;
-  botId: string;
-  endsAt: number; // ms epoch
-  power: number;
-  defense: number;
-  luck: number;
-  pool: number;
-  partySize: number;
-}
-
-// Collect outcome for the result popup — the full debrief (who went, what it
-// cost, what came back).
-interface RaidOutcome {
-  success: boolean;
-  lootCoins: number;
-  lootEggs: number;
-  wasConsolation: boolean;
-  hpCost: number;
-  botId: string | null;
-  party: {
-    id: string;
-    nickname: string | null;
-    breedName: { en: string; ru: string };
-    stealth: number;
-    luck: number;
-    hpBefore: number;
-    hpAfter: number;
-    maxHealth: number;
-  }[];
-}
-
-// One resolved raid for the log (display-ready).
-export interface RaidLogEntry {
-  id: string;
-  botId: string;
-  success: boolean;
-  lootCoins: number;
-  lootEggs: number;
-  at: number; // ms epoch (resolvedAt)
-}
+// Re-exported so the page (and older imports) keep one import site.
+export type { ActiveRaidUi, RaidLogEntry } from "@/components/raids/shared";
 
 const rid = (r: HydratedRoostr) => String(r.id ?? r.seed);
-
-// ms → compact "Nh Nm" / "Nч Nм".
-function fmtDuration(ms: number, locale: string): string {
-  const totalMin = Math.max(0, Math.round(ms / 60000));
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  const hU = locale === "ru" ? "ч" : "h";
-  const mU = locale === "ru" ? "м" : "m";
-  if (h > 0 && m > 0) return `${h}${hU} ${m}${mU}`;
-  if (h > 0) return `${h}${hU}`;
-  return `${m}${mU}`;
-}
-
-// A labeled readout tile: icon + caption label on top, bold value under — reads at
-// a glance instead of an emoji soup.
-function Metric({
-  icon,
-  label,
-  value,
-  color,
-}: {
-  icon: string;
-  label: string;
-  value: string | number;
-  color?: string;
-}) {
-  return (
-    <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
-      <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>
-        {icon}
-      </Box>
-      <Box sx={{ minWidth: 0 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", lineHeight: 1.1 }} noWrap>
-          {label}
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ fontWeight: 800, lineHeight: 1.2, color, fontVariantNumeric: "tabular-nums" }}
-          noWrap
-        >
-          {value}
-        </Typography>
-      </Box>
-    </Stack>
-  );
-}
-
-const dashedSx = {
-  minHeight: 132,
-  display: "flex",
-  flexDirection: "column" as const,
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 0.5,
-  cursor: "pointer",
-  border: "2px dashed",
-  borderColor: "divider",
-  borderRadius: 0,
-  bgcolor: "transparent",
-  color: "text.secondary",
-  transition: "border-color .15s, color .15s",
-  "&:hover": { borderColor: "primary.main", color: "primary.main" },
-};
 
 // Raids window (Coop & Dagger) — PHASE 2: assemble a party, pick a BOT target,
 // launch (1 feather), wait the timer out, Collect. The raid contract (cost, HP
 // risk, egg chance) is printed right on the window so conditions are legible
-// before committing. One raid in flight per player.
+// before committing. One raid in flight per player. Presentational sections live
+// in src/components/raids/*; this file owns the state + actions.
 export default function RaidsView({
   available,
   slotsOwned,
@@ -178,8 +84,6 @@ export default function RaidsView({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [targetPickerOpen, setTargetPickerOpen] = useState(false);
   const [outcome, setOutcome] = useState<RaidOutcome | null>(null);
-  // Mission banner gif (public/raid-loop.gif) — hides itself until the art lands.
-  const [gifOk, setGifOk] = useState(true);
   // Live clock (30s tick) while a raid is in flight — null pre-mount, so the SSR
   // HTML never bakes a server-side Date.now() (no hydration mismatch).
   const nowMs = useNowTick(30_000, { enabled: Boolean(activeRaid) });
@@ -257,368 +161,238 @@ export default function RaidsView({
   const canLaunch =
     hasParty && !busy && !activeRaid && feathers >= RAID_FEATHER_COST;
 
-  // In-flight readout (snapshots from the server row).
-  const flight = activeRaid
-    ? {
-        bot: raidBotById(activeRaid.botId),
-        left: activeRaid.endsAt - now,
-        odds: raidSuccess(activeRaid.power, activeRaid.defense),
-        loot: raidLoot(activeRaid.luck, activeRaid.pool, activeRaid.defense),
-        done: now >= activeRaid.endsAt,
-      }
-    : null;
-
   // Fixed grid of `slotsOwned` cells: filled = a party member, else an "add" tile.
   const slots = Array.from({ length: slotsOwned }, (_, i) => party[i] ?? null);
   const nextPrice = nextRaidSlotPrice(slotsOwned);
 
   return (
     <Stack spacing={2}>
-      {/* ── Mission in flight — replaces the launch controls until collected ── */}
-      {activeRaid && flight && (
-        <Card
-          sx={{ borderColor: "secondary.main", overflow: "hidden" }}
-        >
-          {/* Wide, short mission banner (public/raid-loop.gif — the marching
-              party). Self-hides until the asset lands (onError). */}
-          {gifOk && (
-            <Box
-              component="img"
-              src="/raid-loop.gif"
-              alt=""
-              loading="lazy"
-              decoding="async"
-              onError={() => setGifOk(false)}
-              sx={{
-                display: "block",
-                width: "100%",
-                // The art is 1029×179 — scale by aspect, never crop.
-                height: "auto",
-                borderBottom: "1px solid",
-                borderColor: "divider",
-              }}
-            />
-          )}
-          <Stack
-            direction={{ xs: "column", md: "row" }}
-            spacing={1.5}
-            alignItems={{ md: "center" }}
-            justifyContent="space-between"
-            sx={{ p: { xs: 1.5, md: 2 } }}
-          >
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="body2" sx={{ fontWeight: 800 }}>
-                🗡 {t("raids.inFlight", { target: flight.bot?.name[locale] ?? "…" })}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t("raids.inFlightMeta", {
-                  party: activeRaid.partySize,
-                  odds: Math.round(flight.odds * 100),
-                  loot: flight.loot,
-                })}
-              </Typography>
-            </Box>
-            {flight.done ? (
-              <Button variant="contained" color="secondary" onClick={collect} disabled={busy}>
-                {busy ? <CircularProgress size={20} color="inherit" /> : `🎒 ${t("raids.collect")}`}
-              </Button>
-            ) : (
-              <Chip
-                label={`⏳ ${fmtDuration(flight.left, locale)}`}
-                sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums", alignSelf: { xs: "flex-start", md: "center" } }}
-              />
-            )}
-          </Stack>
-        </Card>
+      {/* ── Mission in flight — replaces the whole staging UI until collected ── */}
+      {activeRaid && (
+        <RaidInFlightBanner raid={activeRaid} now={now} busy={busy} onCollect={collect} />
       )}
 
       {/* Target hero (title + bg card) — hidden entirely while the party is away:
           the in-flight banner IS the whole story until Collect. */}
       {!activeRaid && (
-      <>
-      {/* Title + odds above the hero on mobile (off the image) — mirrors StationView. */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        spacing={1}
-        flexWrap="wrap"
-        sx={{ display: { xs: "flex", md: "none" } }}
-      >
-        <Typography variant="h6">{t("raids.target")}</Typography>
-      </Stack>
-
-      {/* ── Top: the target coop (same hero card as the stations) ── */}
-      <Card
-        sx={{
-          position: "relative",
-          overflow: "hidden",
-          minHeight: { xs: 150, md: 300 },
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          px: { xs: 2, md: "20%" },
-          py: { xs: 2, md: "13%" },
-        }}
-      >
-        <Box
-          aria-hidden
-          sx={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 0,
-            backgroundImage: "url(/bg/raids.png)",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-            backgroundSize: { xs: "cover", md: "100% 100%" },
-          }}
-        />
-        <Stack
-          spacing={2}
-          sx={(theme) => ({
-            position: "relative",
-            zIndex: 1,
-            bgcolor: {
-              xs: alpha(theme.palette.background.paper, 0.78),
-              md: "transparent",
-            },
-            borderRadius: { xs: 2, md: 0 },
-            p: { xs: 1.5, md: 0 },
-          })}
-        >
-          {/* Title — desktop only here; on mobile it's above the card. */}
-          <Typography variant="h6" sx={{ display: { xs: "none", md: "block" } }}>
-            {t("raids.target")}
-          </Typography>
-
-          <Box>
-            {/* Who we're raiding */}
-            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }} noWrap>
-              🏠 {target.name[locale]}
-            </Typography>
-            {/* Labeled readout — reads at a glance. "—" until a party is set. */}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(3, 1fr)" },
-                gap: 1,
-              }}
-            >
-              <Metric icon="🛡" label={t("raids.watch")} value={target.watch} />
-              <Metric icon="🥷" label={t("raids.power")} value={hasParty ? power : "—"} />
-              <Metric icon="🍀" label={t("raids.luck")} value={hasParty ? luck : "—"} />
-              <Metric icon="⏱" label={t("raids.time")} value={durationLabel} />
-              <Metric icon="💰" label={t("raids.loot")} value={hasParty ? `~${loot}` : "—"} />
-              <Metric
-                icon="🎲"
-                label={t("raids.odds")}
-                value={`${hasParty ? Math.round(success * 100) : 0}%`}
-                color={hasParty ? "success.main" : undefined}
-              />
-            </Box>
-          </Box>
-
+        <>
+          {/* Title above the hero on mobile (off the image) — mirrors StationView. */}
           <Stack
-            direction={{ xs: "column", md: "row" }}
+            direction="row"
             justifyContent="space-between"
-            alignItems={{ md: "center" }}
+            alignItems="center"
             spacing={1}
+            flexWrap="wrap"
+            sx={{ display: { xs: "flex", md: "none" } }}
           >
-            {/* One raid at a time — while the party is away there's nothing to
-                aim at, so the target chooser hides entirely. */}
-            {!activeRaid && (
-              <Button
-                variant="outlined"
-                onClick={() => setTargetPickerOpen(true)}
-                sx={{ width: { xs: "100%", md: "auto" } }}
-              >
-                🎯 {t("raids.chooseTarget")}
-              </Button>
-            )}
-            <Button
-              variant="contained"
-              disabled={!canLaunch}
-              onClick={launch}
-              sx={{ width: { xs: "100%", md: "auto" }, ml: { md: "auto" } }}
-            >
-              {busy ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : activeRaid ? (
-                `🗡 ${t("raids.partyAway")}`
-              ) : (
-                <>
-                  🗡 {t("raids.launch")} · {RAID_FEATHER_COST}{" "}
-                  <ResourceIcon kind="feather" size={14} />
-                </>
-              )}
-            </Button>
+            <Typography variant="h6">{t("raids.target")}</Typography>
           </Stack>
-        </Stack>
-      </Card>
-      </>
+
+          {/* ── Top: the target coop (same hero card as the stations) ── */}
+          <Card
+            sx={{
+              position: "relative",
+              overflow: "hidden",
+              minHeight: { xs: 150, md: 300 },
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              px: { xs: 2, md: "20%" },
+              py: { xs: 2, md: "13%" },
+            }}
+          >
+            <Box
+              aria-hidden
+              sx={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 0,
+                backgroundImage: "url(/bg/raids.png)",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center",
+                backgroundSize: { xs: "cover", md: "100% 100%" },
+              }}
+            />
+            <Stack
+              spacing={2}
+              sx={(theme) => ({
+                position: "relative",
+                zIndex: 1,
+                bgcolor: {
+                  xs: alpha(theme.palette.background.paper, 0.78),
+                  md: "transparent",
+                },
+                borderRadius: { xs: 2, md: 0 },
+                p: { xs: 1.5, md: 0 },
+              })}
+            >
+              {/* Title — desktop only here; on mobile it's above the card. */}
+              <Typography variant="h6" sx={{ display: { xs: "none", md: "block" } }}>
+                {t("raids.target")}
+              </Typography>
+
+              <Box>
+                {/* Who we're raiding */}
+                <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }} noWrap>
+                  🏠 {target.name[locale]}
+                </Typography>
+                {/* Labeled readout — reads at a glance. "—" until a party is set. */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(3, 1fr)" },
+                    gap: 1,
+                  }}
+                >
+                  <Metric icon="🛡" label={t("raids.watch")} value={target.watch} />
+                  <Metric icon="🥷" label={t("raids.power")} value={hasParty ? power : "—"} />
+                  <Metric icon="🍀" label={t("raids.luck")} value={hasParty ? luck : "—"} />
+                  <Metric icon="⏱" label={t("raids.time")} value={durationLabel} />
+                  <Metric icon="💰" label={t("raids.loot")} value={hasParty ? `~${loot}` : "—"} />
+                  <Metric
+                    icon="🎲"
+                    label={t("raids.odds")}
+                    value={`${hasParty ? Math.round(success * 100) : 0}%`}
+                    color={hasParty ? "success.main" : undefined}
+                  />
+                </Box>
+              </Box>
+
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                justifyContent="space-between"
+                alignItems={{ md: "center" }}
+                spacing={1}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={() => setTargetPickerOpen(true)}
+                  sx={{ width: { xs: "100%", md: "auto" } }}
+                >
+                  🎯 {t("raids.chooseTarget")}
+                </Button>
+                <Button
+                  variant="contained"
+                  disabled={!canLaunch}
+                  onClick={launch}
+                  sx={{ width: { xs: "100%", md: "auto" }, ml: { md: "auto" } }}
+                >
+                  {busy ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <>
+                      🗡 {t("raids.launch")} · {RAID_FEATHER_COST}{" "}
+                      <ResourceIcon kind="feather" size={14} />
+                    </>
+                  )}
+                </Button>
+              </Stack>
+            </Stack>
+          </Card>
+        </>
       )}
 
       {/* The raid contract — every cost and chance, flat and visible. */}
-      <Card variant="surface" sx={{ p: { xs: 1.25, md: 1.5 } }}>
-        <Stack
-          direction="row"
-          spacing={{ xs: 1.5, md: 3 }}
-          flexWrap="wrap"
-          useFlexGap
-          alignItems="center"
-        >
-          <Typography variant="caption" sx={{ fontWeight: 800 }}>
-            📜 {t("raids.rulesTitle")}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            🪶 {t("raids.ruleCost", { n: RAID_FEATHER_COST, have: feathers })}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            ❤️ {t("raids.ruleHp", { win: RAID_HP_COST_WIN, loss: RAID_HP_COST_LOSS })}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            🥚 {t("raids.ruleEgg", { pct: Math.round(RAID_EGG_CHANCE * 100) })}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            💀 {t("raids.ruleFail")}
-          </Typography>
-        </Stack>
-      </Card>
+      <RaidTermsStrip feathers={feathers} />
 
       {/* Party — hidden entirely while a raid is in flight (the crew is away;
           staging an empty grid under "one raid at a time" just reads as noise). */}
       {!activeRaid && (
-      <>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="h6">
-          {t("raids.party")} ({party.length}/{slotsOwned})
-        </Typography>
-        {luck > 0 && (
-          <Chip size="small" variant="outlined" label={`🍀 ${luck}`} sx={{ fontWeight: 700 }} />
-        )}
-      </Stack>
-
-      <Box
-        sx={{
-          display: "grid",
-          gap: 1,
-          gridTemplateColumns: {
-            xs: "repeat(2, minmax(0, 1fr))",
-            sm: "repeat(3, minmax(0, 1fr))",
-            md: "repeat(4, minmax(0, 1fr))",
-          },
-        }}
-      >
-        {slots.map((r, i) =>
-          r ? (
-            <Card key={rid(r)} sx={{ p: 1, display: "flex", flexDirection: "column", gap: 0.75 }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-                <Box sx={{ width: 44, height: 44, flexShrink: 0, position: "relative" }}>
-                  <RoostrAvatar traits={r.cosmetic} fill />
-                </Box>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-                    {r.nickname || r.breed.name[locale]}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
-                    🥷 {r.stats.Stealth ?? 0} · 🍀 {r.stats.Luck ?? 0}
-                  </Typography>
-                </Box>
-              </Stack>
-              <Button size="small" variant="outlined" color="neutral" onClick={() => removeFromParty(rid(r))}>
-                {t("raids.remove")}
-              </Button>
-            </Card>
-          ) : canAdd && i === party.length ? (
-            <Card key={`add-${i}`} variant="surface" onClick={() => setPickerOpen(true)} sx={dashedSx}>
-              <IconButton component="span" aria-label={t("raids.addRaider")} sx={{ fontSize: 28 }}>
-                +
-              </IconButton>
-              <Typography variant="caption">{t("raids.addRaider")}</Typography>
-            </Card>
-          ) : (
-            <Card key={`empty-${i}`} variant="surface" sx={{ ...dashedSx, cursor: "default", "&:hover": {} }}>
-              <Typography variant="caption" color="text.disabled">
-                {t("raids.emptySlot")}
-              </Typography>
-            </Card>
-          ),
-        )}
-
-        {/* Buy the next raider slot. */}
-        {slotsOwned < maxRaidSlots() && nextPrice != null && (
-          <Card
-            variant="surface"
-            onClick={busy ? undefined : buySlot}
-            sx={{ ...dashedSx, opacity: busy ? 0.6 : 1 }}
-          >
-            <Typography sx={{ fontSize: 22, lineHeight: 1 }}>🔒</Typography>
-            <Typography variant="caption" sx={{ fontWeight: 700 }}>
-              {t("raids.buySlot")}
+        <>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6">
+              {t("raids.party")} ({party.length}/{slotsOwned})
             </Typography>
-            <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.375 }}>
-              <Image src="/corn-coin.png" alt="" width={16} height={15} style={{ height: 14, width: "auto" }} />
-              <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>
-                {nextPrice}
-              </Typography>
-            </Box>
-          </Card>
-        )}
-      </Box>
-      </>
+            {luck > 0 && (
+              <Chip size="small" variant="outlined" label={`🍀 ${luck}`} sx={{ fontWeight: 700 }} />
+            )}
+          </Stack>
+
+          <Box
+            sx={{
+              display: "grid",
+              gap: 1,
+              gridTemplateColumns: {
+                xs: "repeat(2, minmax(0, 1fr))",
+                sm: "repeat(3, minmax(0, 1fr))",
+                md: "repeat(4, minmax(0, 1fr))",
+              },
+            }}
+          >
+            {slots.map((r, i) =>
+              r ? (
+                <Card key={rid(r)} sx={{ p: 1, display: "flex", flexDirection: "column", gap: 0.75 }}>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+                    <Box sx={{ width: 44, height: 44, flexShrink: 0, position: "relative" }}>
+                      <RoostrAvatar traits={r.cosmetic} fill />
+                    </Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
+                        {r.nickname || r.breed.name[locale]}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ fontVariantNumeric: "tabular-nums" }}
+                      >
+                        🥷 {r.stats.Stealth ?? 0} · 🍀 {r.stats.Luck ?? 0}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="neutral"
+                    onClick={() => removeFromParty(rid(r))}
+                  >
+                    {t("raids.remove")}
+                  </Button>
+                </Card>
+              ) : canAdd && i === party.length ? (
+                <Card key={`add-${i}`} variant="surface" onClick={() => setPickerOpen(true)} sx={dashedSx}>
+                  <IconButton component="span" aria-label={t("raids.addRaider")} sx={{ fontSize: 28 }}>
+                    +
+                  </IconButton>
+                  <Typography variant="caption">{t("raids.addRaider")}</Typography>
+                </Card>
+              ) : (
+                <Card
+                  key={`empty-${i}`}
+                  variant="surface"
+                  sx={{ ...dashedSx, cursor: "default", "&:hover": {} }}
+                >
+                  <Typography variant="caption" color="text.disabled">
+                    {t("raids.emptySlot")}
+                  </Typography>
+                </Card>
+              ),
+            )}
+
+            {/* Buy the next raider slot. */}
+            {slotsOwned < maxRaidSlots() && nextPrice != null && (
+              <Card
+                variant="surface"
+                onClick={busy ? undefined : buySlot}
+                sx={{ ...dashedSx, opacity: busy ? 0.6 : 1 }}
+              >
+                <Typography sx={{ fontSize: 22, lineHeight: 1 }}>🔒</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                  {t("raids.buySlot")}
+                </Typography>
+                <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.375 }}>
+                  <Image src="/corn-coin.png" alt="" width={16} height={15} style={{ height: 14, width: "auto" }} />
+                  <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>
+                    {nextPrice}
+                  </Typography>
+                </Box>
+              </Card>
+            )}
+          </Box>
+        </>
       )}
 
-      {/* Raid log — who was hit, when, and the haul. Append-only history. */}
-      {history.length > 0 && (
-        <Stack spacing={1}>
-          <Typography variant="h6">📜 {t("raids.historyTitle")}</Typography>
-          <Card sx={{ p: { xs: 1, md: 1.5 } }}>
-            <Stack divider={<Box sx={{ borderBottom: 1, borderColor: "divider" }} />}>
-              {history.map((h) => {
-                const bot = raidBotById(h.botId);
-                return (
-                  <Stack
-                    key={h.id}
-                    direction="row"
-                    spacing={1}
-                    alignItems="center"
-                    sx={{ py: 0.75, minWidth: 0 }}
-                  >
-                    <Box component="span" sx={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>
-                      {h.success ? "✅" : "💨"}
-                    </Box>
-                    <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 0, flexGrow: 1 }} noWrap>
-                      {bot?.name[locale] ?? h.botId}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ fontWeight: 800, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}
-                    >
-                      {h.success ? (
-                        <>
-                          +{h.lootCoins} <ResourceIcon kind="coin" size={12} />
-                          {h.lootEggs > 0 && (
-                            <> +{h.lootEggs} <ResourceIcon kind="egg" size={12} /></>
-                          )}
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ fontVariantNumeric: "tabular-nums", flexShrink: 0 }}
-                    >
-                      {new Date(h.at).toLocaleDateString(locale)}
-                    </Typography>
-                  </Stack>
-                );
-              })}
-            </Stack>
-          </Card>
-        </Stack>
-      )}
+      {/* Raid log — latest 3 + "view all" into /raids/history. */}
+      <RaidLogList history={history} />
 
       {/* Target picker — bot coops (real players return in phase 3). */}
       <Popup
@@ -682,7 +456,7 @@ export default function RaidsView({
         </Box>
       </Popup>
 
-      {/* Picker — choose a raider (Stealth-sorted). */}
+      {/* Picker — choose a raider (Stealth-sorted; too-hurt birds are benched). */}
       <Popup
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
@@ -724,103 +498,8 @@ export default function RaidsView({
         )}
       </Popup>
 
-      {/* Raid result — the full debrief: target, haul, then every raider with
-          stats and a LOUD HP toll (health is part of the raid price). */}
-      <Popup
-        open={Boolean(outcome)}
-        onClose={() => setOutcome(null)}
-        title={outcome?.success ? `🎉 ${t("raids.resultWin")}` : `💨 ${t("raids.resultLoss")}`}
-        maxWidth="xs"
-      >
-        {outcome && (
-          <Stack spacing={1.5} sx={{ pb: 1 }}>
-            {/* target + haul */}
-            <Stack alignItems="center" textAlign="center" spacing={0.5}>
-              <Typography sx={{ fontSize: 44, lineHeight: 1 }}>
-                {outcome.success ? "💰" : "🪶"}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                🏠 {raidBotById(outcome.botId ?? "")?.name[locale] ?? "…"}
-              </Typography>
-              {outcome.success ? (
-                <>
-                  <Typography variant="h6" sx={{ fontWeight: 900 }}>
-                    +{outcome.lootCoins} <ResourceIcon kind="coin" size={18} />
-                    {outcome.lootEggs > 0 && (
-                      <> · +{outcome.lootEggs} <ResourceIcon kind="egg" size={18} /></>
-                    )}
-                  </Typography>
-                  {outcome.wasConsolation && (
-                    <Typography variant="caption" color="text.secondary">
-                      {t("raids.consolation")}
-                    </Typography>
-                  )}
-                </>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  {t("raids.lossText")}
-                </Typography>
-              )}
-            </Stack>
-
-            {/* the party — each raider, their raid stats, and the HP they paid */}
-            <Typography variant="overline" color="text.secondary" sx={{ lineHeight: 1 }}>
-              {t("raids.resultParty")}
-            </Typography>
-            <Stack spacing={0.75}>
-              {outcome.party.map((m) => (
-                <Stack
-                  key={m.id}
-                  direction="row"
-                  spacing={1}
-                  alignItems="center"
-                  sx={{ minWidth: 0 }}
-                >
-                  <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 0, flexGrow: 1 }} noWrap>
-                    {m.nickname || m.breedName[locale]}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{ fontVariantNumeric: "tabular-nums", flexShrink: 0 }}
-                  >
-                    🥷 {m.stealth} · 🍀 {m.luck}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 900,
-                      fontVariantNumeric: "tabular-nums",
-                      color: "error.main",
-                      flexShrink: 0,
-                    }}
-                  >
-                    ♥ {m.hpBefore}→{m.hpAfter}
-                  </Typography>
-                </Stack>
-              ))}
-            </Stack>
-
-            {/* the toll, loud */}
-            <Box
-              sx={(theme) => ({
-                textAlign: "center",
-                py: 0.75,
-                bgcolor: "error.main",
-                color: theme.palette.error.contrastText,
-                fontWeight: 900,
-                fontSize: "0.9rem",
-              })}
-            >
-              ❤️ −{outcome.hpCost} HP × {outcome.party.length}
-            </Box>
-
-            <Button variant="contained" fullWidth onClick={() => setOutcome(null)}>
-              {t("raids.resultClose")}
-            </Button>
-          </Stack>
-        )}
-      </Popup>
+      {/* Raid result — the full debrief. */}
+      <RaidResultPopup outcome={outcome} onClose={() => setOutcome(null)} />
     </Stack>
   );
 }
