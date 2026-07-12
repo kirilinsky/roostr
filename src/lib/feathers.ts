@@ -5,7 +5,9 @@
 // (write current → stored, reset the anchor); for now this is display-only, so a
 // pure compute on read is enough — no write needed.
 
-export const FEATHER_REGEN_MS = 3_600_000; // one feather per hour
+// One feather per TWO hours (was 1/h; slowed 2026-07-12 — feathers gate raids,
+// and a full 10-cap refill should take most of a day, not a workday morning).
+export const FEATHER_REGEN_MS = 2 * 3_600_000;
 export const DEFAULT_FEATHER_MAX = 10;
 
 // Current feather count given the stored value + anchor, regenerated to `now`.

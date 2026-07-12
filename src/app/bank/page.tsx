@@ -167,7 +167,7 @@ export default async function BankPage() {
   };
   // Live base defense (Σ Crow of guards on watch).
   const defenseValue = session ? await getDefenseValue(session.id) : 0;
-  // Feathers: regenerated current vs max + countdown to the next one (1/hour).
+  // Feathers: regenerated current vs max + countdown to the next one (1 per 2h).
   const feathers = featherState(
     dbUser?.feathers ?? 0,
     dbUser?.featherMax ?? DEFAULT_FEATHER_MAX,
@@ -269,7 +269,7 @@ export default async function BankPage() {
                   soonLabel={t("pedia.soon")}
                 />
               </Box>
-              {/* Feathers (battle energy) — current/max + regen progress (1/hour). */}
+              {/* Feathers (battle energy) — current/max + regen progress (1 per 2h). */}
               <BalanceTile
                 icon="/feather.png"
                 label={t("resource.feathers")}

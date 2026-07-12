@@ -280,6 +280,10 @@ export default async function OwnProfile({
               value={(metrics.hpSpent ?? 0).toLocaleString()}
             />
             <StatLine
+              label={t("profile.feathersSpent")}
+              value={(metrics.feathersSpent ?? 0).toLocaleString()}
+            />
+            <StatLine
               label={t("profile.sciSpent")}
               value={(metrics.sciSpent ?? 0).toLocaleString()}
             />

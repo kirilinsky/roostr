@@ -441,6 +441,20 @@ export async function getProfileMetrics(
       );
     metrics.eggsEarned = Number(eggEarn?.s ?? 0);
 
+    // Lifetime feathers spent (Σ |negative feather rows| — raids, later battles).
+    // Drives the "Saving for a pillow?" achievement + the profile stats readout.
+    const [featherSp] = await db
+      .select({ s: sql<number>`coalesce(sum(-${resourceTxns.amount}), 0)` })
+      .from(resourceTxns)
+      .where(
+        and(
+          eq(resourceTxns.userId, userId),
+          eq(resourceTxns.resource, "feather"),
+          lt(resourceTxns.amount, 0),
+        ),
+      );
+    metrics.feathersSpent = Number(featherSp?.s ?? 0);
+
     // Health potions bought (ledger kind "potion"). 0 until the potion ships.
     const [pot] = await db
       .select({ n: sql<number>`count(*)` })

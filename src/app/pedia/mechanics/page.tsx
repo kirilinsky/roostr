@@ -42,11 +42,11 @@ const ARTICLES = [
     live: false,
   },
   {
-    href: "/pedia/mechanics",
+    href: "/pedia/mechanics/raids",
     icon: "🗡️",
     titleKey: "pedia.mech.raids.title",
     descKey: "pedia.mech.raids.desc",
-    live: false,
+    live: true,
   },
   {
     href: "/pedia/mechanics",
@@ -112,11 +112,11 @@ const ARTICLES = [
     live: true,
   },
   {
-    href: "/pedia/mechanics",
+    href: "/pedia/mechanics/market",
     icon: "🛒",
     titleKey: "pedia.mech.market.title",
     descKey: "pedia.mech.market.desc",
-    live: false,
+    live: true,
   },
 ] as const;
 

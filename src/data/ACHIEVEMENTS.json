@@ -140,6 +140,21 @@
       "value": 1000
     },
     {
+      "id": "feathers-500",
+      "icon": "🛏️",
+      "tier": "rare",
+      "name": {
+        "en": "Saving for a Pillow?",
+        "ru": "Собираешь на подушку?"
+      },
+      "desc": {
+        "en": "Spend 500 feathers all-time.",
+        "ru": "Потрать 500 перьев за всё время."
+      },
+      "metric": "feathersSpent",
+      "value": 500
+    },
+    {
       "id": "first-sci",
       "icon": "💡",
       "tier": "common",
@@ -528,7 +543,7 @@
       },
       "metric": "released",
       "value": 1
-    }, 
+    },
     {
       "id": "first-heal",
       "icon": "🏥",

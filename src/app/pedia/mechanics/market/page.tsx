@@ -5,9 +5,8 @@ import Card from "@mui/material/Card";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { LISTING_TTL_HOURS } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
-import { FEATHER_REGEN_MS, DEFAULT_FEATHER_MAX } from "@/lib/feathers";
-import { RAID_FEATHER_COST } from "@/lib/raids";
 
 function Section({ title, body }: { title: string; body: string }) {
   return (
@@ -22,9 +21,9 @@ function Section({ title, body }: { title: string; body: string }) {
   );
 }
 
-// Mechanics article: feathers — the energy resource spent on battles, refilled
-// over time or for coins.
-export default async function PediaFeathersPage() {
+// Mechanics article: the market — fixed-price rooster trading between players.
+// The listing TTL comes from the live constant so the article can't drift.
+export default async function PediaMarketPage() {
   const { t } = await getTranslations();
 
   return (
@@ -41,29 +40,32 @@ export default async function PediaFeathersPage() {
 
         <Box>
           <Typography variant="h4" component="h1">
-            {t("pedia.mech.feathers.title")}
+            {t("pedia.mech.market.title")}
           </Typography>
-          <Typography color="text.secondary">
-            {t("pedia.mech.feathers.desc")}
-          </Typography>
+          <Typography color="text.secondary">{t("pedia.mech.market.desc")}</Typography>
         </Box>
 
         <Section
-          title={t("pedia.mech.feathers.whatTitle")}
-          body={t("pedia.mech.feathers.what")}
+          title={t("pedia.mech.market.sellTitle")}
+          body={t("pedia.mech.market.sell", { ttl: LISTING_TTL_HOURS })}
         />
         <Section
-          title={t("pedia.mech.feathers.battleTitle")}
-          body={t("pedia.mech.feathers.battle", { raid: RAID_FEATHER_COST })}
+          title={t("pedia.mech.market.buyTitle")}
+          body={t("pedia.mech.market.buy")}
         />
         <Section
-          title={t("pedia.mech.feathers.refillTitle")}
-          body={t("pedia.mech.feathers.refill", {
-            hours: FEATHER_REGEN_MS / 3_600_000,
-            max: DEFAULT_FEATHER_MAX,
-            full: (DEFAULT_FEATHER_MAX * FEATHER_REGEN_MS) / 3_600_000,
-          })}
+          title={t("pedia.mech.market.lockTitle")}
+          body={t("pedia.mech.market.lock")}
         />
+
+        <Button
+          component={Link}
+          href="/market"
+          variant="contained"
+          sx={{ alignSelf: "flex-start" }}
+        >
+          🛒 {t("pedia.mech.market.cta")}
+        </Button>
       </Stack>
     </Container>
   );
