@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Box from "@mui/material/Box";
+import ListSubheader from "@mui/material/ListSubheader";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -9,11 +10,15 @@ import Typography from "@mui/material/Typography";
 import CollectionCard from "@/components/CollectionCard";
 import Filters, { type FilterGroup } from "@/components/Filters";
 import {
+  SKILLS,
   TIERS,
   WEIGHT_CLASSES,
   roleLabel,
+  skillLabel,
   type HydratedRoostr,
+  type Skill,
 } from "@/lib/roostr";
+import { STAT_KIND_LABEL_KEY, STAT_KIND_ORDER } from "@/lib/statKinds";
 import { BREED_GROUPS, groupName } from "@/lib/breeds";
 import { countryFlag } from "@/lib/flag";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -124,12 +129,16 @@ export default function CollectionView({
 
   // Sort (desc). Default = hatch date, newest first — explicit (not an accident
   // of server order), so it's honest after any future server-order change.
+  // Per-stat sorts are keyed "stat:<Skill>" so all 12 share one branch.
   const tierRank = (r: HydratedRoostr) =>
     TIERS.findIndex((tr) => tr.id === r.tier.id);
   const weightRank = (r: HydratedRoostr) =>
     WEIGHT_CLASSES.findIndex((w) => w.id === r.weightClass.id);
   const view = [...filtered];
-  if (sort === "hp") view.sort((a, b) => b.maxHealth - a.maxHealth);
+  if (sort.startsWith("stat:")) {
+    const skill = sort.slice(5) as Skill;
+    view.sort((a, b) => (b.stats[skill] ?? 0) - (a.stats[skill] ?? 0));
+  } else if (sort === "hp") view.sort((a, b) => b.maxHealth - a.maxHealth);
   else if (sort === "stats") view.sort((a, b) => statTotal(b) - statTotal(a));
   else if (sort === "level") view.sort((a, b) => tierRank(b) - tierRank(a));
   else if (sort === "class") view.sort((a, b) => weightRank(b) - weightRank(a));
@@ -142,22 +151,57 @@ export default function CollectionView({
         groups={groups}
         value={filters}
         onChange={(key, value) => setFilters((s) => ({ ...s, [key]: value }))}
+        onReset={() =>
+          setFilters({
+            health: "",
+            level: "",
+            archetype: "",
+            breed: "",
+            group: "",
+            country: "",
+          })
+        }
         allLabel={t("filter.all")}
         trailing={
           <TextField
             select
             size="small"
+            color="primary"
             label={t("sort.title")}
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             data-testid="collection-sort"
-            sx={{ width: "100%", minWidth: 0 }}
+            sx={{
+              width: "100%",
+              minWidth: 0,
+              ...(sort && {
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "primary.main",
+                  borderWidth: 2,
+                },
+                "& .MuiInputLabel-root": {
+                  color: "primary.main",
+                  fontWeight: 700,
+                },
+              }),
+            }}
+            slotProps={{ select: { MenuProps: { sx: { maxHeight: 420 } } } }}
           >
             <MenuItem value="">{t("sort.hatched")}</MenuItem>
             <MenuItem value="hp">{t("sort.hp")}</MenuItem>
             <MenuItem value="stats">{t("sort.stats")}</MenuItem>
             <MenuItem value="level">{t("sort.level")}</MenuItem>
             <MenuItem value="class">{t("sort.class")}</MenuItem>
+            {STAT_KIND_ORDER.flatMap((kind) => [
+              <ListSubheader key={kind} disableSticky>
+                {t(STAT_KIND_LABEL_KEY[kind])}
+              </ListSubheader>,
+              ...SKILLS.filter((s) => s.kind === kind).map((s) => (
+                <MenuItem key={s.id} value={`stat:${s.id}`}>
+                  {skillLabel(s.id, locale)}
+                </MenuItem>
+              )),
+            ])}
           </TextField>
         }
       />
