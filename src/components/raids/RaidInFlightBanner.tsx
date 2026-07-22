@@ -8,7 +8,7 @@ import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { raidBotById, raidSuccess, raidLoot } from "@/lib/raids";
+import { raidSuccess, raidLoot } from "@/lib/raids";
 import { fmtDuration, type ActiveRaidUi } from "@/components/raids/shared";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
@@ -30,7 +30,6 @@ export default function RaidInFlightBanner({
   const locale = useLocale();
   const [gifOk, setGifOk] = useState(true);
 
-  const bot = raidBotById(raid.botId);
   const left = raid.endsAt - now;
   const odds = raidSuccess(raid.power, raid.defense);
   const loot = raidLoot(raid.luck, raid.pool, raid.defense);
@@ -66,7 +65,7 @@ export default function RaidInFlightBanner({
       >
         <Box sx={{ minWidth: 0 }}>
           <Typography variant="body2" sx={{ fontWeight: 800 }}>
-            🗡 {t("raids.inFlight", { target: bot?.name[locale] ?? "…" })}
+            🗡 {t("raids.inFlight", { target: raid.targetName[locale] })}
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {t("raids.inFlightMeta", {

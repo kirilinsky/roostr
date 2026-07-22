@@ -6,10 +6,13 @@ import Typography from "@mui/material/Typography";
 
 // Shared bits of the raids UI (RaidsView + its extracted sections).
 
-// The attacker's raid in flight (server snapshot, display-ready).
+// The attacker's raid in flight (server snapshot, display-ready). `targetName` is
+// resolved server-side (bot flavor OR anonymized coop) so the UI never needs to
+// know bot-vs-player; `isPvp` only tints the label.
 export interface ActiveRaidUi {
   id: string;
-  botId: string;
+  targetName: { en: string; ru: string };
+  isPvp: boolean;
   endsAt: number; // ms epoch
   power: number;
   defense: number;
@@ -26,7 +29,8 @@ export interface RaidOutcome {
   lootEggs: number;
   wasConsolation: boolean;
   hpCost: number;
-  botId: string | null;
+  isPvp: boolean;
+  targetName: { en: string; ru: string };
   party: {
     id: string;
     nickname: string | null;
@@ -42,7 +46,8 @@ export interface RaidOutcome {
 // One resolved raid for the log (display-ready).
 export interface RaidLogEntry {
   id: string;
-  botId: string;
+  targetName: { en: string; ru: string };
+  isPvp: boolean;
   success: boolean;
   lootCoins: number;
   lootEggs: number;

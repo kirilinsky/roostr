@@ -9,7 +9,7 @@ import Typography from "@mui/material/Typography";
 import ResourceIcon from "@/components/ResourceIcon";
 import { getSession } from "@/lib/auth";
 import { getRaidHistoryDetailed } from "@/db/queries";
-import { raidBotById, raidSuccess } from "@/lib/raids";
+import { raidSuccess } from "@/lib/raids";
 import { BREED_BY_ID } from "@/lib/roostr";
 import { getTranslations } from "@/i18n/server";
 
@@ -57,7 +57,6 @@ export default async function RaidHistoryPage() {
         ) : (
           <Stack spacing={1.5}>
             {raids.map((r) => {
-              const bot = raidBotById(r.botId ?? "");
               const odds = Math.round(raidSuccess(r.power, r.defense) * 100);
               return (
                 <Card key={r.id} sx={{ p: { xs: 1.5, md: 2 } }}>
@@ -71,7 +70,15 @@ export default async function RaidHistoryPage() {
                     useFlexGap
                   >
                     <Typography variant="subtitle1" sx={{ fontWeight: 800, minWidth: 0 }} noWrap>
-                      {r.success ? "✅" : "💨"} {bot?.name[locale] ?? r.botId}
+                      {r.success ? "✅" : "💨"} {r.targetName[locale]}
+                      {r.isPvp && (
+                        <Chip
+                          size="small"
+                          color="secondary"
+                          label={`⚔ ${t("raids.pvp")}`}
+                          sx={{ ml: 0.75, height: 18, fontWeight: 800, fontSize: 10 }}
+                        />
+                      )}
                     </Typography>
                     <Typography
                       variant="caption"

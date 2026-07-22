@@ -14,6 +14,7 @@ import type {
   IncomingGift,
   GiftUpdate,
   SynthGeneNotification,
+  IncomingRaid,
 } from "@/db/queries";
 import type { QuestState } from "@/lib/quests";
 import { useT } from "@/i18n/I18nProvider";
@@ -27,6 +28,7 @@ import SynthGeneList from "@/components/notifications/SynthGeneList";
 import StationNotice from "@/components/notifications/StationNotice";
 import HospitalNotice from "@/components/notifications/HospitalNotice";
 import RaidNotice from "@/components/notifications/RaidNotice";
+import RaidedList from "@/components/notifications/RaidedList";
 
 // Filter categories. Only "friends" carries data today (incoming requests);
 // the rest are placeholders for future notification types.
@@ -60,6 +62,7 @@ export default function NotificationsView({
   synthGenes = [],
   hospitalReady = 0,
   raidReady = 0,
+  incomingRaids = [],
   selfId = null,
 }: {
   requests: FriendRequestSummary[];
@@ -74,6 +77,7 @@ export default function NotificationsView({
   synthGenes?: SynthGeneNotification[];
   hospitalReady?: number;
   raidReady?: number;
+  incomingRaids?: IncomingRaid[];
   selfId?: number | null;
 }) {
   const t = useT();
@@ -92,7 +96,7 @@ export default function NotificationsView({
     farm: fullStations.includes("farm") ? 1 : 0,
     lab: (fullStations.includes("lab") ? 1 : 0) + unread(synthGenes),
     hospital: hospitalReady,
-    raids: raidReady,
+    raids: raidReady + unread(incomingRaids),
     roostrdex: unread(discoveries),
   };
 
@@ -193,7 +197,14 @@ export default function NotificationsView({
       ) : tab === "hospital" ? (
         hospitalReady > 0 ? <HospitalNotice ready={hospitalReady} /> : <EmptyNotice />
       ) : tab === "raids" ? (
-        raidReady > 0 ? <RaidNotice /> : <EmptyNotice />
+        raidReady > 0 || incomingRaids.length > 0 ? (
+          <Stack spacing={2}>
+            {raidReady > 0 && <RaidNotice />}
+            {incomingRaids.length > 0 && <RaidedList raids={incomingRaids} />}
+          </Stack>
+        ) : (
+          <EmptyNotice />
+        )
       ) : stationFull ? (
         <StationNotice kind={tab as "farm" | "lab"} />
       ) : (

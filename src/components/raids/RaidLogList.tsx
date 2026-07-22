@@ -7,7 +7,6 @@ import Card from "@mui/material/Card";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ResourceIcon from "@/components/ResourceIcon";
-import { raidBotById } from "@/lib/raids";
 import type { RaidLogEntry } from "@/components/raids/shared";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
@@ -31,7 +30,6 @@ export default function RaidLogList({ history }: { history: RaidLogEntry[] }) {
       <Card sx={{ p: { xs: 1, md: 1.5 } }}>
         <Stack divider={<Box sx={{ borderBottom: 1, borderColor: "divider" }} />}>
           {history.slice(0, 3).map((h) => {
-            const bot = raidBotById(h.botId);
             return (
               <Stack
                 key={h.id}
@@ -44,7 +42,8 @@ export default function RaidLogList({ history }: { history: RaidLogEntry[] }) {
                   {h.success ? "✅" : "💨"}
                 </Box>
                 <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 0, flexGrow: 1 }} noWrap>
-                  {bot?.name[locale] ?? h.botId}
+                  {h.targetName[locale]}
+                  {h.isPvp && " ⚔"}
                 </Typography>
                 <Typography
                   variant="caption"

@@ -138,3 +138,78 @@ export const RAID_BOTS = raidBotsData.bots as RaidBot[];
 export function raidBotById(id: string): RaidBot | null {
   return RAID_BOTS.find((b) => b.id === id) ?? null;
 }
+
+// --- Phase 3: PvP (real player targets) ---
+//
+// A target is EITHER a bot (faucet, no victim) OR a real player. The UI treats
+// them uniformly through `RaidTarget`; the server branches on `kind`. Real
+// identity is HIDDEN in the picker (anonymized "coop" name) so raiders can't
+// hand-pick a known player to grief — matchmaking + shields + cooldowns are the
+// anti-grief, not obscurity of who's behind a coop. The victim, on resolve, IS
+// told who hit them (attribution + revenge). See .notes/RAIDS.md §Matchmaking.
+
+export interface RaidTarget {
+  id: string; // "bot-…" or the user token "u:<userId>"
+  name: { en: string; ru: string }; // bot flavor OR anonymized coop name
+  watch: number;
+  coinPool: number; // loot ceiling (bot pool OR the victim's steal cap)
+  kind: "bot" | "user";
+}
+
+// Opaque token so the client never sees a raw victim userId in the target list.
+export function userTargetId(userId: number): string {
+  return `u:${userId}`;
+}
+export function parseUserTargetId(id: string): number | null {
+  if (!id.startsWith("u:")) return null;
+  const n = Number(id.slice(2));
+  return Number.isFinite(n) ? n : null;
+}
+
+// Anonymized coop names for real targets (identity hidden). Stable per user so a
+// coop keeps its name across list refreshes, but reveals nothing real. Bots keep
+// their own flavor names; reals draw from this pool by a hash of their id.
+const COOP_NAMES: { en: string; ru: string }[] = [
+  { en: "Backwater Coop", ru: "Глухой двор" },
+  { en: "Rusty Roost", ru: "Ржавый насест" },
+  { en: "Hollow Barn", ru: "Пустой амбар" },
+  { en: "Creaky Henhouse", ru: "Скрипучий курятник" },
+  { en: "Muddy Yard", ru: "Грязный двор" },
+  { en: "Old Pigeon Loft", ru: "Старая голубятня" },
+  { en: "Windy Ranch", ru: "Ветреное ранчо" },
+  { en: "Quiet Paddock", ru: "Тихий загон" },
+  { en: "Foggy Farmstead", ru: "Туманная усадьба" },
+  { en: "Thistle Coop", ru: "Двор в бурьяне" },
+];
+export function anonCoopName(userId: number): { en: string; ru: string } {
+  const i = Math.abs(Math.trunc(userId)) % COOP_NAMES.length;
+  return COOP_NAMES[i];
+}
+
+// Matchmaking: probability the next filler target is a bot vs a real player.
+// Env-overridable; start high while the base is tiny, lower as it grows, 0 to
+// turn bots off entirely (single kill switch — bots are never persisted).
+export const RAIDS_BOT_RATIO = (() => {
+  const v = Number(process.env.RAIDS_BOT_RATIO);
+  return Number.isFinite(v) && v >= 0 && v <= 1 ? v : 0.6;
+})();
+export const RAID_TARGET_LIST_SIZE = 6; // how many coops the picker offers
+
+// Steal caps (real victims only) — one raid can NEVER gut anyone. The time-based
+// `raidLoot` is already the amount; here we further clamp it to a % of the
+// victim's CURRENT coins with a hard ceiling. Poor victims fall to consolation.
+export const STEAL_MAX_PCT = 0.15; // ≤15% of the victim's balance per raid
+export const STEAL_CAP = 500; // absolute per-raid coin ceiling
+export function stealCeiling(victimCoins: number): number {
+  return Math.min(STEAL_CAP, Math.floor(Math.max(0, victimCoins) * STEAL_MAX_PCT));
+}
+
+// EVERYONE takes damage (product 2026-07-13): the victim's Watch birds pay an HP
+// toll whether they repel the raid or lose it — guarding stops being free. Flat,
+// floors at 1 (never kills — same contract as the attacker toll).
+export const RAID_DEFENDER_HP_COST = 4;
+
+// Shields & cooldowns (anti-grief, .notes/RAIDS.md §Shields).
+export const NEW_PLAYER_SHIELD_MS = 3 * 24 * HOUR_MS; // first 3 days: unraidable
+export const POST_RAID_SHIELD_MS = 24 * HOUR_MS; // 24h immunity after being raided
+export const PAIR_COOLDOWN_MS = 24 * HOUR_MS; // A can't re-hit B for 24h

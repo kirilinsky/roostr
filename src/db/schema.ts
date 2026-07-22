@@ -60,6 +60,10 @@ export const users = pgTable(
       withTimezone: true,
     }),
     tonAddress: text("ton_address"),
+    // PvP raids: while set to a future time this player can't be targeted by
+    // ANYONE (post-raid 24h immunity, .notes/RAIDS.md §Shields). New-player
+    // immunity is derived from createdAt, not stored here.
+    raidShieldUntil: timestamp("raid_shield_until", { withTimezone: true }),
     lastHatchAt: timestamp("last_hatch_at", { withTimezone: true }), // legacy/unused: hatching is egg-gated now (no cooldown)
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

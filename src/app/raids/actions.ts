@@ -22,16 +22,18 @@ export async function buyRaidSlotAction(): Promise<RaidSlotResult> {
   return res;
 }
 
-// Launch a raid vs a bot target: costs 1 feather, locks the party (status
-// "raiding") for the mission duration. All validation (party ownership, one raid
-// in flight, feather balance) is server-side in launchRaid.
+// Launch a raid vs a bot OR a real player: costs 1 feather, locks the party
+// (status "raiding") for the mission duration. All validation (party ownership,
+// one raid in flight, feather balance, and — for real targets — shield/cooldown/
+// eligibility) is server-side in launchRaid. `targetId` is a bot id or a "u:<id>"
+// token; the raw victim id is never exposed to the client.
 export async function launchRaidAction(
-  botId: string,
+  targetId: string,
   partyIds: string[],
 ): Promise<LaunchRaidResult | { ok: false; reason: "auth" }> {
   const session = await getSession();
   if (!session) return { ok: false, reason: "auth" };
-  const res = await launchRaid(session.id, botId, partyIds);
+  const res = await launchRaid(session.id, targetId, partyIds);
   if (res.ok) {
     revalidatePath("/raids");
     revalidatePath("/collection");

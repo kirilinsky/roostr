@@ -18,6 +18,12 @@ import {
   maxRaidSlots,
   nextRaidSlotPrice,
   RAID_BASE_SLOTS,
+  stealCeiling,
+  STEAL_MAX_PCT,
+  STEAL_CAP,
+  userTargetId,
+  parseUserTargetId,
+  anonCoopName,
 } from "@/lib/raids";
 
 describe("raidSuccess", () => {
@@ -131,5 +137,37 @@ describe("bots", () => {
       expect(b.watch).toBeGreaterThan(0);
       expect(b.coinPool).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("PvP steal ceiling", () => {
+  it("caps at STEAL_MAX_PCT of the victim's balance", () => {
+    expect(stealCeiling(1000)).toBe(Math.floor(1000 * STEAL_MAX_PCT));
+    expect(stealCeiling(100)).toBe(15); // 15% of 100
+  });
+
+  it("never exceeds the absolute cap", () => {
+    expect(stealCeiling(1_000_000)).toBe(STEAL_CAP);
+  });
+
+  it("a broke victim yields zero (→ consolation faucet at resolve)", () => {
+    expect(stealCeiling(0)).toBe(0);
+    expect(stealCeiling(-50)).toBe(0);
+    expect(stealCeiling(3)).toBe(0); // floor(0.45) = 0
+  });
+});
+
+describe("target tokens + anon coop names (identity hiding)", () => {
+  it("user target id round-trips; bot ids parse to null", () => {
+    expect(parseUserTargetId(userTargetId(502751816))).toBe(502751816);
+    expect(parseUserTargetId("bot-scarecrow")).toBeNull();
+    expect(parseUserTargetId("u:not-a-number")).toBeNull();
+  });
+
+  it("anon coop name is stable per user + bilingual (never leaks identity)", () => {
+    const a = anonCoopName(123);
+    expect(anonCoopName(123)).toEqual(a); // stable
+    expect(a.en).toBeTruthy();
+    expect(a.ru).toBeTruthy();
   });
 });

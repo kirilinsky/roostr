@@ -46,7 +46,7 @@ import {
   canJoinRaid,
   RAID_FEATHER_COST,
   RAID_MIN_HP,
-  type RaidBot,
+  type RaidTarget,
 } from "@/lib/raids";
 import type { HydratedRoostr } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
@@ -71,7 +71,7 @@ export default function RaidsView({
 }: {
   available: HydratedRoostr[];
   slotsOwned: number;
-  targets: RaidBot[];
+  targets: RaidTarget[];
   feathers: number;
   activeRaid: ActiveRaidUi | null;
   history?: RaidLogEntry[];
@@ -141,6 +141,11 @@ export default function RaidsView({
         router.refresh();
       } else if (res.reason === "feather") {
         window.alert(t("raids.noFeather"));
+      } else if (res.reason === "ineligible") {
+        // Target got shielded / busy / cooled between list and launch — refresh
+        // pulls a fresh matchmade list.
+        window.alert(t("raids.targetGone"));
+        router.refresh();
       } else if (res.reason === "busy") {
         router.refresh();
       }

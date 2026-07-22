@@ -5,8 +5,8 @@ import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Popup from "@/components/Popup";
+import Chip from "@mui/material/Chip";
 import ResourceIcon from "@/components/ResourceIcon";
-import { raidBotById } from "@/lib/raids";
 import type { RaidOutcome } from "@/components/raids/shared";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
@@ -36,9 +36,19 @@ export default function RaidResultPopup({
             <Typography sx={{ fontSize: 44, lineHeight: 1 }}>
               {outcome.success ? "💰" : "🪶"}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              🏠 {raidBotById(outcome.botId ?? "")?.name[locale] ?? "…"}
-            </Typography>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <Typography variant="caption" color="text.secondary">
+                🏠 {outcome.targetName[locale]}
+              </Typography>
+              {outcome.isPvp && (
+                <Chip
+                  size="small"
+                  color="secondary"
+                  label={`⚔ ${t("raids.pvp")}`}
+                  sx={{ height: 18, fontWeight: 800, fontSize: 10 }}
+                />
+              )}
+            </Stack>
             {outcome.success ? (
               <>
                 <Typography variant="h6" sx={{ fontWeight: 900 }}>

@@ -9,15 +9,25 @@ import {
   getActiveRaid,
   getRaidHistory,
   getUserById,
+  listRaidTargets,
 } from "@/db/queries";
 import { hydrateRoostr } from "@/lib/roostr";
-import { RAID_BOTS } from "@/lib/raids";
+import { raidBotById, anonCoopName } from "@/lib/raids";
 import { featherState } from "@/lib/feathers";
 import { getTranslations } from "@/i18n/server";
 
-// Raids (Coop & Dagger) — PHASE 2, open to everyone: assemble a party, pick a BOT
-// target, launch (1 feather), wait out the timer, Collect. Real-player targets
-// (PvP, shields, victim notifications) are phase 3 — bots only for now.
+// Display-ready target name for the log/banner: bot flavor, or an anonymized coop
+// for a real player (identity stays hidden on the attacker's side).
+function targetLabel(
+  defenderUserId: number | null,
+  botId: string | null,
+): { en: string; ru: string } {
+  if (defenderUserId != null) return anonCoopName(defenderUserId);
+  return raidBotById(botId ?? "")?.name ?? { en: "Coop", ru: "Двор" };
+}
+
+// Raids (Coop & Dagger) — PvP: assemble a party, pick a target (bot coop OR a real
+// player's anonymized coop), launch (1 feather), wait out the timer, Collect.
 export default async function RaidsPage() {
   const { t } = await getTranslations();
   const session = await getSession();
@@ -32,12 +42,13 @@ export default async function RaidsPage() {
     );
   }
 
-  const [roostrs, slotsOwned, activeRaid, history, me] = await Promise.all([
+  const [roostrs, slotsOwned, activeRaid, history, me, targets] = await Promise.all([
     getRoostrs(session.id),
     getRaidSlots(session.id),
     getActiveRaid(session.id),
     getRaidHistory(session.id),
     getUserById(session.id),
+    listRaidTargets(session.id),
   ]);
   const available = roostrs.map(hydrateRoostr).filter((r) => r.status === "active");
   const feathers = me
@@ -58,11 +69,12 @@ export default async function RaidsPage() {
         <RaidsView
           available={available}
           slotsOwned={slotsOwned}
-          targets={RAID_BOTS}
+          targets={targets}
           feathers={feathers}
           history={history.map((h) => ({
             id: h.id,
-            botId: h.botId ?? "",
+            targetName: targetLabel(h.defenderUserId, h.botId),
+            isPvp: h.defenderUserId != null,
             success: h.success ?? false,
             lootCoins: h.lootCoins ?? 0,
             lootEggs: h.lootEggs ?? 0,
@@ -72,7 +84,8 @@ export default async function RaidsPage() {
             activeRaid
               ? {
                   id: activeRaid.id,
-                  botId: activeRaid.botId ?? "",
+                  targetName: targetLabel(activeRaid.defenderUserId, activeRaid.botId),
+                  isPvp: activeRaid.defenderUserId != null,
                   endsAt: activeRaid.endsAt.getTime(),
                   power: activeRaid.raidPowerSnapshot,
                   defense: activeRaid.defenseSnapshot,

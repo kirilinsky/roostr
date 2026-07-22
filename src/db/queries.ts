@@ -1,6 +1,7 @@
 import type { SessionUser } from "@/lib/auth";
 import { parseReferralId } from "@/lib/referrals";
 import { hydrateRoostr, SKILLS, type RolledRoostr, type RoostrRow } from "@/lib/roostr";
+import type { RaidTarget } from "@/lib/raids";
 import { rollColorway } from "@/lib/avatarV2";
 import {
   STATIONS,
@@ -2112,51 +2113,207 @@ export async function buyRaidSlot(
   }
 }
 
-export interface RaidCandidate {
-  userId: number;
-  name: string;
-  watch: number; // Σ Crow of their defense guards (live)
-  pool: number; // their coin balance — the loot ceiling (can't grab more than they hold)
+// Why a real player is NOT raidable right now (or "ok" + their coins for the
+// steal ceiling). Shared by listRaidTargets (filter) and launchRaid (re-check —
+// never trust the list the client launched from; state moves between the two).
+type RaidEligibility =
+  | { ok: true; coins: number }
+  | { ok: false; reason: "self" | "gone" | "new" | "shielded" | "busy" | "cooldown" };
+
+async function raidTargetEligible(
+  attackerId: number,
+  victimId: number,
+): Promise<RaidEligibility> {
+  if (victimId === attackerId) return { ok: false, reason: "self" };
+  const { db } = await import("@/db");
+  const { users, raids } = await import("@/db/schema");
+  const { and, eq, gt } = await import("drizzle-orm");
+  const { NEW_PLAYER_SHIELD_MS, PAIR_COOLDOWN_MS } = await import("@/lib/raids");
+  const [v] = await db
+    .select({ coins: users.coins, createdAt: users.createdAt, shield: users.raidShieldUntil })
+    .from(users)
+    .where(eq(users.id, victimId))
+    .limit(1);
+  if (!v) return { ok: false, reason: "gone" };
+  const now = Date.now();
+  if (now - new Date(v.createdAt).getTime() < NEW_PLAYER_SHIELD_MS)
+    return { ok: false, reason: "new" };
+  if (v.shield && new Date(v.shield).getTime() > now)
+    return { ok: false, reason: "shielded" };
+  // Active incoming raid → no concurrent pile-on.
+  const [busy] = await db
+    .select({ id: raids.id })
+    .from(raids)
+    .where(and(eq(raids.defenderUserId, victimId), eq(raids.status, "active")))
+    .limit(1);
+  if (busy) return { ok: false, reason: "busy" };
+  // Per-pair cooldown: this attacker hit this victim in the last window.
+  const since = new Date(now - PAIR_COOLDOWN_MS);
+  const [recent] = await db
+    .select({ id: raids.id })
+    .from(raids)
+    .where(
+      and(
+        eq(raids.attackerUserId, attackerId),
+        eq(raids.defenderUserId, victimId),
+        gt(raids.startedAt, since),
+      ),
+    )
+    .limit(1);
+  if (recent) return { ok: false, reason: "cooldown" };
+  return { ok: true, coins: v.coins };
 }
 
-// A few RANDOM real players eligible to be raided (mixed into the target list with
-// bots). Eligible = WITHOUT immunity: not self, past the 3-day new-player shield.
-// (Post-raid `raidShieldUntil` + per-pair cooldown are phase-3 columns; not filtered
-// yet.) Each carries its live Watch so the picker can show risk.
-export async function getRaidCandidates(
-  selfId: number,
-  limit = 4,
-): Promise<RaidCandidate[]> {
-  if (!process.env.DATABASE_URL || !Number.isFinite(selfId)) return [];
+// The matchmade target LIST the attacker picks from: real players (anonymized as
+// "coops" — identity hidden) mixed with bots. Real eligibility = past the 3-day
+// new-player shield, no active post-raid shield, not in an active incoming raid,
+// not under this attacker's per-pair cooldown. Bots always fill the list so it's
+// never empty; RAIDS_BOT_RATIO biases the real/bot mix. See .notes/RAIDS.md.
+export async function listRaidTargets(selfId: number): Promise<RaidTarget[]> {
+  const {
+    RAID_BOTS,
+    RAIDS_BOT_RATIO,
+    RAID_TARGET_LIST_SIZE,
+    userTargetId,
+    anonCoopName,
+    stealCeiling,
+    NEW_PLAYER_SHIELD_MS,
+    PAIR_COOLDOWN_MS,
+  } = await import("@/lib/raids");
+  const N = RAID_TARGET_LIST_SIZE;
+  const allBots: RaidTarget[] = RAID_BOTS.map((b) => ({
+    id: b.id,
+    name: b.name,
+    watch: b.watch,
+    coinPool: b.coinPool,
+    kind: "bot",
+  }));
+  const shuffle = <T,>(a: T[]): T[] => {
+    const arr = [...a];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+  if (!process.env.DATABASE_URL || !Number.isFinite(selfId))
+    return shuffle(allBots).slice(0, N);
   try {
     const { db } = await import("@/db");
-    const { users } = await import("@/db/schema");
-    const { and, ne, lt, sql } = await import("drizzle-orm");
-    const cutoff = new Date(Date.now() - 3 * 86_400_000);
+    const { users, raids } = await import("@/db/schema");
+    const { and, ne, lt, or, isNull, gt, eq, sql } = await import("drizzle-orm");
+    const now = new Date();
+    const newCutoff = new Date(Date.now() - NEW_PLAYER_SHIELD_MS);
+    // Victims with an active incoming raid (busy) or under this attacker's
+    // cooldown are pre-excluded in bulk (cheaper than per-row).
+    const incoming = await db
+      .select({ d: raids.defenderUserId })
+      .from(raids)
+      .where(and(eq(raids.status, "active"), sql`${raids.defenderUserId} is not null`));
+    const busy = new Set(incoming.map((r) => r.d).filter((x): x is number => x != null));
+    const pairSince = new Date(Date.now() - PAIR_COOLDOWN_MS);
+    const recent = await db
+      .select({ d: raids.defenderUserId })
+      .from(raids)
+      .where(
+        and(
+          eq(raids.attackerUserId, selfId),
+          gt(raids.startedAt, pairSince),
+          sql`${raids.defenderUserId} is not null`,
+        ),
+      );
+    const cooled = new Set(recent.map((r) => r.d).filter((x): x is number => x != null));
+    const rows = await db
+      .select({ id: users.id, coins: users.coins })
+      .from(users)
+      .where(
+        and(
+          ne(users.id, selfId),
+          lt(users.createdAt, newCutoff),
+          or(isNull(users.raidShieldUntil), lt(users.raidShieldUntil, now)),
+        ),
+      )
+      .orderBy(sql`random()`)
+      .limit(N * 4);
+    const reals: RaidTarget[] = [];
+    for (const u of rows) {
+      if (busy.has(u.id) || cooled.has(u.id)) continue;
+      reals.push({
+        id: userTargetId(u.id),
+        name: anonCoopName(u.id),
+        watch: await getDefenseValue(u.id),
+        coinPool: stealCeiling(u.coins),
+        kind: "user",
+      });
+      if (reals.length >= N) break;
+    }
+    // Mix: how many reals to surface. ratio=0 → reals first (bots only as filler);
+    // higher ratio → fewer reals. Always show ≥1 real when any exist (the point is
+    // to raid players), then top up to N with bots.
+    const wantReals = Math.round(N * (1 - RAIDS_BOT_RATIO));
+    const nReals = Math.min(reals.length, Math.max(reals.length > 0 ? 1 : 0, wantReals));
+    const chosenReals = shuffle(reals).slice(0, nReals);
+    const nBots = Math.max(0, N - chosenReals.length);
+    const chosenBots = shuffle(allBots).slice(0, nBots);
+    return shuffle([...chosenReals, ...chosenBots]);
+  } catch (e) {
+    console.error("listRaidTargets failed:", e);
+    return shuffle(allBots).slice(0, N);
+  }
+}
+
+// Raids AGAINST me (victim side), newest first — the "you were raided" feed.
+// Derived from the append-only raids table (no separate notification rows): any
+// resolved raid where I'm the defender. `unread` = resolved after my read cursor.
+export interface IncomingRaid {
+  id: string;
+  attackerName: string;
+  success: boolean; // did they get in (I lost coins) or did my Watch hold?
+  lootCoins: number;
+  defense: number; // my Watch snapshot at the time
+  at: number;
+  unread: boolean;
+}
+export async function getIncomingRaids(userId: number, limit = 20): Promise<IncomingRaid[]> {
+  if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return [];
+  try {
+    const { db } = await import("@/db");
+    const { raids, users } = await import("@/db/schema");
+    const { and, eq, desc } = await import("drizzle-orm");
     const rows = await db
       .select({
-        id: users.id,
+        id: raids.id,
+        success: raids.success,
+        lootCoins: raids.lootCoins,
+        defense: raids.defenseSnapshot,
+        resolvedAt: raids.resolvedAt,
+        attackerId: users.id,
         firstName: users.firstName,
         lastName: users.lastName,
         username: users.username,
-        coins: users.coins,
       })
-      .from(users)
-      .where(and(ne(users.id, selfId), lt(users.createdAt, cutoff)))
-      .orderBy(sql`random()`)
+      .from(raids)
+      .innerJoin(users, eq(raids.attackerUserId, users.id))
+      .where(and(eq(raids.defenderUserId, userId), eq(raids.status, "resolved")))
+      .orderBy(desc(raids.resolvedAt))
       .limit(limit);
-    const out: RaidCandidate[] = [];
-    for (const u of rows) {
-      out.push({
-        userId: u.id,
-        name: displayName(u),
-        watch: await getDefenseValue(u.id),
-        pool: u.coins,
-      });
-    }
-    return out;
+    const [me] = await db
+      .select({ seen: users.notificationsSeenAt })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    const seen = me?.seen ? new Date(me.seen).getTime() : 0;
+    return rows.map((r) => ({
+      id: r.id,
+      attackerName: displayName({ ...r, id: r.attackerId }),
+      success: r.success ?? false,
+      lootCoins: r.lootCoins ?? 0,
+      defense: r.defense,
+      at: (r.resolvedAt ?? new Date()).getTime(),
+      unread: (r.resolvedAt ? new Date(r.resolvedAt).getTime() : 0) > seen,
+    }));
   } catch (e) {
-    console.error("getRaidCandidates failed:", e);
+    console.error("getIncomingRaids failed:", e);
     return [];
   }
 }
@@ -2240,16 +2397,27 @@ export type LaunchRaidResult =
   | { ok: true; raidId: string; endsAt: number }
   | {
       ok: false;
-      reason: "nodb" | "bot" | "busy" | "party" | "feather" | "locked" | "error";
+      reason:
+        | "nodb"
+        | "bot"
+        | "busy"
+        | "party"
+        | "feather"
+        | "locked"
+        | "ineligible"
+        | "error";
     };
 
-// Launch a raid vs a BOT: validate the party (owned + active), enforce one raid in
-// flight, spend 1 feather, CAS-lock every party bird active→raiding, snapshot the
-// contest inputs and insert the raids row. Any failure after the feather spend
-// refunds it; a partial party lock is fully reverted (no bird orphans in "raiding").
+// Launch a raid vs a BOT or a REAL player. Validate the party (owned + active),
+// enforce one raid in flight, spend 1 feather, CAS-lock every party bird
+// active→raiding, snapshot the contest inputs and insert the raids row. For a
+// real target the eligibility is RE-CHECKED here (never trust the list the client
+// launched from — shields/cooldowns/busy state move between list and launch). Any
+// failure after the feather spend refunds it; a partial party lock is fully
+// reverted (no bird orphans in "raiding").
 export async function launchRaid(
   userId: number,
-  botId: string,
+  targetId: string,
   partyIds: string[],
 ): Promise<LaunchRaidResult> {
   if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
@@ -2259,6 +2427,8 @@ export async function launchRaid(
     const { and, eq, inArray } = await import("drizzle-orm");
     const {
       raidBotById,
+      parseUserTargetId,
+      stealCeiling,
       partyPower,
       partyLuck,
       partySpeed,
@@ -2266,8 +2436,25 @@ export async function launchRaid(
       RAID_FEATHER_COST,
     } = await import("@/lib/raids");
 
-    const bot = raidBotById(botId);
-    if (!bot) return { ok: false, reason: "bot" };
+    // Resolve the target → its Watch + loot pool + which side (bot vs victim).
+    const victimId = parseUserTargetId(targetId);
+    let watch: number;
+    let pool: number;
+    let botCol: string | null = null;
+    let defenderCol: number | null = null;
+    if (victimId != null) {
+      const elig = await raidTargetEligible(userId, victimId);
+      if (!elig.ok) return { ok: false, reason: elig.reason === "self" ? "bot" : "ineligible" };
+      watch = await getDefenseValue(victimId);
+      pool = stealCeiling(elig.coins);
+      defenderCol = victimId;
+    } else {
+      const bot = raidBotById(targetId);
+      if (!bot) return { ok: false, reason: "bot" };
+      watch = bot.watch;
+      pool = bot.coinPool;
+      botCol = bot.id;
+    }
     const ids = [...new Set(partyIds)].filter(Boolean);
     const slots = await getRaidSlots(userId);
     if (ids.length === 0 || ids.length > slots) return { ok: false, reason: "party" };
@@ -2291,7 +2478,7 @@ export async function launchRaid(
     const power = partyPower(party);
     const luck = partyLuck(party);
     const speed = partySpeed(party);
-    const durationMs = raidDurationMs(bot.watch, speed);
+    const durationMs = raidDurationMs(watch, speed);
 
     // Pay the feather BEFORE locking (cheapest thing to refund on a lost race).
     const feathers = await spendFeathers(userId, RAID_FEATHER_COST);
@@ -2343,12 +2530,13 @@ export async function launchRaid(
         .insert(raids)
         .values({
           attackerUserId: userId,
-          botId,
+          botId: botCol,
+          defenderUserId: defenderCol,
           partyRoostrIds: ids,
           raidPowerSnapshot: power,
-          defenseSnapshot: bot.watch,
+          defenseSnapshot: watch,
           luckSnapshot: luck,
-          targetPool: bot.coinPool,
+          targetPool: pool,
           endsAt,
         })
         .returning({ id: raids.id });
@@ -2390,6 +2578,8 @@ export type ResolveRaidResult =
       wasConsolation: boolean;
       hpCost: number;
       botId: string | null;
+      isPvp: boolean; // real victim (vs a bot coop)
+      targetName: { en: string; ru: string }; // bot flavor OR anonymized coop
       party: RaidPartyMember[];
     }
   | { ok: false; reason: "nodb" | "gone" | "early" | "error" };
@@ -2407,17 +2597,20 @@ export async function resolveRaid(
   if (!process.env.DATABASE_URL) return { ok: false, reason: "nodb" };
   try {
     const { db } = await import("@/db");
-    const { raids, roostrs } = await import("@/db/schema");
+    const { raids, roostrs, users } = await import("@/db/schema");
     const { and, eq, inArray, lte, sql } = await import("drizzle-orm");
     const {
       raidSuccess,
       raidLoot,
+      stealCeiling,
       RAID_HP_COST_WIN,
       RAID_HP_COST_LOSS,
       RAID_EGG_CHANCE,
       RAID_EGG_AMOUNT,
       RAID_CONSOLATION_MIN,
       RAID_CONSOLATION_MAX,
+      RAID_DEFENDER_HP_COST,
+      POST_RAID_SHIELD_MS,
     } = await import("@/lib/raids");
 
     const now = new Date();
@@ -2449,17 +2642,41 @@ export async function resolveRaid(
     const p = raidSuccess(raid.raidPowerSnapshot, raid.defenseSnapshot);
     const success = Math.random() < p;
 
+    const victimId = raid.defenderUserId; // real target ⇔ non-null (bots have botId)
+
     // Loot: winners grab Luck×rate capped by the pool; an empty grab still pays a
     // small consolation. Losers get nothing (the hours + HP were the price).
+    const consolation = () =>
+      RAID_CONSOLATION_MIN +
+      Math.floor(Math.random() * (RAID_CONSOLATION_MAX - RAID_CONSOLATION_MIN + 1));
     let lootCoins = 0;
     let wasConsolation = false;
+    let stealFrom: number | null = null; // victim to debit (real steal only)
     if (success) {
-      lootCoins = raidLoot(raid.luckSnapshot, raid.targetPool, raid.defenseSnapshot);
-      if (lootCoins <= 0) {
-        lootCoins =
-          RAID_CONSOLATION_MIN +
-          Math.floor(Math.random() * (RAID_CONSOLATION_MAX - RAID_CONSOLATION_MIN + 1));
-        wasConsolation = true;
+      const base = raidLoot(raid.luckSnapshot, raid.targetPool, raid.defenseSnapshot);
+      if (victimId != null) {
+        // Real victim: steal is capped to a % of their CURRENT balance (re-read —
+        // they may have spent since launch) and never exceeds what they hold. A
+        // broke victim yields only a game-faucet consolation (nothing taken).
+        const [v] = await db
+          .select({ coins: users.coins })
+          .from(users)
+          .where(eq(users.id, victimId))
+          .limit(1);
+        const steal = Math.min(base, stealCeiling(v?.coins ?? 0), v?.coins ?? 0);
+        if (steal > 0) {
+          lootCoins = steal;
+          stealFrom = victimId;
+        } else {
+          lootCoins = consolation();
+          wasConsolation = true;
+        }
+      } else {
+        lootCoins = base;
+        if (lootCoins <= 0) {
+          lootCoins = consolation();
+          wasConsolation = true;
+        }
       }
     }
     const lootEggs =
@@ -2498,9 +2715,48 @@ export async function resolveRaid(
         .where(and(inArray(roostrs.id, ids), eq(roostrs.status, "raiding")));
     }
 
-    // Pay out (bot target = pure faucet; no victim side in phase 2).
-    if (lootCoins > 0) await grantResource(userId, "coin", lootCoins, "raid", raid.botId ?? raidId);
-    if (lootEggs > 0) await grantResource(userId, "egg", lootEggs, "raid", raid.botId ?? raidId);
+    // Real-victim side FIRST: debit the stolen coins from the victim (CAS guard on
+    // balance ≥ steal). If the debit loses a race (victim spent to zero), drop the
+    // steal to a faucet consolation so the attacker still gets something but we
+    // never mint coins that weren't actually taken.
+    const ref = raid.botId ?? raidId;
+    if (stealFrom != null && lootCoins > 0) {
+      const spent = await spendResource(stealFrom, "coin", lootCoins, "raid_loss", raidId);
+      if (spent === null) {
+        lootCoins = wasConsolation ? lootCoins : consolation();
+        wasConsolation = true;
+      }
+    }
+
+    // Pay the attacker (bot faucet OR the coins just taken from the victim). Eggs
+    // are ALWAYS a game faucet — never stolen from a victim (growth loop protected).
+    if (lootCoins > 0) await grantResource(userId, "coin", lootCoins, "raid", ref);
+    if (lootEggs > 0) await grantResource(userId, "egg", lootEggs, "raid", ref);
+
+    // PvP consequences (real victim only, win OR loss):
+    //   • post-raid shield — 24h immunity from EVERYONE ("consequences of a robbery").
+    //   • defender toll — EVERYONE takes damage: the victim's Watch birds lose HP
+    //     whether they held or lost (floor 1). Guarding stops being a free stat.
+    if (victimId != null) {
+      await db
+        .update(users)
+        .set({ raidShieldUntil: new Date(Date.now() + POST_RAID_SHIELD_MS) })
+        .where(eq(users.id, victimId));
+      try {
+        const guard = await getStationView(victimId, "defense");
+        const guardIds = guard.workers.map((w) => w.id);
+        if (guardIds.length > 0) {
+          await db
+            .update(roostrs)
+            .set({
+              currentHp: sql`greatest(1, coalesce(${roostrs.currentHp}, ${roostrs.maxHealth}) - ${RAID_DEFENDER_HP_COST})`,
+            })
+            .where(inArray(roostrs.id, guardIds));
+        }
+      } catch (e) {
+        console.error("defender HP toll failed:", e);
+      }
+    }
 
     // Stamp the outcome on the row (post-claim, so a crash here loses only display
     // fields, not money or bird state).
@@ -2508,6 +2764,12 @@ export async function resolveRaid(
       .update(raids)
       .set({ success, lootCoins, lootEggs, wasConsolation })
       .where(eq(raids.id, raidId));
+
+    const { raidBotById, anonCoopName } = await import("@/lib/raids");
+    const targetName =
+      victimId != null
+        ? anonCoopName(victimId)
+        : raidBotById(raid.botId ?? "")?.name ?? { en: "Coop", ru: "Двор" };
 
     return {
       ok: true,
@@ -2517,6 +2779,8 @@ export async function resolveRaid(
       wasConsolation,
       hpCost,
       botId: raid.botId,
+      isPvp: victimId != null,
+      targetName,
       party,
     };
   } catch (e) {
@@ -2564,6 +2828,8 @@ export async function getRaidHistory(userId: number, limit = 12) {
 export interface RaidHistoryEntry {
   id: string;
   botId: string | null;
+  isPvp: boolean; // real victim (vs a bot coop)
+  targetName: { en: string; ru: string }; // display-ready (bot flavor OR anon coop)
   success: boolean;
   lootCoins: number;
   lootEggs: number;
@@ -2596,9 +2862,15 @@ export async function getRaidHistoryDetailed(
           .where(inArray(roostrs.id, allIds))
       : [];
     const byId = new Map(birds.map((b) => [b.id, b]));
+    const { raidBotById, anonCoopName } = await import("@/lib/raids");
     return rows.map((r) => ({
       id: r.id,
       botId: r.botId,
+      isPvp: r.defenderUserId != null,
+      targetName:
+        r.defenderUserId != null
+          ? anonCoopName(r.defenderUserId)
+          : raidBotById(r.botId ?? "")?.name ?? { en: "Coop", ru: "Двор" },
       success: r.success ?? false,
       lootCoins: r.lootCoins ?? 0,
       lootEggs: r.lootEggs ?? 0,
@@ -3173,7 +3445,7 @@ export async function markNotificationRead(
 export async function countUnreadNotifications(userId: number): Promise<number> {
   if (!process.env.DATABASE_URL || !Number.isFinite(userId)) return 0;
   try {
-    const [news, ach, dex, friends, requests, gifts, giftUpdates, synth, readyQ, stations, hospitalReady, raidReady] =
+    const [news, ach, dex, friends, requests, gifts, giftUpdates, synth, readyQ, stations, hospitalReady, raidReady, incomingRaids] =
       await Promise.all([
         getNews(userId),
         getNewAchievements(userId),
@@ -3187,6 +3459,7 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
         getStationAlerts(userId),
         getHospitalReadyCount(userId),
         getRaidReadyCount(userId),
+        getIncomingRaids(userId),
       ]);
     const unread =
       news.filter((n) => n.unread).length +
@@ -3195,7 +3468,8 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
       friends.filter((f) => f.unread).length +
       gifts.filter((g) => g.unread).length +
       giftUpdates.filter((g) => g.unread).length +
-      synth.filter((s) => s.unread).length;
+      synth.filter((s) => s.unread).length +
+      incomingRaids.filter((r) => r.unread).length;
     return unread + requests.length + readyQ + stations.length + hospitalReady + raidReady;
   } catch (e) {
     console.error("countUnreadNotifications failed:", e);
