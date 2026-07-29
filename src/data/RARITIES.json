@@ -1,0 +1,208 @@
+{
+  "version": 1,
+  "description": {
+    "en": "Rarity collectibles (SPEC V18 / T36). Discrete trophies, NOT a currency and NEVER stat-affecting (V4). Held in the Bank; hold to collect/flex or sell for coins. Two source 'breeds': loot (raid drops, Luck-gated; Common/Rare loot can be STOLEN from a raided victim) and trophy (arena drops + achievements + seasonal competition prizes — never stealable). NOT YET WIRED — data only, for the upcoming rarities inventory + Bank block.",
+    "ru": "Коллекционные раритеты (SPEC V18 / T36). Дискретные трофеи, НЕ валюта и НИКОГДА не влияют на статы (V4). Лежат в Банке; держишь ради коллекции или продаёшь за монеты. Две «породы» по источнику: loot (дроп с рейдов, гейт по Удаче; Common/Rare loot можно УКРАСТЬ у ограбленной жертвы) и trophy (дроп с арены + достижения + сезонные призы — не крадутся). ПОКА НЕ ПОДКЛЮЧЕНО — только данные, под будущий инвентарь раритетов + блок Банка."
+  },
+  "tiers": [
+    {
+      "id": "common",
+      "name": { "en": "Common", "ru": "Обычный" },
+      "colorToken": "neutral",
+      "dropWeight": 60,
+      "sellMin": 40,
+      "sellMax": 80
+    },
+    {
+      "id": "rare",
+      "name": { "en": "Rare", "ru": "Редкий" },
+      "colorToken": "primary",
+      "dropWeight": 28,
+      "sellMin": 150,
+      "sellMax": 300
+    },
+    {
+      "id": "epic",
+      "name": { "en": "Epic", "ru": "Эпический" },
+      "colorToken": "secondary",
+      "dropWeight": 10,
+      "sellMin": 500,
+      "sellMax": 900
+    },
+    {
+      "id": "legendary",
+      "name": { "en": "Legendary", "ru": "Легендарный" },
+      "colorToken": "tertiary",
+      "dropWeight": 2,
+      "sellMin": 0,
+      "sellMax": 0
+    }
+  ],
+  "items": [
+    {
+      "id": "brass-spur",
+      "tier": "common",
+      "source": "loot",
+      "stealable": true,
+      "name": { "en": "Brass Spur", "ru": "Латунная шпора" },
+      "description": {
+        "en": "A bent spur pried off a beaten cockerel. Worthless — but it shines.",
+        "ru": "Погнутая шпора, снятая с побитого петуха. Грош цена — зато блестит."
+      }
+    },
+    {
+      "id": "cracked-egg-cup",
+      "tier": "common",
+      "source": "loot",
+      "stealable": true,
+      "name": { "en": "Cracked Egg-Cup", "ru": "Треснутая рюмка-яйцо" },
+      "description": {
+        "en": "A chipped egg-shaped goblet swiped off someone's shelf. Still holds grain.",
+        "ru": "Щербатый кубок в форме яйца, стянутый с чьей-то полки. Зерно всё ещё держит."
+      }
+    },
+    {
+      "id": "silver-feather",
+      "tier": "rare",
+      "source": "loot",
+      "stealable": true,
+      "name": { "en": "Silver Feather", "ru": "Серебряное перо" },
+      "description": {
+        "en": "A single plated feather from a prize bird's tail. Collectors coo over these.",
+        "ru": "Одно посеребрённое перо из хвоста призовой птицы. Коллекционеры от них млеют."
+      }
+    },
+    {
+      "id": "thiefs-mask",
+      "tier": "rare",
+      "source": "loot",
+      "stealable": true,
+      "name": { "en": "Thief's Mask", "ru": "Маска вора" },
+      "description": {
+        "en": "A tiny black mask sized for a rooster. Proof you pulled off the heist.",
+        "ru": "Крохотная чёрная маска по петушиной мерке. Доказательство удачного налёта."
+      }
+    },
+    {
+      "id": "golden-egg-decor",
+      "tier": "epic",
+      "source": "loot",
+      "stealable": false,
+      "name": { "en": "Golden Egg (decor)", "ru": "Золотое яйцо (декор)" },
+      "description": {
+        "en": "A gilded ornamental egg — pure show, won't ever hatch. The pride of a mantelpiece.",
+        "ru": "Позолоченное декоративное яйцо — чистый понт, никогда не вылупится. Гордость каминной полки."
+      }
+    },
+    {
+      "id": "coop-key",
+      "tier": "epic",
+      "source": "loot",
+      "stealable": false,
+      "name": { "en": "Coop Skeleton Key", "ru": "Отмычка курятника" },
+      "description": {
+        "en": "The master key to a fabled coop. Opens nothing now — but the legend sticks.",
+        "ru": "Универсальный ключ от легендарного курятника. Уже ничего не открывает — но легенда осталась."
+      }
+    },
+    {
+      "id": "golden-spur",
+      "tier": "legendary",
+      "source": "loot",
+      "stealable": false,
+      "name": { "en": "The Golden Spur", "ru": "Золотая Шпора" },
+      "description": {
+        "en": "The greatest heist trophy there is. Only the boldest raid ever coughs one up.",
+        "ru": "Величайший трофей налётчика. Выпадает лишь с самого дерзкого рейда."
+      }
+    },
+    {
+      "id": "tin-medal",
+      "tier": "common",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Tin Medal", "ru": "Жестяная медаль" },
+      "description": {
+        "en": "A participation medal stamped from tin. Everybody's first arena keepsake.",
+        "ru": "Медаль участника, штампованная из жести. Первый арена-сувенир у каждого."
+      }
+    },
+    {
+      "id": "dusty-trophy",
+      "tier": "common",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Dusty Trophy", "ru": "Пыльный кубок" },
+      "description": {
+        "en": "A small cup that's seen better days. Won it fair, and that's what counts.",
+        "ru": "Небольшой кубок, видавший виды. Выигран честно — а это главное."
+      }
+    },
+    {
+      "id": "bronze-cup",
+      "tier": "rare",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Bronze Cockerel Cup", "ru": "Бронзовый петушиный кубок" },
+      "description": {
+        "en": "Third place, but bronze still gleams. A real bracket run behind it.",
+        "ru": "Третье место, но бронза всё равно блестит. За ней — настоящая турнирная сетка."
+      }
+    },
+    {
+      "id": "arena-sigil",
+      "tier": "rare",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Arena Sigil", "ru": "Знак арены" },
+      "description": {
+        "en": "An engraved token handed to seasoned fighters. Marks a regular of the pit.",
+        "ru": "Гравированный жетон бывалым бойцам. Метка завсегдатая ямы."
+      }
+    },
+    {
+      "id": "silver-cup",
+      "tier": "epic",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Silver Cockerel Cup", "ru": "Серебряный кубок" },
+      "description": {
+        "en": "Runner-up silver from a fierce tournament. One feather short of gold.",
+        "ru": "Серебро финалиста жестокого турнира. До золота — одно пёрышко."
+      }
+    },
+    {
+      "id": "champions-comb",
+      "tier": "epic",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Champion's Comb", "ru": "Гребень чемпиона" },
+      "description": {
+        "en": "A gilded comb cast from a champion's crest. Worn by legends, sort of.",
+        "ru": "Позолоченный гребень, отлитый с чемпионской короны. Носили легенды, почти."
+      }
+    },
+    {
+      "id": "coop-crown",
+      "tier": "legendary",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Crown of the Coop", "ru": "Корона Курятника" },
+      "description": {
+        "en": "Awarded to the season's number-one coop. There is only one per season.",
+        "ru": "Вручается курятнику №1 за сезон. Ровно одна на сезон."
+      }
+    },
+    {
+      "id": "bloodfeather-banner",
+      "tier": "legendary",
+      "source": "trophy",
+      "stealable": false,
+      "name": { "en": "Bloodfeather Banner", "ru": "Знамя Кровопёра" },
+      "description": {
+        "en": "The grand prize of a blood tournament. Flown only by the last bird standing.",
+        "ru": "Гран-при кровавого турнира. Реет лишь над последним устоявшим петухом."
+      }
+    }
+  ]
+}
