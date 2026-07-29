@@ -662,6 +662,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "incubator.hatched": "It hatched!",
     "incubator.continue": "Continue",
     "incubator.needLogin": "Log in to hatch a rooster.",
+    "incubator.ready": "Ready to hatch",
+    "incubator.charging": "No eggs loaded",
+    "incubator.tapHint": "Tap the egg or the button to crack it open.",
+    "incubator.getEggs": "Get eggs",
+    "incubator.eggsLoaded": "Eggs loaded",
 
     "roostrdex.title": "Roostrdex",
     "roostrdex.subtitle":
@@ -1413,6 +1418,11 @@ export const dictionaries: Record<Locale, Dict> = {
     "incubator.hatched": "Вылупился!",
     "incubator.continue": "Продолжить",
     "incubator.needLogin": "Войдите, чтобы вылупить петуха.",
+    "incubator.ready": "Готов к вылупу",
+    "incubator.charging": "Яиц нет",
+    "incubator.tapHint": "Нажми на яйцо или кнопку, чтобы расколоть его.",
+    "incubator.getEggs": "Взять яйца",
+    "incubator.eggsLoaded": "Яиц загружено",
 
     "roostrdex.title": "Рустрдекс",
     "roostrdex.subtitle": "Все породы, которые ты открыл — и те, что ещё ждут.",
