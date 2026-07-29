@@ -215,19 +215,17 @@ export default function IncubatorView({
           justifyContent: "center",
         }}
       >
-        {/* Checkerboard floor — subtle, from the divider token (no hardcoded color). */}
+        {/* Dot-grid floor — arcade/tech read (a checker looked like a transparency
+            grid). Subtle, from the ink token so it stays on-brand in both themes. */}
         <Box
           aria-hidden
           sx={{
             position: "absolute",
             inset: 0,
             zIndex: 0,
-            backgroundImage: (theme) => {
-              const d = alpha(theme.palette.text.primary, 0.04);
-              return `linear-gradient(45deg, ${d} 25%, transparent 25%), linear-gradient(-45deg, ${d} 25%, transparent 25%), linear-gradient(45deg, transparent 75%, ${d} 75%), linear-gradient(-45deg, transparent 75%, ${d} 75%)`;
-            },
-            backgroundSize: "28px 28px",
-            backgroundPosition: "0 0, 0 14px, 14px -14px, -14px 0",
+            backgroundImage: (theme) =>
+              `radial-gradient(${alpha(theme.palette.text.primary, 0.07)} 1.5px, transparent 1.5px)`,
+            backgroundSize: "22px 22px",
           }}
         />
 
@@ -279,7 +277,7 @@ export default function IncubatorView({
           <Chip
             size="small"
             color="secondary"
-            label={`● ${t("incubator.ready")}`}
+            label="● READY"
             sx={{
               position: "absolute",
               top: 12,
@@ -379,7 +377,9 @@ export default function IncubatorView({
               color: canHatch ? "text.primary" : "text.disabled",
             }}
           >
-            {canHatch ? t("incubator.ready") : t("incubator.charging")}
+            {canHatch
+              ? `${admin ? "∞" : eggs} ${t("incubator.eggsLoaded")}`
+              : t("incubator.charging")}
           </Typography>
         </Stack>
 
