@@ -13,7 +13,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { alpha, type SxProps, type Theme } from "@mui/material/styles";
+import { type SxProps, type Theme } from "@mui/material/styles";
 import BreedDexCard from "@/components/BreedDexCard";
 import { useIsAdmin } from "@/components/AdminProvider";
 import { useToast } from "@/components/ToastProvider";
@@ -36,6 +36,7 @@ import { myDiscoveredBreeds, claimDexRewardsAction } from "./actions";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
 const ALL = "__all__";
+const headlineFamily = "var(--font-headline), system-ui, sans-serif";
 
 export default function RoostrdexPage() {
   const t = useT();
@@ -115,11 +116,13 @@ export default function RoostrdexPage() {
   // Filter rows: big, finger-friendly tap targets on mobile; compact on desktop.
   const filterItemSx: SxProps<Theme> = {
     gap: 1,
-    borderRadius: 0.75,
+    borderRadius: 0,
     minWidth: 0, // let the row shrink inside a grid cell instead of forcing width
     minHeight: { xs: 48, md: 36 },
     py: { xs: 1, md: 0.5 },
     px: { xs: 1.5, md: 1 },
+    // Transparent bar on every row so the selected accent doesn't shift the text.
+    borderLeft: "3px solid transparent",
     "& .MuiListItemText-root": { minWidth: 0 },
     "& .MuiListItemText-primary": {
       fontSize: { xs: "1rem", md: "0.875rem" },
@@ -130,7 +133,13 @@ export default function RoostrdexPage() {
       textOverflow: { md: "ellipsis" },
       overflowWrap: "anywhere",
     },
-    "&.Mui-selected": { fontWeight: 800 },
+    // Selected row gets a hard magenta bar (arcade) + bold label.
+    "&.Mui-selected": {
+      fontWeight: 800,
+      bgcolor: "action.selected",
+      borderLeftColor: "secondary.main",
+    },
+    "&.Mui-selected:hover": { bgcolor: "action.selected" },
   };
   // Mobile: lay the filter out as a 2-column grid (shorter than one tall column,
   // buttons still big). Desktop: the usual single-column sidebar list.
@@ -170,34 +179,60 @@ export default function RoostrdexPage() {
           )}
         </Stack>
 
-        {/* Progress */}
+        {/* Progress — arcade console: square panel, pixel headline + a hard % readout. */}
         <Box
-          sx={(theme) => ({
+          sx={{
             border: 1,
             borderColor: "divider",
-            borderRadius: 1,
+            borderRadius: 0,
             p: { xs: 2, md: 2.5 },
-            bgcolor: alpha(theme.palette.background.paper, 0.88),
+            bgcolor: "background.paper",
             boxShadow: "none",
-          })}
+          }}
         >
           <Stack
             direction="row"
             justifyContent="space-between"
-            alignItems="baseline"
-            sx={{ mb: 1 }}
+            alignItems="center"
+            spacing={1}
+            sx={{ mb: 1.25 }}
           >
-            <Typography sx={{ fontWeight: 800, letterSpacing: 1 }}>
-              {t("roostrdex.progress")}
-            </Typography>
-            <Typography variant="h6" color="primary">
-              {found}/{total}
-            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+              <Box sx={{ width: 10, height: 10, bgcolor: "secondary.main", flexShrink: 0 }} />
+              <Typography
+                sx={{
+                  fontFamily: headlineFamily,
+                  fontWeight: 900,
+                  fontSize: "0.9rem",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+                noWrap
+              >
+                {t("roostrdex.progress")}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="baseline" sx={{ flexShrink: 0 }}>
+              <Typography
+                sx={{
+                  fontFamily: headlineFamily,
+                  fontWeight: 900,
+                  fontSize: "1.35rem",
+                  color: "primary.main",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {found}/{total}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: "tabular-nums" }}>
+                {Math.round(pct)}%
+              </Typography>
+            </Stack>
           </Stack>
           <LinearProgress
             variant="determinate"
             value={pct}
-            sx={{ height: 12, borderRadius: 0.75 }}
+            sx={{ height: 14, borderRadius: 0, border: 1, borderColor: "divider" }}
           />
           <Stack
             direction="row"
@@ -220,13 +255,15 @@ export default function RoostrdexPage() {
         {/* Selected group blurb */}
         {filter !== ALL && (
           <Box
-            sx={(theme) => ({
+            sx={{
               border: 1,
               borderColor: "divider",
-              borderRadius: 1,
+              borderRadius: 0,
+              borderLeft: 4,
+              borderLeftColor: "secondary.main",
               p: 2,
-              bgcolor: alpha(theme.palette.background.paper, 0.88),
-            })}
+              bgcolor: "background.paper",
+            }}
           >
             <Typography sx={{ fontWeight: 800 }}>
               {groupName(filter, locale)}
@@ -261,29 +298,36 @@ export default function RoostrdexPage() {
           }}
         >
           <Box
-            sx={(theme) => ({
+            sx={{
               width: { md: 220 },
               flexShrink: 0,
               alignSelf: "flex-start",
               // Mobile: break out of the Container gutters → full-bleed edge-to-edge;
-              // drop the side borders + radius so it sits flush to the screen edges.
+              // drop the side borders so it sits flush to the screen edges.
               mx: { xs: -2, sm: -3, md: 0 },
               border: 1,
               borderColor: "divider",
               borderLeftWidth: { xs: 0, md: 1 },
               borderRightWidth: { xs: 0, md: 1 },
-              borderRadius: { xs: 0, md: 1 },
+              borderRadius: 0,
               p: 1,
-              bgcolor: alpha(theme.palette.background.paper, 0.88),
-            })}
+              bgcolor: "background.paper",
+            }}
           >
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              sx={{ display: "block", px: 1, mb: 0.5 }}
-            >
-              {t("roostrdex.filter")}
-            </Typography>
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ px: 1, mb: 0.75 }}>
+              <Box sx={{ width: 8, height: 8, bgcolor: "secondary.main" }} />
+              <Typography
+                sx={{
+                  fontFamily: headlineFamily,
+                  fontWeight: 900,
+                  fontSize: "0.72rem",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {t("roostrdex.filter")}
+              </Typography>
+            </Stack>
             <List dense disablePadding sx={filterListSx}>
               <ListItem disablePadding>
                 <ListItemButton
@@ -318,7 +362,7 @@ export default function RoostrdexPage() {
               flexGrow: 1,
               display: "grid",
               gap: 1.5,
-              gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fill, minmax(172px, 1fr))",
               alignItems: "stretch",
             }}
           >

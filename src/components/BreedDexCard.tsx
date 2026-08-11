@@ -88,7 +88,7 @@ export default function BreedDexCard(props: BreedDexCardProps) {
           height: "100%",
           border: 1,
           borderColor: "divider",
-          borderRadius: 1,
+          borderRadius: 0,
           overflow: "hidden",
           bgcolor: alpha(theme.palette.background.paper, 0.84),
           display: "flex",
@@ -177,12 +177,18 @@ export default function BreedDexCard(props: BreedDexCardProps) {
         height: "100%",
         border: 1,
         borderColor: "divider",
-        borderRadius: 1,
+        borderRadius: 0,
         overflow: "hidden",
         bgcolor: "background.paper",
         display: "flex",
         flexDirection: "column",
         boxShadow: `0 4px 14px ${alpha(theme.palette.common.black, 0.05)}`,
+        transition: "transform .15s, border-color .15s, box-shadow .15s",
+        "&:hover": {
+          transform: "translateY(-3px)",
+          borderColor: theme.palette[ref.key][ref.variant],
+          boxShadow: `0 8px 20px ${alpha(theme.palette.common.black, 0.1)}`,
+        },
       })}
     >
       {/* Group band, tinted by the breed group's token */}
