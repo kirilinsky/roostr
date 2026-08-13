@@ -203,6 +203,28 @@
         "en": "The grand prize of a blood tournament. Flown only by the last bird standing.",
         "ru": "Гран-при кровавого турнира. Реет лишь над последним устоявшим петухом."
       }
+    },
+    {
+      "id": "loot-sack",
+      "tier": "common",
+      "source": "loot",
+      "stealable": true,
+      "name": { "en": "Grubby Loot Sack", "ru": "Драный мешок добычи" },
+      "description": {
+        "en": "A burlap sack that's carried a hundred heists. Smells of corn and trouble.",
+        "ru": "Мешковина, повидавшая сотню налётов. Пахнет зерном и неприятностями."
+      }
+    },
+    {
+      "id": "moonlit-plume",
+      "tier": "epic",
+      "source": "loot",
+      "stealable": false,
+      "name": { "en": "Moonlit Plume", "ru": "Лунное перо" },
+      "description": {
+        "en": "A tail feather that seems to glow silver in the dark. Snatched under a full moon.",
+        "ru": "Хвостовое перо, что серебрится в темноте. Стянуто под полной луной."
+      }
     }
   ]
 }
