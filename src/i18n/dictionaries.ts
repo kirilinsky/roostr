@@ -360,6 +360,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "detail.giftPending":
       "In limbo — gifted and awaiting the recipient. You can't act on it or take it back; it only returns if they decline.",
     "detail.atWork": "At work ({station}).",
+    "detail.onRaid":
+      "Away on a raid — actions are locked until the party returns.",
     "detail.returnFromWork": "Return from work",
     "detail.sellBlocked": "Take it off work first.",
     "detail.releaseConfirm": "Release this rooster to the wild? This is permanent — it becomes ownerless and you can't get it back. You get 1 feather.",
@@ -606,6 +608,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "hospital.collect": "Collect",
     "card.working": "At work",
     "card.gifting": "Pending gift",
+    "card.raiding": "On a raid",
     "card.body": "Body",
     "card.wing": "Wing",
     "card.tail": "Tail",
@@ -1129,6 +1132,8 @@ export const dictionaries: Record<Locale, Dict> = {
     "detail.giftPending":
       "В лимбе — подарен и ждёт получателя. Ты не можешь ничего с ним сделать и не можешь забрать назад; вернётся только если откажутся.",
     "detail.atWork": "На работе ({station}).",
+    "detail.onRaid":
+      "На вылазке — действия заблокированы, пока отряд не вернётся.",
     "detail.returnFromWork": "Вернуть с работы",
     "detail.sellBlocked": "Сначала убери с работы.",
     "detail.releaseConfirm": "Отпустить петуха на волю? Это навсегда — он станет ничейным, вернуть нельзя. Ты получишь 1 перо.",
@@ -1362,6 +1367,7 @@ export const dictionaries: Record<Locale, Dict> = {
     "hospital.collect": "Забрать",
     "card.working": "На работе",
     "card.gifting": "Ждёт ответа",
+    "card.raiding": "На вылазке",
     "card.body": "Тело",
     "card.wing": "Крыло",
     "card.tail": "Хвост",

@@ -272,6 +272,24 @@ export default function CollectionCard({
             })}
           />
         )}
+        {/* away on a raid — party locked until the mission resolves */}
+        {roostr.status === "raiding" && (
+          <Chip
+            size="small"
+            title={t("card.raiding")}
+            label="🗡️"
+            sx={(theme) => ({
+              position: "absolute",
+              bottom: 6,
+              left: 6,
+              height: 20,
+              fontWeight: 700,
+              fontSize: 11,
+              bgcolor: "tertiary.main",
+              color: theme.palette.tertiary.contrastText,
+            })}
+          />
+        )}
         {/* tier · rating — overlaid bottom-right so the name row below stays
             full width (chip used to share the name row and truncate it). */}
         <Chip

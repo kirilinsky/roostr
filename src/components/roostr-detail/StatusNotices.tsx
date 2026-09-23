@@ -7,7 +7,7 @@ import type { HydratedRoostr } from "@/lib/roostr";
 import { useLocale, useT } from "@/i18n/I18nProvider";
 
 // Owner-facing lock notices: bird is working (farm/lab/defense), freed to the wild,
-// in gift limbo, or otherwise locked (e.g. on the market). At most one shows.
+// in gift limbo, away on a raid, or otherwise locked (e.g. on the market). At most one shows.
 // `action` (e.g. the return-from-work button) renders on the right of the working
 // notice so the state and its remedy read as one row.
 export default function StatusNotices({
@@ -86,6 +86,16 @@ export default function StatusNotices({
       <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "secondary.main" }}>
         <Typography variant="body2" sx={{ fontWeight: 700 }}>
           🎁 {t("detail.giftPending")}
+        </Typography>
+      </Card>
+    );
+  }
+
+  if (roostr.status === "raiding") {
+    return (
+      <Card sx={{ p: { xs: 1.5, md: 2 }, borderColor: "tertiary.main" }}>
+        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+          🗡️ {t("detail.onRaid")}
         </Typography>
       </Card>
     );

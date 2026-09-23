@@ -1415,7 +1415,7 @@ export async function getCollectionRoostrs(ownerId: number) {
       .where(
         and(
           eq(roostrs.ownerId, ownerId),
-          inArray(roostrs.status, ["active", "working", "gifting"]),
+          inArray(roostrs.status, ["active", "working", "gifting", "raiding"]),
         ),
       )
       .orderBy(desc(roostrs.createdAt));
