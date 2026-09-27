@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import type { SessionUser } from "@/lib/auth";
 import { parseReferralId } from "@/lib/referrals";
 import { hydrateRoostr, SKILLS, type RolledRoostr, type RoostrRow } from "@/lib/roostr";
@@ -1464,7 +1465,21 @@ export async function getLeaderboardRoostrs(): Promise<LeaderboardEntry[]> {
 // defense / utility stat-sum). Powers the "Arena Champion" rooster achievement —
 // the detail page passes `topCategory: 1` when the bird's id is in this set.
 // Derived live from the same pool as the leaderboard (active + working).
+// Global (not per-user) and hydrates up to 300 birds, yet the rooster detail page
+// needs it on every view — so it's computed at most once per TTL across all users.
+// "Arena Champion" may lag a leaderboard change by up to that TTL.
+const TOP_LEADERS_TTL_S = 300;
+const topCategoryLeaderIds = unstable_cache(
+  computeTopCategoryLeaderIds,
+  ["top-category-leaders"],
+  { revalidate: TOP_LEADERS_TTL_S },
+);
+
 export async function getTopCategoryLeaders(): Promise<Set<string>> {
+  return new Set(await topCategoryLeaderIds());
+}
+
+async function computeTopCategoryLeaderIds(): Promise<string[]> {
   const entries = await getLeaderboardRoostrs();
   const kinds = ["offense", "defense", "utility"] as const;
   const best: Record<string, { id?: string; score: number }> = {
@@ -1485,7 +1500,7 @@ export async function getTopCategoryLeaders(): Promise<Set<string>> {
   }
   const leaders = new Set<string>();
   for (const k of kinds) if (best[k].id) leaders.add(best[k].id);
-  return leaders;
+  return [...leaders];
 }
 
 // A random enemy bird for the debug PvE mode: any roster bird (active/working)
@@ -3475,6 +3490,22 @@ export async function countUnreadNotifications(userId: number): Promise<number> 
     console.error("countUnreadNotifications failed:", e);
     return 0;
   }
+}
+
+// HUD bell badge, cached per user. countUnreadNotifications fans out to ~13
+// feed getters incl. getProfileMetrics (~25 queries + hydrating every owned
+// bird) and the root layout runs it on EVERY render / router.refresh — the
+// hottest path in the app. A short TTL keeps the badge near-live; explicit
+// notification actions bust it via notifBadgeTag so clearing feels instant.
+export const NOTIF_BADGE_TTL_S = 60;
+export const notifBadgeTag = (userId: number) => `notif-badge:${userId}`;
+
+export function getCachedUnreadNotificationCount(userId: number): Promise<number> {
+  return unstable_cache(
+    () => countUnreadNotifications(userId),
+    ["notif-badge", String(userId)],
+    { revalidate: NOTIF_BADGE_TTL_S, tags: [notifBadgeTag(userId)] },
+  )();
 }
 
 export interface StationAlert {

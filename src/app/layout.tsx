@@ -12,7 +12,7 @@ import { getTranslations } from "@/i18n/server";
 import { getSession } from "@/lib/auth";
 import {
   getUserById,
-  countUnreadNotifications,
+  getCachedUnreadNotificationCount,
   getHudStationStats,
 } from "@/db/queries";
 import { isAdmin } from "@/lib/admin";
@@ -87,17 +87,17 @@ export default async function RootLayout({
   const devLocal = process.env.NODE_ENV !== "production";
   const shellUser: ShellUser | null =
     user ?? (devLocal ? { id: 0, name: "dev (guest)" } : null);
-  // Live Corn Coin balance from the DB (was hardcoded 0).
-  const dbUser = session ? await getUserById(session.id) : null;
-  // Unread notifications → HUD bell badge.
-  const notificationCount = session
-    ? await countUnreadNotifications(session.id)
-    : 0;
-  // Consolidated HUD station stats: base defense (Σ Crow) + live sci/day (lab) and
-  // egg/day (farm) income. Hourly = day/24, rounded; shown only when ≥ 1.
-  const hud = session
-    ? await getHudStationStats(session.id)
-    : { defenseValue: 0, sciPerDay: 0, eggPerDay: 0 };
+  // Live Corn Coin balance, unread notifications (HUD bell badge, cached per user
+  // — see getCachedUnreadNotificationCount) and consolidated HUD station stats:
+  // base defense (Σ Crow) + live sci/day (lab) and egg/day (farm) income.
+  // Independent → fetched in parallel. Hourly = day/24, rounded; shown only when ≥ 1.
+  const [dbUser, notificationCount, hud] = session
+    ? await Promise.all([
+        getUserById(session.id),
+        getCachedUnreadNotificationCount(session.id),
+        getHudStationStats(session.id),
+      ])
+    : [null, 0, { defenseValue: 0, sciPerDay: 0, eggPerDay: 0 }];
   const sciPerHour = Math.round(hud.sciPerDay / 24);
   const eggPerDay = Math.round(hud.eggPerDay);
   // Feathers regenerate 1/hour up to featherMax — compute the current value now.

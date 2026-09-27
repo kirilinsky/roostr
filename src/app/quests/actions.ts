@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { getSession } from "@/lib/auth";
-import { claimQuest } from "@/db/queries";
+import { claimQuest, notifBadgeTag } from "@/db/queries";
 
 // Claim a quest reward. Server-validated (the quest must be READY) + claim-once.
 // Revalidates the surfaces that show quest state / balances.
@@ -15,6 +15,7 @@ export async function claimQuestAction(
   if (res.ok) {
     revalidatePath(`/${session.id}`);
     revalidatePath("/notifications");
+    revalidateTag(notifBadgeTag(session.id));
   }
   return res;
 }

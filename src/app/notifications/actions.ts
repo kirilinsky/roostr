@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { getSession } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import {
@@ -8,6 +8,7 @@ import {
   markNotificationRead,
   claimNews,
   createNews,
+  notifBadgeTag,
 } from "@/db/queries";
 
 // Mark the feed read for the signed-in user (clears the HUD bell badge). Called
@@ -15,14 +16,18 @@ import {
 // prefetch / double render of the page can't clear the badge prematurely.
 export async function markNotificationsSeenAction(): Promise<void> {
   const session = await getSession();
-  if (session) await markNotificationsSeen(session.id);
+  if (!session) return;
+  await markNotificationsSeen(session.id);
+  revalidateTag(notifBadgeTag(session.id));
 }
 
 // Mark ONE feed item read — `key` is "<source>:<id>" (news:… | ach:… | dex:… |
 // friend:…). Used by the per-item ✓ button and fired on CTA clicks too.
 export async function markNotificationReadAction(key: string): Promise<void> {
   const session = await getSession();
-  if (session) await markNotificationRead(session.id, key);
+  if (!session) return;
+  await markNotificationRead(session.id, key);
+  revalidateTag(notifBadgeTag(session.id));
 }
 
 // Claim a news CTA (e.g. a promo's free egg). Once per user, server-validated.
@@ -32,7 +37,10 @@ export async function claimNewsAction(
   const session = await getSession();
   if (!session) return { ok: false };
   const res = await claimNews(session.id, newsId);
-  if (res.ok) revalidatePath("/notifications");
+  if (res.ok) {
+    revalidatePath("/notifications");
+    revalidateTag(notifBadgeTag(session.id));
+  }
   return { ok: res.ok };
 }
 
